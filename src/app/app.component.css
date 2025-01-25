@@ -3,32 +3,23 @@
     margin: 0;
     padding: 20px;
     box-sizing: border-box;
-    background: url('https://i.ibb.co/PF0qDGP/coding.webp') no-repeat center center;
+    background: url('https://i.ibb.co/092r1DH/angular.webp') no-repeat center center;
     background-size: cover;
+    background-position: center;
     background-attachment: fixed;
-    animation: slide-in-fwd-top 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; 
+
   }
   
+
+
   /* Contenido principal */
   .main-content {
     height: 79.7vh;
-    margin: 20px 0;
+    margin: 10rem 0;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   }
   
-  /* Animación */
-  @keyframes slide-in-fwd-top {
-    0% {
-      transform: translateZ(-1400px) translateY(-800px);
-      opacity: 0;
-    }
-    100% {
-      transform: translateZ(0) translateY(0);
-      opacity: 1;
-    }
-  }
+
   
 
   .title {
@@ -114,39 +105,22 @@
     }
   }
   
-
   .subtitle {
-    font-size: 2rem;  /* Puedes ajustar el tamaño según tu diseño */
-    color: white;      /* Un color más oscuro para contraste */
-    font-weight: 600;  /* Más grosor para darle presencia */
-    -webkit-animation: tracking-in-contract-bck-bottom 1.5s cubic-bezier(.215, .61, .355, 1.000) both;
-    animation: tracking-in-contract-bck-bottom 1.5s cubic-bezier(.215, .61, .355, 1.000) both;
-    animation-delay: 5s;
-    text-transform: uppercase;  /* Hace que el texto sea en mayúsculas */
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);  /* Agrega una sombra sutil para destacar */
+    padding: 2rem;
+    font-size: 2rem;  /* Ajusta el tamaño según tu diseño */
+    color: white;     /* Color inicial del texto */
+    font-weight: 600; /* Grosor del texto */
+    text-transform: uppercase; /* Convierte el texto a mayúsculas */
+    text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff4d4d, 0 0 40px #ff4d4d;
+    text-align: center;
+    animation: tracking-in-contract-bck-bottom 1.5s cubic-bezier(.215, .61, .355, 1.000) both, laser-glow 2s infinite alternate ease-in-out;
+    animation-delay: 4s, 1.5s; /* Retraso para que el brillo empiece tras la animación inicial */
   }
   
-  @-webkit-keyframes tracking-in-contract-bck-bottom {
-    0% {
-      letter-spacing: 1em;
-      -webkit-transform: translateZ(400px) translateY(300px);
-      transform: translateZ(400px) translateY(300px);
-      opacity: 0;
-    }
-    40% {
-      opacity: 0.6;
-    }
-    100% {
-      -webkit-transform: translateZ(0) translateY(0);
-      transform: translateZ(0) translateY(0);
-      opacity: 1;
-    }
-  }
-
+  /* Animación de entrada */
   @keyframes tracking-in-contract-bck-bottom {
     0% {
       letter-spacing: 1em;
-      -webkit-transform: translateZ(400px) translateY(300px);
       transform: translateZ(400px) translateY(300px);
       opacity: 0;
     }
@@ -154,9 +128,21 @@
       opacity: 0.6;
     }
     100% {
-      -webkit-transform: translateZ(0) translateY(0);
       transform: translateZ(0) translateY(0);
       opacity: 1;
+    }
+  }
+  
+  /* Efecto de láser */
+  @keyframes laser-glow {
+    0% {
+      text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff4d4d, 0 0 40px #ff4d4d;
+    }
+    50% {
+      text-shadow: 0 0 10px #ff1a1a, 0 0 20px #ff4d4d, 0 0 40px #ff6666, 0 0 60px #ff6666;
+    }
+    100% {
+      text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff4d4d, 0 0 40px #ff4d4d;
     }
   }
   
