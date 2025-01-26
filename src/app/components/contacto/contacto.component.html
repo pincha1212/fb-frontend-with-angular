@@ -1,0 +1,18 @@
+<div class="contacto-container">
+    <h2>Contacto</h2>
+    <div class="redes-sociales">
+        <a href="https://github.com/tu-usuario" target="_blank" rel="noopener" class="icon github">
+            <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="GitHub">
+        </a>
+        <a href="https://www.linkedin.com/in/tu-perfil/" target="_blank" rel="noopener" class="icon linkedin">
+            <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn">
+        </a>
+    </div>
+    <div class="correo-container">
+        <label for="correo">Mi correo:</label>
+        <div class="input-group">
+            <input type="text" id="correo" [value]="correo" readonly>
+            <button (click)="copiarCorreo()">Copiar</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,36 @@
+/* Contenedor principal */
+.experiencia-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  /* Título */
+  .experiencia-container h2 {
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 20px;
+    font-family: Arial, sans-serif;
+    text-transform: uppercase;
+  }
+  
+  /* Descripción */
+  .experiencia-container p {
+    font-size: 1.2rem;
+    color: #ddd;
+    font-weight: normal;
+    line-height: 1.5;
+  }
+  
+  /* Responsividad */
+  @media (max-width: 768px) {
+    .experiencia-container h2 {
+      font-size: 2rem;
+    }
+  
+    .experiencia-container p {
+      font-size: 1rem;
+    }
+  }
+  

@@ -1,0 +1,91 @@
+.contacto-container {
+    max-width: 800px;
+    margin: 20px auto;
+    text-align: center;
+    padding: 20px;
+    color: white;
+}
+
+.contacto-container h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    font-family: Arial, sans-serif;
+    text-transform: uppercase;
+}
+
+/* Redes sociales */
+.redes-sociales {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.redes-sociales .icon {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.redes-sociales .icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.redes-sociales .icon:hover {
+    transform: scale(1.1);
+}
+
+/* Correo */
+.correo-container {
+    margin-top: 20px;
+}
+
+.correo-container label {
+    display: block;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.input-group input {
+    width: 60%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.input-group button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.input-group button:hover {
+    background-color: #0056b3;
+}
