@@ -25,14 +25,5 @@
     line-height: 1.5;
   }
   
-  /* Responsividad */
-  @media (max-width: 768px) {
-    .experiencia-container h2 {
-      font-size: 2rem;
-    }
-  
-    .experiencia-container p {
-      font-size: 1rem;
-    }
-  }
+
   
