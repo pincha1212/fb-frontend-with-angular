@@ -3,8 +3,6 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  margin: 0;
-  padding: 20px;
   box-sizing: border-box;
   min-height: 100vh;
   background: url('https://i.ibb.co/092r1DH/angular.webp') no-repeat center center;
@@ -46,7 +44,7 @@
 .presentation{
   display: flex;
   justify-content: center; 
-  align-items: center;  
+  align-items: center;
 }
 
 /* Personalización por posición */
@@ -67,3 +65,42 @@
   width: 100vw;         
 }
 
+/* Animación de entrada (cuando el elemento entra en el viewport) */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animación de salida (cuando el elemento sale del viewport) */
+@keyframes fadeOutScale {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+
+
+/* Clases para activar las animaciones */
+.animate-in {
+  animation: fadeInScale 1s forwards;
+}
+
+.animate-out {
+  animation: fadeOutScale 1s forwards;
+}
+
+/* Otros estilos de la presentación */
+.presentation, .right-aligned, .left-aligned, .spaced-centered {
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
