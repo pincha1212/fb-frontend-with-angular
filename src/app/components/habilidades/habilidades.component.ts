@@ -11,11 +11,11 @@ import { Component } from '@angular/core';
 })
 export class HabilidadesComponent  {
   habilidades: { nombre: string, icono: string }[] = [
-    { nombre: '', icono: 'https://cdn-icons-png.flaticon.com/512/732/732212.png' },
-    { nombre: '', icono: 'https://cdn-icons-png.flaticon.com/512/732/732190.png' },
-    { nombre: '', icono: 'https://cdn-icons-png.flaticon.com/512/5968/5968292.png' },
-    { nombre: '', icono: 'https://i.ibb.co/HYGFjmL/angular.png' },
-    { nombre: '', icono: 'https://cdn-icons-png.flaticon.com/512/5968/5968381.png' },
+    { nombre: 'HTML', icono: 'https://cdn-icons-png.flaticon.com/512/732/732212.png' },
+    { nombre: 'CSS', icono: 'https://cdn-icons-png.flaticon.com/512/732/732190.png' },
+    { nombre: 'JavaScript', icono: 'https://cdn-icons-png.flaticon.com/512/5968/5968292.png' },
+    { nombre: 'Angular', icono: 'https://i.ibb.co/HYGFjmL/angular.png' },
+    { nombre: 'TypeScript', icono: 'https://cdn-icons-png.flaticon.com/512/5968/5968381.png' },
   ];
   
 }
