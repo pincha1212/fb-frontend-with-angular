@@ -1,9 +1,10 @@
 /* Contenedor principal */
 .habilidades-container {
   max-width: 800px;
-  margin: 0 auto;
+  margin: 1rem;
   padding: 20px;
   text-align: center;
+  
 }
 
 /* Título */
@@ -13,6 +14,8 @@
   margin-bottom: 20px;
   font-family: Arial, sans-serif;
   text-transform: uppercase;
+  display: flex; /* Activa flexbox solo para este contenedor */
+  justify-content: flex-end; /* Alinea los elementos al inicio */
 }
 
 /* Lista */

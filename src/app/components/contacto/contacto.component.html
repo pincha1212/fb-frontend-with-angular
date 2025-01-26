@@ -1,5 +1,5 @@
 <div class="contacto-container">
-    <h2>Contacto</h2>
+    <h2>ESCRÍBEME...</h2>
     <div class="redes-sociales">
         <a href="https://github.com/tu-usuario" target="_blank" rel="noopener" class="icon github">
             <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="GitHub">
@@ -9,10 +9,9 @@
         </a>
     </div>
     <div class="correo-container">
-        <label for="correo">Mi correo:</label>
         <div class="input-group">
-            <input type="text" id="correo" [value]="correo" readonly>
-            <button (click)="copiarCorreo()">Copiar</button>
+            <input type="text" id="correo" [value]="correo" readonly aria-label="copiar correo">
+            <button (click)="copiarCorreo()"> 📋 </button>
         </div>
     </div>
 </div>

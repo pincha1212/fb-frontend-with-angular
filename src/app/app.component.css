@@ -1,26 +1,23 @@
 .background {
-  display: flex; /* Asegura que los hijos sigan un flujo organizado */
-  flex-direction: column; /* Apila los hijos verticalmente */
-  align-items: center; /* Centra los hijos horizontalmente */
-  justify-content: flex-start; /* Coloca los hijos al inicio vertical */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   margin: 0;
   padding: 20px;
   box-sizing: border-box;
-  min-height: 100vh; /* Asegura que el fondo cubra al menos toda la pantalla */
+  min-height: 100vh;
   background: url('https://i.ibb.co/092r1DH/angular.webp') no-repeat center center;
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  overflow: hidden; /* Evita que los hijos sobresalgan */
+  overflow: hidden; 
 }
 
 
 /* Contenido principal */
 .main-content {
-  max-width: 1200px; /* Limita el ancho del contenido */
-  margin: 0 auto; /* Centra horizontalmente */
-  padding: 20px; /* Espaciado interno */
-  box-sizing: border-box; /* Asegura que el padding no afecte las dimensiones */
+  max-width: 1200px; 
 }
 
 /* Título principal */
@@ -46,3 +43,27 @@
   text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff4d4d, 0 0 40px #ff4d4d;
   text-align: center;
 }
+.presentation{
+  display: flex;
+  justify-content: center; 
+  align-items: center;  
+}
+
+/* Personalización por posición */
+.left-aligned {
+  display: flex; 
+  justify-content: flex-start; 
+  align-items: center; 
+}
+
+.right-aligned {
+  display: flex; 
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.left-aligned, .right-aligned, .spaced-centered {
+  height: 100vh;          
+  width: 100vw;         
+}
+
