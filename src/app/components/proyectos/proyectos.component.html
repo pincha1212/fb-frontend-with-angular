@@ -1,0 +1,34 @@
+<article class="proyectos-container">
+  <h2>UX/UI...</h2>
+  <div class="proyectos-grid">
+    <article class="proyecto-card card-base" *ngFor="let proyecto of proyectos">
+      <div class="proyecto-imagen">
+        <img [src]="proyecto.imagen" 
+             [alt]="proyecto.titulo"
+             [title]="proyecto.titulo"
+             loading="lazy">
+      </div>
+      <div class="proyecto-info">
+        <h3>{{ proyecto.titulo }}</h3>
+        <p>{{ proyecto.descripcion }}</p>
+        <div class="tecnologias">
+          <span *ngFor="let tech of proyecto.tecnologias">{{ tech }}</span>
+        </div>
+        <a [href]="proyecto.link" target="_blank" rel="noopener" class="proyecto-link">
+          <i class="fas fa-code-branch"></i> Ver Proyecto
+        </a>
+      </div>
+    </article>
+    <div class="proyecto-card mas-proyectos-card">
+      <div class="mas-proyectos-content">
+        <i class="fas fa-folder-plus"></i>
+        <h3>Más Proyectos</h3>
+        <p>Descubre más de mis trabajos</p>
+        <a href="#" class="mas-proyectos-btn">
+          <span>Ver más</span>
+          <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</article>

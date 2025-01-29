@@ -1,0 +1,175 @@
+.proyectos-container {
+  padding: 1.5rem;
+  color: white;
+}
+
+.proyectos-container h2 {
+  font-size: 2.5rem;
+  color: white;
+  margin-bottom: 20px;
+  font-family: Arial, sans-serif;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.proyectos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+}
+
+.proyecto-card {
+  /* otros estilos específicos */
+}
+
+.proyecto-card:hover {
+  transform: translateY(-5px);
+}
+
+.proyecto-imagen {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+}
+
+.proyecto-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.proyecto-card:hover .proyecto-imagen img {
+  transform: scale(1.05);
+}
+
+.proyecto-info {
+  padding: 1rem;
+}
+
+.proyecto-info h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
+  color: #fff;
+}
+
+.proyecto-info p {
+  margin-bottom: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+  font-size: 0.9rem;
+}
+
+.tecnologias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tecnologias span {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.proyecto-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #fff;
+  text-decoration: none;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.proyecto-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+  .proyectos-container {
+    padding: 1rem;
+  }
+
+  .proyectos-grid {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .proyecto-card {
+    margin-bottom: 1rem;
+  }
+
+  .proyectos-container h2 {
+    font-size: 2rem;
+  }
+}
+
+.mas-proyectos-container {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.mas-proyectos-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  min-height: 160px;
+}
+
+.mas-proyectos-content {
+  padding: 1rem;
+}
+
+.mas-proyectos-content .fa-folder-plus {
+  font-size: 2rem;
+  margin-bottom: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mas-proyectos-content h3 {
+  margin-bottom: 0.5rem;
+}
+
+.mas-proyectos-content p {
+  margin-bottom: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mas-proyectos-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 1.2rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-decoration: none;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.mas-proyectos-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.mas-proyectos-btn i {
+  transition: transform 0.3s ease;
+}
+
+.mas-proyectos-btn:hover i {
+  transform: translateX(5px);
+}

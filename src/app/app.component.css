@@ -49,7 +49,7 @@
 }
 
 .presentation, .right-aligned, .left-aligned, .spaced-centered {
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   display: flex;
   transition: opacity 0.1s linear, transform 0.1s linear;
@@ -95,7 +95,13 @@
 .animate-in { animation: fadeInScale 2s forwards; }
 .animate-out { animation: fadeOutScale 2s forwards; }
 
-.contact-container { height: 70vh; }
+.contact-container { 
+  min-height: calc(100vh - 3rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .contact-wrapper {
   width: 100%;
   max-width: 800px;
@@ -120,6 +126,8 @@
   
   .presentation, .left-aligned, .right-aligned, .spaced-centered {
     flex-direction: column;
+    min-height: auto;
+    padding: 3rem 0;
   }
   
   .right-aligned, .left-aligned, .spaced-centered {
@@ -131,6 +139,15 @@
     box-shadow: none !important;
     border: none !important;
     justify-content: center;
+  }
+  
+  .presentation {
+    min-height: 100vh;
+  }
+  
+  .contact-container {
+    min-height: auto;
+    padding: 4rem 0;
   }
 }
 

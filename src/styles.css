@@ -20,3 +20,47 @@ html, body {
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Estilos comunes para títulos de sección */
+h2 {
+  font-size: 2.5rem;
+  color: white;
+  margin-bottom: 20px;
+  font-family: Arial, sans-serif;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: inherit;
+}
+
+/* Estilos comunes para cards */
+.card-base {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+/* Estilos comunes para links */
+.link-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.link-base:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Media queries comunes */
+@media (max-width: 768px) {
+  h2 {
+    font-size: 2rem;
+  }
+}

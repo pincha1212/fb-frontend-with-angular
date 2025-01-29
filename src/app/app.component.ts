@@ -1,5 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { HabilidadesComponent } from "./components/habilidades/habilidades.component";
+import { ProyectosComponent } from "./components/proyectos/proyectos.component";
 import { ExperienciaComponent } from "./components/experiencia/experiencia.component";
 import { ContactoComponent } from "./components/contacto/contacto.component";
 import { ScrollAnimationDirective } from './scroll-animation.directive';
@@ -9,6 +10,7 @@ import { ScrollbarIndicatorComponent } from './components/scrollbar-indicator/sc
   selector: 'app-root',
   standalone: true,
   imports: [HabilidadesComponent,
+    ProyectosComponent,
     ExperienciaComponent,
     ContactoComponent,
     ScrollAnimationDirective, ScrollbarIndicatorComponent],
