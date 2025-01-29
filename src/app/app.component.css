@@ -25,21 +25,28 @@
   color: #fff;
   text-align: center;
   text-transform: uppercase;
-  text-shadow: 0 0 30px rgba(255, 255, 255, 0.6),
-               0 0 60px rgba(255, 255, 255, 0.45),
-               0 0 110px rgba(255, 255, 255, 0.25),
-               0 0 100px rgba(255, 255, 255, 0.1);
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.4),
+               0 0 60px rgba(71, 98, 177, 0.4),
+               0 0 110px rgba(71, 98, 177, 0.2);
+  letter-spacing: 2px;
+}
+
+.title .name {
+  display: inline-block;
+  white-space: nowrap;
 }
 
 /* Subtítulo */
 .subtitle {
   padding: 2rem;
   font-size: 2rem;
-  color: white;
+  color: #e0e0e0;
   font-weight: 600;
   text-transform: uppercase;
-  text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff4d4d, 0 0 40px #ff4d4d;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.4),
+               0 0 30px rgba(71, 98, 177, 0.3);
   text-align: center;
+  letter-spacing: 1.5px;
 }
 .presentation{
   display: flex;
@@ -69,11 +76,15 @@
 @keyframes fadeInScale {
   0% {
     opacity: 0;
-    transform: scale(0.5);
+    transform: scale(0.95) translateY(20px);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.97) translateY(10px);
   }
   100% {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -81,11 +92,11 @@
 @keyframes fadeOutScale {
   0% {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
   100% {
     opacity: 0;
-    transform: scale(0.5);
+    transform: scale(0.95) translateY(20px);
   }
 }
 
@@ -102,7 +113,7 @@
 
 /* Otros estilos de la presentación */
 .presentation, .right-aligned, .left-aligned, .spaced-centered {
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition: opacity 0.1s linear, transform 0.1s linear;
 }
 
 
@@ -110,10 +121,12 @@
 @media (max-width: 768px) {
   .title {
     font-size: 2.5rem;
+    letter-spacing: 1.5px;
   }
   .subtitle {
     font-size: 1.5rem;
-    padding: 1rem;
+    letter-spacing: 1px;
+    padding: 1.5rem;
   }
   .presentation, .left-aligned, .right-aligned, .spaced-centered {
     flex-direction: column;
@@ -121,4 +134,342 @@
   .left-aligned, .right-aligned {
     justify-content: center;
   }
+}
+
+/* Nueva estructura de secciones */
+.section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  color: #fff;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+/* Hero section */
+.hero-content {
+  text-align: center;
+  position: relative;
+}
+
+/* Indicador de scroll mejorado */
+.scroll-indicator {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 100;
+}
+
+.scroll-indicator .fa-mouse {
+  font-size: 1.2rem;
+  opacity: 0.7;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  text-shadow: 0 0 10px rgba(71, 98, 177, 0.4);
+  animation: mouseFloat 2s ease-in-out infinite;
+  margin: 0.3rem 0;
+}
+
+/* Estados del mouse */
+.scroll-indicator .fa-mouse.mouse-top {
+  color: #ff4444;
+  text-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+}
+
+.scroll-indicator .fa-mouse.mouse-middle {
+  color: #ffeb3b;
+  text-shadow: 0 0 10px rgba(255, 235, 59, 0.4);
+}
+
+.scroll-indicator .fa-mouse.mouse-bottom {
+  color: #ff4444;
+  text-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+}
+
+/* Transición suave entre colores */
+.scroll-indicator .fa-mouse {
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.arrows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.scroll-indicator .fa-chevron-down {
+  font-size: 0.9rem;
+  opacity: 0;
+  text-shadow: 0 0 10px rgba(71, 98, 177, 0.4);
+}
+
+.arrow-1 {
+  animation: arrowFade 2s ease-in-out infinite;
+}
+
+.arrow-2 {
+  animation: arrowFade 2s ease-in-out infinite 0.2s;
+}
+
+.arrow-3 {
+  animation: arrowFade 2s ease-in-out infinite 0.4s;
+}
+
+@keyframes mouseFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes arrowFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.scroll-indicator:hover .fa-mouse {
+  opacity: 1;
+  transform: translateY(-3px);
+  text-shadow: 0 0 15px rgba(71, 98, 177, 0.6);
+}
+
+/* Secciones específicas */
+.skills-section {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.experience-section {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.contact-section {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .section {
+    padding: 1rem;
+    min-height: auto;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .scroll-indicator {
+    display: none;
+  }
+}
+
+/* Ajustes de posicionamiento */
+.right-aligned {
+  position: relative;
+  width: 75%;
+  padding: 2rem;
+  backdrop-filter: blur(5px);
+  border-radius: 2px;
+}
+
+.left-aligned {
+  position: relative;
+  width: 75%;
+  padding: 2rem;
+  backdrop-filter: blur(5px);
+  border-filter: blur(5px);
+  border-radius: 2px;
+}
+
+.spaced-centered {
+  width: 55%;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .right-aligned,
+  .left-aligned,
+  .spaced-centered {
+    width: 85%;
+    margin: 1rem auto;
+    padding: 1.5rem;
+  }
+
+  .scroll-indicator {
+    display: none;
+  }
+}
+
+/* Animación especial para la F */
+.title span.glitch-letter {
+  position: relative;
+  display: inline-block;
+  color: #fff;
+}
+
+.title span.glitch-letter::before,
+.title span.glitch-letter::after {
+  content: 'F';
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.8;
+}
+
+.title span.glitch-letter::before {
+  animation: glitch-1 4s infinite linear alternate-reverse;
+  color: #00ffff;
+  left: 2px;
+}
+
+.title span.glitch-letter::after {
+  animation: glitch-2 3s infinite linear alternate-reverse;
+  color: #ff00ff;
+  left: -2px;
+}
+
+@keyframes glitch-1 {
+  0%, 100% { 
+    opacity: 0;
+    transform: translate(0);
+  }
+  50% { 
+    opacity: 0.3;
+    transform: translate(-2px, 2px);
+  }
+  85% { 
+    opacity: 0.3;
+    transform: translate(2px, -2px);
+  }
+}
+
+@keyframes glitch-2 {
+  0%, 100% { 
+    opacity: 0;
+    transform: translate(0);
+  }
+  50% { 
+    opacity: 0.3;
+    transform: translate(2px, -2px);
+  }
+  85% { 
+    opacity: 0.3;
+    transform: translate(-2px, 2px);
+  }
+}
+
+/* Contenedor de contacto ajustado */
+.contact-container {
+  height: 70vh; /* Reducimos la altura del contenedor */
+}
+
+.contact-wrapper {
+  width: 100%;
+  max-width: 800px; /* O el ancho que prefieras */
+  margin: 0 auto;
+}
+
+.up-arrows {
+  margin-bottom: 0.5rem;
+}
+
+.down-arrows {
+  margin-top: 0.5rem;
+}
+
+.arrow-up-1 {
+  animation: arrowFadeUp 2s ease-in-out infinite;
+}
+
+.arrow-up-2 {
+  animation: arrowFadeUp 2s ease-in-out infinite 0.2s;
+}
+
+.arrow-up-3 {
+  animation: arrowFadeUp 2s ease-in-out infinite 0.4s;
+}
+
+@keyframes arrowFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* Ajustamos el gap general del indicador */
+.scroll-indicator {
+  gap: 0.5rem;
+}
+
+/* Ajustamos el tamaño de las flechas */
+.scroll-indicator .fa-chevron-up,
+.scroll-indicator .fa-chevron-down {
+  font-size: 0.9rem;
+}
+
+/* Ajustamos el tamaño del mouse */
+.scroll-indicator .fa-mouse {
+  font-size: 1.2rem;
+  margin: 0.3rem 0;
+}
+
+.arrows.hidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 0.3s, opacity 0.3s linear;
+}
+
+.arrows {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.3s linear;
 }
