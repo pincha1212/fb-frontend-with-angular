@@ -12,7 +12,11 @@
         <h3>{{ proyecto.titulo }}</h3>
         <p>{{ proyecto.descripcion }}</p>
         <div class="tecnologias">
-          <span *ngFor="let tech of proyecto.tecnologias">{{ tech }}</span>
+          <span *ngFor="let tech of proyecto.tecnologias" 
+                [style.background-color]="getTechColor(tech)"
+                [style.color]="tech === 'JavaScript' || tech === 'API' ? '#000' : '#fff'">
+            {{ tech }}
+          </span>
         </div>
         <a [href]="proyecto.link" target="_blank" rel="noopener" class="proyecto-link">
           <i class="fas fa-code-branch"></i> Ver Proyecto

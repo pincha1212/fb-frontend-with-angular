@@ -9,13 +9,23 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./proyectos.component.css']
 })
 export class ProyectosComponent {
+  techColors: { [key: string]: string } = {
+    'JavaScript': '#f7df1e',
+    'HTML': '#e34c26',
+    'CSS': '#264de4',
+    'API': '#00ff95',
+    'React': '#61dafb',
+    'Angular': '#dd1b16',
+    'TypeScript': '#007acc'
+  };
+
   proyectos = [
     {
       titulo: 'Netflix Clone',
       descripcion: 'Replica de app de streaming con TMDB',
       tecnologias: ['JavaScript', 'CSS', 'HTML', 'API'],
       imagen: 'URL_DE_TU_NETFLIX_CLONE',
-      link: 'https://github.com/tu-usuario/netflix-clone'
+      link: 'https://pincha1212.github.io/netflix-clon/'
     },
     {
       titulo: 'Weather App',
@@ -32,4 +42,8 @@ export class ProyectosComponent {
       link: 'https://github.com/tu-usuario/calculator'
     }
   ];
+
+  getTechColor(tech: string): string {
+    return this.techColors[tech] || '#ffffff';
+  }
 }
