@@ -1,7 +1,8 @@
-import { Directive, ElementRef, Renderer2, HostListener } from '@angular/core';
+import { Directive, ElementRef, Renderer2 } from '@angular/core';
 
 @Directive({
   selector: '[appScrollAnimation]',
+  standalone: true,
 })
 export class ScrollAnimationDirective {
   private observer: IntersectionObserver | null = null;
@@ -11,30 +12,39 @@ export class ScrollAnimationDirective {
     this.isMobile = window.innerWidth < 768;
 
     if (!this.isMobile) {
-      const thresholdArray = Array.from({ length: 100 }, (_, i) => i / 100);
-      
       this.observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            const elementCenter = entry.boundingClientRect.top + 
-                                (entry.boundingClientRect.height / 2);
-            const windowHeight = window.innerHeight;
-            const windowCenter = windowHeight / 2;
+            // Calculamos qué tan visible está el elemento
+            const intersectionRatio = entry.intersectionRatio;
             
-            // Simplificamos el cálculo para centrarlo mejor
-            const maxDistance = windowHeight / 2;
-            const distance = Math.abs(elementCenter - windowCenter);
-            let progress = 1 - (distance / maxDistance);
+            // Obtenemos la posición relativa del elemento en la ventana
+            const elementRect = entry.boundingClientRect;
+            const viewportHeight = window.innerHeight;
             
-            // Aseguramos que el progreso esté entre 0 y 1
+            // Calculamos qué tan centrado está el elemento
+            const elementCenter = elementRect.top + (elementRect.height / 2);
+            const viewportCenter = viewportHeight / 2;
+            const distanceFromCenter = Math.abs(elementCenter - viewportCenter);
+            const maxDistance = viewportHeight / 2;
+            
+            // Combinamos visibilidad y centralidad
+            const centerRatio = 1 - (distanceFromCenter / maxDistance);
+            let progress = Math.min(intersectionRatio, centerRatio);
+            
+            // Si está muy cerca del centro, forzamos 100%
+            if (centerRatio > 0.8 && intersectionRatio > 0.8) {
+              progress = 1;
+            }
+            
             progress = Math.max(0, Math.min(1, progress));
             
             this.el.nativeElement.style.opacity = progress;
-            this.el.nativeElement.style.transform = `scale(${0.7 + (progress * 0.3)})`;
+            this.el.nativeElement.style.transform = `scale(${0.8 + (progress * 0.2)})`;
           });
         },
         {
-          threshold: thresholdArray,
+          threshold: Array.from({ length: 100 }, (_, i) => i / 100),
           rootMargin: "0px"
         }
       );
@@ -43,42 +53,9 @@ export class ScrollAnimationDirective {
     }
   }
 
-  @HostListener('window:resize') onResize() {
-    const wasMobile = this.isMobile;
-    this.isMobile = window.innerWidth < 768;
-
-    if (!wasMobile && this.isMobile) {
-      this.observer?.disconnect();
-      this.observer = null;
-      this.el.nativeElement.style.opacity = 1;
-      this.el.nativeElement.style.transform = 'none';
-    } else if (wasMobile && !this.isMobile) {
-      const thresholdArray = Array.from({ length: 100 }, (_, i) => i / 100);
-      
-      this.observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            const elementCenter = entry.boundingClientRect.top + 
-                                (entry.boundingClientRect.height / 2);
-            const windowHeight = window.innerHeight;
-            const windowCenter = windowHeight / 2;
-            
-            const maxDistance = windowHeight / 2;
-            const distance = Math.abs(elementCenter - windowCenter);
-            let progress = 1 - (distance / maxDistance);
-            
-            progress = Math.max(0, Math.min(1, progress));
-            
-            this.el.nativeElement.style.opacity = progress;
-            this.el.nativeElement.style.transform = `scale(${0.7 + (progress * 0.3)})`;
-          });
-        },
-        {
-          threshold: thresholdArray,
-          rootMargin: "0px"
-        }
-      );
-      this.observer.observe(this.el.nativeElement);
+  ngOnDestroy() {
+    if (this.observer) {
+      this.observer.disconnect();
     }
   }
 }

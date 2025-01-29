@@ -3,13 +3,15 @@ import { HabilidadesComponent } from "./components/habilidades/habilidades.compo
 import { ExperienciaComponent } from "./components/experiencia/experiencia.component";
 import { ContactoComponent } from "./components/contacto/contacto.component";
 import { ScrollAnimationDirective } from './scroll-animation.directive';
+import { ScrollbarIndicatorComponent } from './components/scrollbar-indicator/scrollbar-indicator.component';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [HabilidadesComponent,
-     ExperienciaComponent,
-      ContactoComponent,
-      ScrollAnimationDirective],
+    ExperienciaComponent,
+    ContactoComponent,
+    ScrollAnimationDirective, ScrollbarIndicatorComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })

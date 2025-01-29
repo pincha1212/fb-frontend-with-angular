@@ -1,0 +1,86 @@
+.scroll-indicator {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 100;
+}
+
+.fa-mouse {
+  font-size: 1.2rem;
+  opacity: 0.7;
+  margin: 0.3rem 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease, text-shadow 0.3s ease;
+  text-shadow: 0 0 10px rgba(71, 98, 177, 0.4);
+  animation: mouseFloat 2s ease-in-out infinite;
+}
+
+.mouse-top, .mouse-bottom {
+  color: #ff4444;
+  text-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+}
+
+.mouse-middle {
+  color: #ffeb3b;
+  text-shadow: 0 0 10px rgba(255, 235, 59, 0.4);
+}
+
+.arrows {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.3s linear;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.arrows.hidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 0.3s, opacity 0.3s linear;
+}
+
+.up-arrows { margin-bottom: 0.5rem; }
+.down-arrows { margin-top: 0.5rem; }
+
+.fa-chevron-up,
+.fa-chevron-down {
+  font-size: 0.9rem;
+  opacity: 0;
+  text-shadow: 0 0 10px rgba(71, 98, 177, 0.4);
+}
+
+@keyframes mouseFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes arrowFade {
+  0% { opacity: 0; transform: translateY(-8px); }
+  50% { opacity: 0.7; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes arrowFadeUp {
+  0% { opacity: 0; transform: translateY(8px); }
+  50% { opacity: 0.7; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+.arrow-1 { animation: arrowFade 2s ease-in-out infinite; }
+.arrow-2 { animation: arrowFade 2s ease-in-out infinite 0.2s; }
+.arrow-3 { animation: arrowFade 2s ease-in-out infinite 0.4s; }
+.arrow-up-1 { animation: arrowFadeUp 2s ease-in-out infinite; }
+.arrow-up-2 { animation: arrowFadeUp 2s ease-in-out infinite 0.2s; }
+.arrow-up-3 { animation: arrowFadeUp 2s ease-in-out infinite 0.4s; }
+
+@media (max-width: 768px) {
+  .scroll-indicator {
+    display: none !important;
+  }
+}

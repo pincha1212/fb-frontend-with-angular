@@ -17,22 +17,7 @@
     <div class="spaced-centered contact-container" appScrollAnimation>
       <app-contacto class="contact-wrapper"></app-contacto>
     </div>
-
-    <div class="scroll-indicator">
-      <div class="arrows up-arrows" [class.hidden]="!showUpArrows">
-        <i class="fas fa-chevron-up arrow-up-1"></i>
-        <i class="fas fa-chevron-up arrow-up-2"></i>
-        <i class="fas fa-chevron-up arrow-up-3"></i>
-      </div>
-      <i class="fas fa-mouse" [class.mouse-top]="mouseState === 'top'"
-                         [class.mouse-middle]="mouseState === 'middle'"
-                         [class.mouse-bottom]="mouseState === 'bottom'"></i>
-      <div class="arrows down-arrows" [class.hidden]="!showDownArrows">
-        <i class="fas fa-chevron-down arrow-1"></i>
-        <i class="fas fa-chevron-down arrow-2"></i>
-        <i class="fas fa-chevron-down arrow-3"></i>
-      </div>
-    </div>
+    <app-scroll-indicator></app-scroll-indicator>
   </div>
 </div>
   
