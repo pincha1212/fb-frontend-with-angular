@@ -13,6 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
+            "baseHref": "/fb-frontend-with-angular/",
             "outputPath": "dist/fb-frontend-with-angular",
             "index": "src/index.html",
             "browser": "src/main.ts",
@@ -33,6 +34,9 @@
           },
           "configurations": {
             "production": {
+              "optimization": {
+                "styles": true
+              },
               "budgets": [
                 {
                   "type": "initial",

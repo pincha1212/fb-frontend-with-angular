@@ -1,3 +1,22 @@
 *{
     margin: 0;
 }
+
+/* Ocultar scrollbar para todos los elementos */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* Ocultar scrollbar para WebKit (Chrome, Safari, etc.) */
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  background: transparent !important;
+}
+
+/* Asegurar que el body y html permitan scroll */
+html, body {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
