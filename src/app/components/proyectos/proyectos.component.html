@@ -3,18 +3,14 @@
   <div class="proyectos-grid">
     <article class="proyecto-card card-base" *ngFor="let proyecto of proyectos">
       <div class="proyecto-imagen">
-        <img [src]="proyecto.imagen" 
-             [alt]="proyecto.titulo"
-             [title]="proyecto.titulo"
-             loading="lazy">
+        <img [src]="proyecto.imagen" [alt]="proyecto.titulo" [title]="proyecto.titulo" loading="lazy">
       </div>
       <div class="proyecto-info">
         <h3>{{ proyecto.titulo }}</h3>
         <p>{{ proyecto.descripcion }}</p>
         <div class="tecnologias">
-          <span *ngFor="let tech of proyecto.tecnologias" 
-                [style.background-color]="getTechColor(tech)"
-                [style.color]="tech === 'JavaScript' || tech === 'API' ? '#000' : '#fff'">
+          <span *ngFor="let tech of proyecto.tecnologias" [style.background-color]="getTechColor(tech)"
+            [style.color]="tech === 'JavaScript' || tech === 'API' ? '#000' : '#fff'">
             {{ tech }}
           </span>
         </div>
