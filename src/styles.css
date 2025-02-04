@@ -1,5 +1,6 @@
-*{
+* {
     margin: 0;
+    cursor: url('https://i.ibb.co/jZf7jff7/cursor-espada.png'), auto; /* Default cursor */
 }
 
 /* Ocultar scrollbar para todos los elementos */
@@ -21,6 +22,13 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Cursor para enlaces, imágenes y botones con animación */
+a, img, button {
+  cursor: url('https://i.ibb.co/CsYqwwyX/cursor-pico.png') 16 16, pointer;
+}
+
+
+
 /* Estilos comunes para títulos de sección */
 h2 {
   font-size: 2.5rem;
@@ -41,21 +49,18 @@ h2 {
   transition: transform 0.3s ease;
 }
 
-/* Estilos comunes para links */
-.link-base {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #fff;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  transition: background 0.3s ease;
+/* Animación de vibración para el cursor de espada */
+@keyframes shake {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(2px, -2px); }
+  100% { transform: translate(-2px, 2px); }
 }
 
-.link-base:hover {
-  background: rgba(255, 255, 255, 0.2);
+/* Animación de "crecimiento" para el cursor de pico */
+@keyframes grow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 /* Media queries comunes */
