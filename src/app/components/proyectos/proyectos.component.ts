@@ -21,11 +21,18 @@ export class ProyectosComponent {
 
   proyectos = [
     {
-      titulo: 'Netflix Clone',
-      descripcion: 'Replica de app de streaming con TMDB',
+      titulo: 'Clon de página de peliculas',
+      descripcion: 'APP de streaming con TMDB',
       tecnologias: ['JavaScript', 'CSS', 'HTML', 'API'],
       imagen: 'https://i.ibb.co/cKq3tqcH/netfliz-clone.jpg',
-      link: 'https://pincha1212.github.io/netflix-clon/'
+      link: 'https://pincha1212.github.io/FDPelis/'
+    },    
+    {
+      titulo: 'Clon de página de peliculas',
+      descripcion: 'APP de streaming con TMDB',
+      tecnologias: ['JavaScript', 'CSS', 'HTML', 'API'],
+      imagen: 'https://i.ibb.co/cKq3tqcH/netfliz-clone.jpg',
+      link: 'https://pincha1212.github.io/FDPelis/'
     },
     {
       titulo: 'Weather App',
