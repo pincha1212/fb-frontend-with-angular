@@ -20,9 +20,8 @@
   max-width: 1200px;
 }
 
-.proyecto-card {
-  /* otros estilos específicos */
-}
+/* .proyecto-card {
+} */
 
 .proyecto-card:hover {
   transform: translateY(-5px);
