@@ -33,7 +33,7 @@ export class ScrollAnimationDirective {
             let progress = Math.min(intersectionRatio, centerRatio);
             
             // Si está muy cerca del centro, forzamos 100%
-            if (centerRatio > 0.8 && intersectionRatio > 0.8) {
+            if (centerRatio > 0.10 && intersectionRatio > 0.10) {
               progress = 1;
             }
             

@@ -8,10 +8,40 @@
             <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn">
         </a>
     </div>
+    
     <div class="correo-container">
-        <div class="input-group">
-            <input type="text" id="correo" [value]="correo" readonly aria-label="copiar correo">
-            <button (click)="copiarCorreo()"> 📋 </button>
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" id="correo" [value]="correo" readonly aria-label="copiar correo">
+            <button class="btn btn-outline-secondary" (click)="copiarCorreo()"> 📋 </button>
         </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <button class="btn btn-primary mb-3" (click)="toggleForm()">
+            {{ mostrarFormulario ? 'Ocultar formulario' : 'O llena este formulario' }}
+        </button>
+        
+        <form *ngIf="mostrarFormulario" 
+              class="container mt-3" 
+              style="max-width: 500px;"
+              action="https://formspree.io/f/xdkezazb"
+              method="POST">
+            <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Correo electrónico</label>
+                <input type="email" name="_replyto" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Mensaje</label>
+                <textarea name="message" class="form-control" rows="4" required></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-success">Enviar mensaje</button>
+        </form>
     </div>
 </address>
