@@ -1,47 +1,64 @@
 <address class="contacto-container">
-    <h2>ESCRÍBEME...</h2>
-    <div class="redes-sociales">
-        <a href="https://github.com/pincha1212" target="_blank" rel="noopener" aria-label="Visita mi perfil de GitHub" class="icon github">
-            <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="GitHub">
-        </a>
-        <a href="https://www.linkedin.com/in/federico-barzola-7138b3216/" target="_blank" rel="noopener" class="icon linkedin">
-            <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn">
-        </a>
-    </div>
-    
-    <div class="correo-container">
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" id="correo" [value]="correo" readonly aria-label="copiar correo">
-            <button class="btn btn-outline-secondary" (click)="copiarCorreo()"> 📋 </button>
-        </div>
-    </div>
+  <h2>ESCRÍBEME...</h2>
 
-    <div class="text-center mt-4">
-        <button class="btn btn-primary mb-3" (click)="toggleForm()">
-            {{ mostrarFormulario ? 'Ocultar formulario' : 'O llena este formulario' }}
-        </button>
-        
-        <form *ngIf="mostrarFormulario" 
-              class="container mt-3" 
-              style="max-width: 500px;"
-              action="https://formspree.io/f/xdkezazb"
-              method="POST">
-            <div class="mb-3">
-                <label class="form-label">Nombre</label>
-                <input type="text" name="name" class="form-control" required>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">Correo electrónico</label>
-                <input type="email" name="_replyto" class="form-control" required>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">Mensaje</label>
-                <textarea name="message" class="form-control" rows="4" required></textarea>
-            </div>
-            
-            <button type="submit" class="btn btn-success">Enviar mensaje</button>
-        </form>
+  <!-- Redes sociales -->
+  <div class="redes-sociales">
+    <a href="https://github.com/pincha1212" target="_blank" rel="noopener" aria-label="GitHub" class="icon github">
+      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="GitHub">
+    </a>
+    <a href="https://www.linkedin.com/in/federico-barzola-7138b3216/" target="_blank" rel="noopener" aria-label="LinkedIn" class="icon linkedin">
+      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn">
+    </a>
+  </div>
+
+  <!-- Correo con copiado -->
+  <div class="correo-container">
+    <div class="input-group">
+      <input type="text" class="form-control" [value]="correo" readonly aria-label="copiar correo" id="correo">
+      <button class="btn btn-outline-secondary" (click)="copiarCorreo()" [class.copiado]="copiado">
+        {{ copiado ? '✔' : '📋' }}
+      </button>
     </div>
+    <!-- Mensaje de estado para copiado -->
+    <div *ngIf="mensajeEstado && !mostrarFormulario" class="estado-mensaje" [class.exito]="mensajeExito" [class.error]="!mensajeExito">
+      {{ mensajeEstado }}
+    </div>
+  </div>
+
+  <!-- Botón toggle y formulario -->
+  <div class="text-center mt-4">
+    <button class="btn btn-primary mb-3" (click)="toggleForm()">
+      {{ mostrarFormulario ? '✕ Cerrar formulario' : '✉️ O llena este formulario' }}
+    </button>
+
+    <form *ngIf="mostrarFormulario" 
+          class="container mt-3" 
+          style="max-width: 500px;"
+          #contactForm="ngForm"
+          (ngSubmit)="enviarFormulario(contactForm)">
+      <div class="mb-3">
+        <label class="form-label">Nombre</label>
+        <input type="text" name="name" class="form-control" required ngModel>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" name="_replyto" class="form-control" required ngModel>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Mensaje</label>
+        <textarea name="message" class="form-control" rows="4" required ngModel></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-success" [disabled]="enviando || !contactForm.valid">
+        {{ enviando ? 'Enviando...' : 'Enviar mensaje' }}
+      </button>
+
+      <!-- Mensaje de estado dentro del formulario -->
+      <div *ngIf="mensajeEstado && mostrarFormulario" class="estado-mensaje mt-3" [class.exito]="mensajeExito" [class.error]="!mensajeExito">
+        {{ mensajeEstado }}
+      </div>
+    </form>
+  </div>
 </address>
