@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "baseHref": "/fb-frontend-with-angular/",
+            "baseHref": "/",
             "outputPath": "dist/fb-frontend-with-angular",
             "index": "src/index.html",
             "browser": "src/main.ts",
@@ -61,6 +61,11 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "port": 3000,
+            "host": "0.0.0.0",
+            "disableHostCheck": true
+          },
           "configurations": {
             "production": {
               "buildTarget": "fb-frontend-with-angular:build:production"
