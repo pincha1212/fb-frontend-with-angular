@@ -57,6 +57,22 @@ interface CollectibleCrystal {
   rotationSpeed: number;
 }
 
+interface AlienRaider {
+  group: THREE.Group;
+  velocity: THREE.Vector3;
+  phase: number;
+  orbitRadius: number;
+  fireCooldown: number;
+  integrity: number;
+}
+
+interface CombatBolt {
+  mesh: THREE.Mesh;
+  velocity: THREE.Vector3;
+  remaining: number;
+  side: 'player' | 'raider';
+}
+
 @Component({
   selector: 'app-space-playground',
   standalone: true,
@@ -82,6 +98,11 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
   // Reactive UI signals
   speedKmh = signal(0);
+  headingDegrees = signal(0);
+  pitchDegrees = signal(0);
+  hullIntegrity = signal(100);
+  activeRaiders = signal(0);
+  combatMessage = signal('');
   turboActive = signal(false);
   crystalsCollected = signal(0);
   totalCrystals = signal(8);
@@ -104,65 +125,65 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     {
       id: 'st-sobre-mi',
       sectionId: 'sobre-mi',
-      name: 'Estación Alpha-1: Sobre Mí',
-      subtitle: 'Módulo de Bio & Formación Académica UNCuyo',
+      name: 'Perfil',
+      subtitle: 'Mendoza · Formación en Geotecnologías',
       icon: '👤',
       position: { x: -85, z: -70 },
-      color: 0x00f0ff,
-      glowHex: '#00f0ff',
-      description: 'Estación orbital de biografía y estudios. Especialista Frontend, geotecnologías UNCuyo y desarrollo de juegos web.',
+      color: 0xd0aa73,
+      glowHex: '#d0aa73',
+      description: 'Desarrollo front-end, proyectos interactivos y formación en Geotecnologías en la Universidad Nacional de Cuyo.',
       tags: ['UNCuyo', 'Frontend', 'Game Dev', 'Mendoza'],
       ctaLabel: 'Abrir Perfil Completo'
     },
     {
       id: 'st-habilidades',
       sectionId: 'habilidades',
-      name: 'Reactor Núcleo: Tecnologías',
-      subtitle: 'Matriz de Energía Canvas 2D, Angular & SIG',
+      name: 'Tecnologías',
+      subtitle: 'Desarrollo web · Juegos · Geotecnologías',
       icon: '⚡',
       position: { x: 90, z: -65 },
-      color: 0xbd00ff,
-      glowHex: '#bd00ff',
-      description: 'Reactor técnico cuántico. Dominio de HTML5, CSS3, JavaScript, Canvas 2D, QGIS SIG, Angular y arquitecturas modernas.',
+      color: 0x91ab93,
+      glowHex: '#91ab93',
+      description: 'Herramientas y tecnologías aplicadas a las interfaces web, los juegos y la información geográfica.',
       tags: ['Canvas 2D', 'Angular', 'TypeScript', 'QGIS SIG'],
       ctaLabel: 'Ver Matriz de Habilidades'
     },
     {
       id: 'st-proyectos',
       sectionId: 'proyectos',
-      name: 'Astillero Estelar: Proyectos',
-      subtitle: 'Bahía de Construcción & Demos Interactivas',
+      name: 'Proyectos',
+      subtitle: 'Aplicaciones y experimentos personales',
       icon: '💻',
       position: { x: 0, z: -150 },
-      color: 0x00ff88,
-      glowHex: '#00ff88',
-      description: 'Astillero espacial con los proyectos destacados: videojuego 2D Clash of Gods, Geovisor SIG, CineApp y demos en vivo.',
+      color: 0x98aeb1,
+      glowHex: '#98aeb1',
+      description: 'Juegos web, mapas, aplicaciones de consulta y herramientas cotidianas que fui construyendo.',
       tags: ['Clash of Gods', 'Geovisor SIG', 'CineApp', '5 Proyectos'],
       ctaLabel: 'Explorar Proyectos'
     },
     {
       id: 'st-experiencia',
       sectionId: 'experiencia',
-      name: 'Muelle Orbital: Trayectoria',
-      subtitle: 'Bitácora NoCountry & Trabajo Colaborativo',
+      name: 'Trayectoria',
+      subtitle: 'Formación y trabajo colaborativo',
       icon: '🚀',
       position: { x: -95, z: 80 },
-      color: 0xffaa00,
-      glowHex: '#ffaa00',
-      description: 'Muelle de vuelo con el registro de misiones en equipo, metodologías ágiles, simulación NoCountry y formación UNCuyo.',
+      color: 0xc58c67,
+      glowHex: '#c58c67',
+      description: 'Experiencia práctica en equipos, desarrollo colaborativo y formación académica.',
       tags: ['NoCountry', 'Agile / Scrum', 'Teamwork', 'UNCuyo'],
       ctaLabel: 'Ver Trayectoria'
     },
     {
       id: 'st-contacto',
       sectionId: 'contacto',
-      name: 'Antena de Comms: Contacto',
-      subtitle: 'Matriz Satelital de Transmisión Directa',
+      name: 'Contacto',
+      subtitle: 'Correo, GitHub y LinkedIn',
       icon: '✉️',
       position: { x: 95, z: 85 },
-      color: 0xff3366,
-      glowHex: '#ff3366',
-      description: 'Estación de transmisión profunda: canal directo con Mendoza, Argentina. Enlace a correo, WhatsApp, GitHub y LinkedIn.',
+      color: 0xd0aa73,
+      glowHex: '#d0aa73',
+      description: 'Canales directos para conversar sobre proyectos, desarrollo web o geotecnologías.',
       tags: ['fedebarzola7@gmail.com', 'Mendoza', 'LinkedIn', 'GitHub'],
       ctaLabel: 'Enviar Mensaje'
     }
@@ -207,17 +228,24 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     backward: false,
     left: false,
     right: false,
-    boost: false
+    boost: false,
+    fire: false
   };
 
   // Interactive scene entities
   private physicsBoxes: PhysicsBox[] = [];
   private crystals: CollectibleCrystal[] = [];
-  private stationMeshes: { group: THREE.Group; data: StationData; beacon: THREE.Mesh }[] = [];
+  private stationMeshes: { group: THREE.Group; data: StationData; beacon: THREE.Mesh; satelliteRig: THREE.Group }[] = [];
   private thrusterParticles: { pos: THREE.Vector3; vel: THREE.Vector3; life: number; maxLife: number }[] = [];
   private thrusterParticlesGeometry!: THREE.BufferGeometry;
   private thrusterParticlesMesh!: THREE.Points;
   private boostPads: { x: number; z: number; mesh: THREE.Mesh }[] = [];
+  private alienRaiders: AlienRaider[] = [];
+  private combatBolts: CombatBolt[] = [];
+  private encounteredStationIds = new Set<string>();
+  private combatCooldown = 0;
+  private hullRegenCooldown = 0;
+  private combatMessageTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Reusable math objects (Zero GC in tick)
   private readonly _vecA = new THREE.Vector3();
@@ -234,6 +262,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.isDestroyed = true;
+    if (this.combatMessageTimeout) clearTimeout(this.combatMessageTimeout);
     if (this.animFrameId) {
       cancelAnimationFrame(this.animFrameId);
     }
@@ -311,8 +340,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     container.appendChild(this.renderer.domElement);
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x050711);
-    this.scene.fog = new THREE.FogExp2(0x050711, 0.009);
+    this.scene.background = new THREE.Color(0x080e12);
+    this.scene.fog = new THREE.FogExp2(0x080e12, 0.009);
 
     this.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 400);
     this.camera.position.set(0, 15, 25);
@@ -332,10 +361,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   // ==========================================
   private buildSpaceScene(): void {
     // 1. Balanced Lighting Rig
-    const ambientLight = new THREE.AmbientLight(0x1a243b, 1.2);
+    const ambientLight = new THREE.AmbientLight(0x526562, 0.85);
     this.scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x1e1035, 1.0);
+    const hemiLight = new THREE.HemisphereLight(0x899e9c, 0x292a25, 0.8);
     this.scene.add(hemiLight);
 
     const keySun = new THREE.DirectionalLight(0xfff5e6, 2.2);
@@ -356,7 +385,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.scene.add(keySun);
 
     // Blue rim light for dramatic cosmic contrast
-    const rimLight = new THREE.DirectionalLight(0x6366f1, 1.4);
+    const rimLight = new THREE.DirectionalLight(0x748685, 0.7);
     rimLight.position.set(-50, 20, -50);
     this.scene.add(rimLight);
 
@@ -481,7 +510,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
   private buildStationDeck(): void {
     // Open Deep Space Navigational Waypoint Grid (No floor platform box)
-    const gridHelper = new THREE.GridHelper(400, 40, 0x00f0ff, 0x1e293b);
+    const gridHelper = new THREE.GridHelper(400, 40, 0x677f7a, 0x26383d);
     gridHelper.position.y = -0.5;
     const gridMat = gridHelper.material as THREE.Material;
     gridMat.transparent = true;
@@ -490,12 +519,12 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // Glowing Hyper-Lane Waypoint Lines connecting Central Sector to Outposts
     const hyperLineMat = new THREE.LineDashedMaterial({
-      color: 0x00f0ff,
+      color: 0xa39a79,
       dashSize: 3,
       gapSize: 2,
       scale: 1,
       transparent: true,
-      opacity: 0.4
+      opacity: 0.22
     });
 
     this.stations.forEach(st => {
@@ -544,52 +573,99 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       ringMesh.position.y = 0.42;
       group.add(ringMesh);
 
-      // Central Holo Beacon Pedestal
-      const pedestalGeo = new THREE.CylinderGeometry(1.2, 1.8, 2.0, 8);
-      const pedestalMat = new THREE.MeshStandardMaterial({
-        color: 0x1e293b,
-        roughness: 0.3,
-        metalness: 0.9
-      });
-      const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
-      pedestal.position.y = 1.0;
-      pedestal.castShadow = !this.isSoftwareGl;
-      group.add(pedestal);
+      // Compact orbital platform: habitat, service truss, radiator wings and antenna.
+      const satelliteRig = new THREE.Group();
+      const hullMat = new THREE.MeshStandardMaterial({ color: 0x586661, roughness: 0.62, metalness: 0.72 });
+      const edgeMat = new THREE.MeshStandardMaterial({ color: 0x89928a, roughness: 0.42, metalness: 0.78 });
+      const panelMat = new THREE.MeshStandardMaterial({ color: 0x243b46, roughness: 0.48, metalness: 0.58 });
+      const cellMat = new THREE.MeshStandardMaterial({ color: 0x395767, roughness: 0.4, metalness: 0.52 });
+      const accentMat = new THREE.MeshStandardMaterial({ color: st.color, emissive: st.color, emissiveIntensity: 0.13, roughness: 0.4, metalness: 0.52 });
 
-      // Floating Hologram Core (Rotating Polyhedron)
-      const holoGeo = new THREE.OctahedronGeometry(1.2, 0);
-      const holoMat = new THREE.MeshStandardMaterial({
-        color: st.color,
-        emissive: st.color,
-        emissiveIntensity: 0.6,
-        roughness: 0.2,
-        metalness: 0.8,
-        wireframe: false
-      });
-      const holoMesh = new THREE.Mesh(holoGeo, holoMat);
-      holoMesh.position.y = 3.2;
-      group.add(holoMesh);
+      const truss = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 15.5, 8), edgeMat);
+      truss.rotation.z = Math.PI / 2;
+      truss.position.set(0, 4.65, 0);
+      satelliteRig.add(truss);
 
-      // Vertical Hologram Light Pillar (Transparent cone/cylinder)
-      const pillarGeo = new THREE.CylinderGeometry(1.4, 3.8, 12, 16, 1, true);
-      const pillarMat = new THREE.MeshBasicMaterial({
-        color: st.color,
-        transparent: true,
-        opacity: 0.18,
-        side: THREE.DoubleSide,
-        depthWrite: false
-      });
-      const pillar = new THREE.Mesh(pillarGeo, pillarMat);
-      pillar.position.y = 6.2;
-      group.add(pillar);
+      const habitat = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.22, 4.7, 12), hullMat);
+      habitat.rotation.x = Math.PI / 2;
+      habitat.position.set(0, 5.15, 0);
+      habitat.castShadow = !this.isSoftwareGl;
+      satelliteRig.add(habitat);
+
+      const nosePort = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.76, 0.38, 12), edgeMat);
+      nosePort.rotation.x = Math.PI / 2;
+      nosePort.position.set(0, 5.15, 2.48);
+      satelliteRig.add(nosePort);
+
+      const aftPort = nosePort.clone();
+      aftPort.position.z = -2.48;
+      satelliteRig.add(aftPort);
+
+      const centerBand = new THREE.Mesh(new THREE.TorusGeometry(1.13, 0.09, 6, 18), accentMat);
+      centerBand.rotation.x = Math.PI / 2;
+      centerBand.position.set(0, 5.15, 0);
+      satelliteRig.add(centerBand);
+
+      const panelFrameGeo = new THREE.BoxGeometry(4.3, 0.12, 2.75);
+      const panelCellGeo = new THREE.BoxGeometry(1.03, 0.055, 2.62);
+      for (const side of [-1, 1]) {
+        const wingRoot = new THREE.Group();
+        wingRoot.position.set(side * 5.55, 4.65, 0);
+        const frame = new THREE.Mesh(panelFrameGeo, edgeMat);
+        wingRoot.add(frame);
+        for (let cell = 0; cell < 4; cell++) {
+          const panel = new THREE.Mesh(panelCellGeo, cell % 2 === 0 ? panelMat : cellMat);
+          panel.position.x = (cell - 1.5) * 1.07;
+          panel.position.y = 0.09;
+          wingRoot.add(panel);
+        }
+        satelliteRig.add(wingRoot);
+        const brace = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 3.9, 6), edgeMat);
+        brace.rotation.z = side < 0 ? -0.28 : 0.28;
+        brace.position.set(side * 3.4, 4.68, 0);
+        satelliteRig.add(brace);
+      }
+
+      const dishMast = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 1.7, 8), edgeMat);
+      dishMast.position.set(0, 7.2, -1.4);
+      satelliteRig.add(dishMast);
+      const dish = new THREE.Mesh(new THREE.SphereGeometry(0.82, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), hullMat);
+      dish.position.set(0, 8.05, -1.4);
+      dish.rotation.x = Math.PI / 2.8;
+      satelliteRig.add(dish);
+
+      const beaconGeo = new THREE.SphereGeometry(0.22, 10, 8);
+      const beaconMat = new THREE.MeshBasicMaterial({ color: st.color });
+      const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+      beacon.position.set(0, 7.15, 1.65);
+      satelliteRig.add(beacon);
+
+      // Two small relay satellites circle the main habitat on a quiet orbit.
+      const relayGeo = new THREE.BoxGeometry(0.72, 0.62, 1.1);
+      const relayMat = new THREE.MeshStandardMaterial({ color: 0x77827b, roughness: 0.52, metalness: 0.68 });
+      for (const side of [-1, 1]) {
+        const relay = new THREE.Group();
+        relay.position.set(side * 10.7, 6.3, side * 3.5);
+        const relayBody = new THREE.Mesh(relayGeo, relayMat);
+        relay.add(relayBody);
+        const relayPanel = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 0.82), panelMat);
+        relayPanel.position.x = side * 1.45;
+        relay.add(relayPanel);
+        const relayLink = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 2.3, 5), edgeMat);
+        relayLink.rotation.z = Math.PI / 2;
+        relayLink.position.x = side * 0.9;
+        relay.add(relayLink);
+        satelliteRig.add(relay);
+      }
+      group.add(satelliteRig);
 
       // Station ground marker label in canvas
       const labelCanvas = document.createElement('canvas');
       labelCanvas.width = 256;
       labelCanvas.height = 128;
       const lctx = labelCanvas.getContext('2d')!;
-      lctx.fillStyle = st.glowHex;
-      lctx.font = 'bold 36px sans-serif';
+      lctx.fillStyle = '#d6b779';
+      lctx.font = '600 32px sans-serif';
       lctx.textAlign = 'center';
       lctx.fillText(st.icon + ' ' + st.name.split(':')[0], 128, 70);
 
@@ -608,7 +684,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       group.add(labelMesh);
 
       this.scene.add(group);
-      this.stationMeshes.push({ group, data: st, beacon: holoMesh });
+      this.stationMeshes.push({ group, data: st, beacon, satelliteRig });
     });
   }
 
@@ -621,7 +697,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     });
 
     const canisterMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,
+      color: 0xd4a76a,
       roughness: 0.3,
       metalness: 0.8
     });
@@ -694,11 +770,11 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       // Inner glowing core
       const coreGeo = new THREE.OctahedronGeometry(0.85, 0);
       const coreMat = new THREE.MeshStandardMaterial({
-        color: 0x38bdf8,
-        emissive: 0x0284c7,
-        emissiveIntensity: 0.8,
-        roughness: 0.1,
-        metalness: 0.9
+        color: 0xb48d58,
+        emissive: 0x805927,
+        emissiveIntensity: 0.28,
+        roughness: 0.42,
+        metalness: 0.62
       });
       const core = new THREE.Mesh(coreGeo, coreMat);
       group.add(core);
@@ -706,10 +782,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       // Outer wireframe cage
       const cageGeo = new THREE.IcosahedronGeometry(1.2, 0);
       const cageMat = new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
+        color: 0x8c9b88,
         wireframe: true,
         transparent: true,
-        opacity: 0.7
+        opacity: 0.38
       });
       const cage = new THREE.Mesh(cageGeo, cageMat);
       group.add(cage);
@@ -717,10 +793,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       // Floor glow disc
       const glowGeo = new THREE.RingGeometry(0.4, 1.4, 16);
       const glowMat = new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
+        color: 0xb48d58,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.4
+        opacity: 0.16
       });
       const glow = new THREE.Mesh(glowGeo, glowMat);
       glow.rotation.x = -Math.PI / 2;
@@ -753,11 +829,11 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       padCanvas.width = 128;
       padCanvas.height = 256;
       const pctx = padCanvas.getContext('2d')!;
-      pctx.fillStyle = '#0f172a';
+      pctx.fillStyle = '#111918';
       pctx.fillRect(0, 0, 128, 256);
 
-      // Draw 3 bright cyan arrows pointing forward
-      pctx.fillStyle = '#00f0ff';
+      // Subtle amber markings identify the impulse lane.
+      pctx.fillStyle = '#b99a67';
       for (let i = 0; i < 3; i++) {
         const y = 60 + i * 65;
         pctx.beginPath();
@@ -797,9 +873,9 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // Primary Silhouette: Sleek Aerodynamic Fuselage
     const hullMat = new THREE.MeshStandardMaterial({
-      color: 0x0f172a, // Deep slate space carbon
-      roughness: 0.25,
-      metalness: 0.85
+      color: 0x454e49,
+      roughness: 0.52,
+      metalness: 0.68
     });
 
     const hullGeo = new THREE.ConeGeometry(1.2, 5.0, 6);
@@ -812,14 +888,14 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // Secondary Read: Cockpit Glass Canopy
     const canopyMat = new THREE.MeshPhysicalMaterial({
-      color: 0x00f0ff,
-      emissive: 0x00f0ff,
-      emissiveIntensity: 0.45,
-      roughness: 0.1,
-      metalness: 0.9,
-      transmission: this.isSoftwareGl ? 0 : 0.6,
+      color: 0x657c7b,
+      emissive: 0x182a2c,
+      emissiveIntensity: 0.12,
+      roughness: 0.18,
+      metalness: 0.38,
+      transmission: this.isSoftwareGl ? 0 : 0.28,
       transparent: true,
-      opacity: 0.9
+      opacity: 0.76
     });
     const canopyGeo = new THREE.SphereGeometry(0.7, 12, 12);
     const canopy = new THREE.Mesh(canopyGeo, canopyMat);
@@ -829,7 +905,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // Swept Delta Wings (Left & Right)
     const wingMat = new THREE.MeshStandardMaterial({
-      color: 0x1e293b,
+      color: 0x28312f,
       roughness: 0.3,
       metalness: 0.8
     });
@@ -867,7 +943,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // Wingtip Vertical Stabilizer Fins
     const finMat = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff,
+      color: 0x74816e,
       roughness: 0.2,
       metalness: 0.9
     });
@@ -905,7 +981,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // Glowing Plasma Exhaust Cones
     const plasmaMat = new THREE.MeshBasicMaterial({
-      color: 0x00f0ff
+      color: 0xc39a62
     });
     const exhaustGeo = new THREE.ConeGeometry(0.38, 1.2, 12);
 
@@ -961,6 +1037,214 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     }
   }
 
+  private buildRaiderShip(): THREE.Group {
+    const ship = new THREE.Group();
+    const shell = new THREE.MeshStandardMaterial({ color: 0x343b37, roughness: 0.34, metalness: 0.78, flatShading: true });
+    const wingMat = new THREE.MeshStandardMaterial({ color: 0x4b443d, roughness: 0.4, metalness: 0.7, flatShading: true, side: THREE.DoubleSide });
+    const sensorMat = new THREE.MeshStandardMaterial({ color: 0xa65d43, emissive: 0x9b3828, emissiveIntensity: 0.8, roughness: 0.25, metalness: 0.45 });
+    const engineMat = new THREE.MeshBasicMaterial({ color: 0xe0905d });
+
+    const body = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), shell);
+    body.scale.set(1.15, 0.46, 1.82);
+    ship.add(body);
+
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(0.52, 10, 7), wingMat);
+    crown.scale.set(0.74, 0.82, 1.0);
+    crown.position.set(0, 0.25, -0.08);
+    ship.add(crown);
+
+    const wingShape = new THREE.Shape();
+    wingShape.moveTo(0, 0.48);
+    wingShape.lineTo(2.55, -0.1);
+    wingShape.lineTo(2.05, -1.06);
+    wingShape.lineTo(0.32, -0.63);
+    wingShape.closePath();
+    const wingGeometry = new THREE.ExtrudeGeometry(wingShape, { depth: 0.16, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 0.04, bevelThickness: 0.04 });
+    for (const side of [-1, 1]) {
+      const wing = new THREE.Mesh(wingGeometry, wingMat);
+      wing.rotation.x = Math.PI / 2;
+      wing.scale.x = side;
+      wing.position.set(side * 0.7, -0.04, -0.12);
+      ship.add(wing);
+
+      const cannon = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.0, 7), shell);
+      cannon.rotation.x = Math.PI / 2;
+      cannon.position.set(side * 0.57, -0.1, 1.18);
+      ship.add(cannon);
+
+      const engine = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.32, 0.82, 9), shell);
+      engine.rotation.x = Math.PI / 2;
+      engine.position.set(side * 0.67, -0.05, -1.42);
+      ship.add(engine);
+      const exhaust = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.48, 8), engineMat);
+      exhaust.rotation.x = -Math.PI / 2;
+      exhaust.position.set(side * 0.67, -0.05, -2.02);
+      ship.add(exhaust);
+    }
+
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.21, 10, 8), sensorMat);
+    eye.position.set(0, 0.18, 1.05);
+    ship.add(eye);
+    const dorsalSpine = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.15, 7), shell);
+    dorsalSpine.rotation.x = Math.PI / 2;
+    dorsalSpine.position.set(0, 0.36, -0.7);
+    ship.add(dorsalSpine);
+    ship.traverse(object => {
+      if ((object as THREE.Mesh).isMesh) object.castShadow = !this.isSoftwareGl;
+    });
+    return ship;
+  }
+
+  private beginStationEncounter(station: StationData): void {
+    if (this.encounteredStationIds.has(station.id)) return;
+    this.encounteredStationIds.add(station.id);
+
+    const count = 2 + Math.floor(Math.random() * 2);
+    for (let index = 0; index < count; index++) {
+      const phase = (index / count) * Math.PI * 2 + Math.random() * 0.45;
+      const ship = this.buildRaiderShip();
+      const orbitRadius = 22 + Math.random() * 8;
+      ship.position.set(
+        this.shipPosition.x + Math.cos(phase) * orbitRadius,
+        2 + Math.random() * 5,
+        this.shipPosition.z + Math.sin(phase) * orbitRadius
+      );
+      ship.lookAt(this.shipPosition);
+      this.scene.add(ship);
+      this.alienRaiders.push({
+        group: ship,
+        velocity: new THREE.Vector3(),
+        phase,
+        orbitRadius,
+        fireCooldown: 1.2 + Math.random() * 1.5,
+        integrity: 4
+      });
+    }
+
+    this.activeRaiders.set(this.alienRaiders.length);
+    this.setCombatMessage(`CONTACTO HOSTIL · ${count} NAVES`);
+    this.playChime([480, 360]);
+  }
+
+  private setCombatMessage(message: string, duration = 3600): void {
+    this.combatMessage.set(message);
+    if (this.combatMessageTimeout) clearTimeout(this.combatMessageTimeout);
+    this.combatMessageTimeout = setTimeout(() => this.combatMessage.set(''), duration);
+  }
+
+  firePlayerWeapons(): void {
+    if (this.alienRaiders.length === 0 || this.combatCooldown > 0) return;
+    this.combatCooldown = 0.22;
+    const heading = this.shipRotationY;
+    const forward = new THREE.Vector3(Math.sin(heading), 0, Math.cos(heading));
+    const lateral = new THREE.Vector3(Math.cos(heading), 0, -Math.sin(heading));
+    const direction = forward.clone().normalize();
+    for (const side of [-1, 1]) {
+      const origin = this.shipPosition.clone().addScaledVector(forward, 2.4).addScaledVector(lateral, side * 0.62);
+      origin.y += 0.05;
+      const bolt = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.035, 0.035, 1.4, 6),
+        new THREE.MeshBasicMaterial({ color: 0xe6bd79 })
+      );
+      bolt.position.copy(origin);
+      bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+      this.scene.add(bolt);
+      this.combatBolts.push({ mesh: bolt, velocity: direction.clone().multiplyScalar(105), remaining: 2.6, side: 'player' });
+    }
+    this.playChime([720, 540]);
+  }
+
+  private fireRaiderWeapons(raider: AlienRaider): void {
+    const direction = this.shipPosition.clone().add(new THREE.Vector3(0, 0.3, 0)).sub(raider.group.position).normalize();
+    const bolt = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.06, 0.06, 1.7, 6),
+      new THREE.MeshBasicMaterial({ color: 0xb8563e })
+    );
+    bolt.position.copy(raider.group.position).addScaledVector(direction, 2.2);
+    bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+    this.scene.add(bolt);
+    this.combatBolts.push({ mesh: bolt, velocity: direction.multiplyScalar(38), remaining: 4.5, side: 'raider' });
+  }
+
+  private updateCombat(delta: number): void {
+    this.combatCooldown = Math.max(0, this.combatCooldown - delta);
+    this.hullRegenCooldown = Math.max(0, this.hullRegenCooldown - delta);
+    if (this.hullRegenCooldown === 0 && this.hullIntegrity() < 100) {
+      this.hullIntegrity.update(value => Math.min(100, value + delta * 3.5));
+    }
+    if ((this.keysPressed['f'] || this.touchState.fire) && this.combatCooldown <= 0) this.firePlayerWeapons();
+
+    for (const raider of this.alienRaiders) {
+      raider.phase += delta * (raider.velocity.x >= 0 ? 0.28 : -0.28);
+      const target = new THREE.Vector3(
+        this.shipPosition.x + Math.cos(raider.phase) * raider.orbitRadius,
+        2.4 + Math.sin(this.elapsedTime * 1.1 + raider.phase) * 2.0,
+        this.shipPosition.z + Math.sin(raider.phase) * raider.orbitRadius
+      );
+      const toTarget = target.sub(raider.group.position);
+      const desiredVelocity = toTarget.lengthSq() > 0.01 ? toTarget.normalize().multiplyScalar(8.5) : new THREE.Vector3();
+      raider.velocity.lerp(desiredVelocity, Math.min(1, delta * 1.6));
+      raider.group.position.addScaledVector(raider.velocity, delta);
+      raider.group.lookAt(this.shipPosition.x, this.shipPosition.y + 0.2, this.shipPosition.z);
+      raider.group.rotation.z = Math.sin(this.elapsedTime * 1.6 + raider.phase) * 0.08;
+      raider.fireCooldown -= delta;
+      if (raider.fireCooldown <= 0 && raider.group.position.distanceTo(this.shipPosition) < 105) {
+        this.fireRaiderWeapons(raider);
+        raider.fireCooldown = 1.55 + Math.random() * 1.25;
+      }
+    }
+
+    for (let boltIndex = this.combatBolts.length - 1; boltIndex >= 0; boltIndex--) {
+      const bolt = this.combatBolts[boltIndex];
+      bolt.remaining -= delta;
+      bolt.mesh.position.addScaledVector(bolt.velocity, delta);
+      let consumed = bolt.remaining <= 0;
+
+      if (!consumed && bolt.side === 'raider' && bolt.mesh.position.distanceTo(this.shipPosition) < 2.0) {
+        this.hullIntegrity.update(value => Math.max(0, value - 9));
+        this.hullRegenCooldown = 4.5;
+        this.playThump();
+        this.setCombatMessage(`IMPACTO · CASCO ${Math.round(this.hullIntegrity())}%`, 1900);
+        if (this.hullIntegrity() === 0) {
+          this.shipSpeed = 0;
+          this.hullIntegrity.set(42);
+          this.setCombatMessage('CASCO CRÍTICO · SISTEMA DE RESPALDO ACTIVO', 3200);
+        }
+        consumed = true;
+      } else if (!consumed && bolt.side === 'player') {
+        const hitIndex = this.alienRaiders.findIndex(raider => bolt.mesh.position.distanceTo(raider.group.position) < 2.2);
+        if (hitIndex >= 0) {
+          const target = this.alienRaiders[hitIndex];
+          target.integrity -= 1;
+          const hull = target.group.children[0] as THREE.Mesh;
+          if (hull.material instanceof THREE.MeshStandardMaterial) hull.material.emissive.setHex(0x5b251b);
+          if (target.integrity <= 0) {
+            this.scene.remove(target.group);
+            target.group.traverse(object => {
+              const mesh = object as THREE.Mesh;
+              if (!mesh.isMesh) return;
+              mesh.geometry.dispose();
+              const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+              materials.forEach(material => material.dispose());
+            });
+            this.alienRaiders.splice(hitIndex, 1);
+            this.activeRaiders.set(this.alienRaiders.length);
+            this.setCombatMessage(this.alienRaiders.length === 0 ? 'SECTOR DESPEJADO' : `OBJETIVO NEUTRALIZADO · ${this.alienRaiders.length} RESTANTES`, 2600);
+            this.playChime([440, 554, 659]);
+          }
+          consumed = true;
+        }
+      }
+
+      if (consumed) {
+        this.scene.remove(bolt.mesh);
+        bolt.mesh.geometry.dispose();
+        (bolt.mesh.material as THREE.Material).dispose();
+        this.combatBolts.splice(boltIndex, 1);
+      }
+    }
+  }
+
   private buildThrusterParticles(): void {
     const maxParticles = 60;
     this.thrusterParticlesGeometry = new THREE.BufferGeometry();
@@ -968,7 +1252,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.thrusterParticlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     const pMat = new THREE.PointsMaterial({
-      color: 0x00f0ff,
+      color: 0xc39a62,
       size: 1.2,
       transparent: true,
       opacity: 0.8
@@ -1117,12 +1401,13 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   };
 
   // Touch Virtual Controls
-  setTouchControl(control: 'forward' | 'backward' | 'left' | 'right' | 'boost', state: boolean): void {
+  setTouchControl(control: 'forward' | 'backward' | 'left' | 'right' | 'boost' | 'fire', state: boolean): void {
     this.touchState[control] = state;
     if (control === 'boost') {
       this.isBoosting = state;
       this.turboActive.set(state);
     }
+    if (control === 'fire') this.touchState.fire = state;
   }
 
   resetShipPosition(): void {
@@ -1165,6 +1450,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         this.shipSpeed = 0;
         this.shipRotationY = 0; // face station
         this.dockedStation.set(st);
+        this.beginStationEncounter(st);
         this.isWarping.set(false);
         this.playChime([440, 554, 659]);
       }
@@ -1173,15 +1459,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
   setCameraMode(mode: 'chase' | 'cockpit' | 'top' | 'cinematic'): void {
     this.cameraMode.set(mode);
-  }
-
-  onCinemaModeChange(active: boolean): void {
-    this.isCinema.set(active);
-    if (active) {
-      this.cameraMode.set('cinematic');
-    } else {
-      this.cameraMode.set('chase');
-    }
+    this.isCinema.set(mode === 'cinematic');
   }
 
   onLoadCustomGlb(event: any): void {
@@ -1249,7 +1527,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   cycleCamera(): void {
     const modes: ('chase' | 'cockpit' | 'top' | 'cinematic')[] = ['chase', 'cockpit', 'top', 'cinematic'];
     const nextIdx = (modes.indexOf(this.cameraMode()) + 1) % modes.length;
-    this.cameraMode.set(modes[nextIdx]);
+    this.setCameraMode(modes[nextIdx]);
   }
 
   toggleDock(): void {
@@ -1287,6 +1565,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       this.elapsedTime += delta;
 
       this.updatePhysics(delta);
+      this.updateCombat(delta);
       this.updateCrystals(delta);
       this.updateStations(delta);
       this.updateParticles(delta);
@@ -1450,6 +1729,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // UI Signal update (Kmh conversion)
     this.speedKmh.set(Math.round(Math.abs(this.shipSpeed) * 12));
+    this.headingDegrees.set(((Math.round(THREE.MathUtils.radToDeg(this.shipRotationY)) % 360) + 360) % 360);
+    this.pitchDegrees.set(Math.round(THREE.MathUtils.radToDeg(this.shipPitch)));
 
     // Update real-time dynamic radar blips
     const radarRange = 180.0;
@@ -1471,7 +1752,22 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         station: st
       };
     });
-    this.radarBlips.set(computedBlips);
+    const hostileBlips = this.alienRaiders.map((raider, index) => {
+      const dx = raider.group.position.x - this.shipPosition.x;
+      const dz = raider.group.position.z - this.shipPosition.z;
+      const angle = -this.shipRotationY;
+      const rxRel = dx * Math.cos(angle) - dz * Math.sin(angle);
+      const rzRel = dx * Math.sin(angle) + dz * Math.cos(angle);
+      return {
+        x: Math.max(12, Math.min(88, 50 + (rxRel / radarRange) * 38)),
+        y: Math.max(12, Math.min(88, 50 - (rzRel / radarRange) * 38)),
+        label: `Hostil ${index + 1}`,
+        color: '#bd6b4f',
+        station: null,
+        isHostile: true
+      };
+    });
+    this.radarBlips.set([...computedBlips, ...hostileBlips]);
   }
 
   private emitThrusterParticle(): void {
@@ -1556,8 +1852,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     this.stationMeshes.forEach(sm => {
       sm.beacon.rotation.y += 1.2 * delta;
-      sm.beacon.rotation.x = Math.sin(elapsed * 1.5) * 0.2;
-      sm.beacon.position.y = 3.2 + Math.sin(elapsed * 2.0) * 0.2;
+      sm.satelliteRig.rotation.y += 0.012 * delta;
 
       const dist = Math.hypot(this.shipPosition.x - sm.data.position.x, this.shipPosition.z - sm.data.position.z);
       if (dist < minStationDist) {
@@ -1571,6 +1866,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         this.playChime([440, 660]); // Station entry beacon
       }
       this.dockedStation.set(closestStation);
+      if (closestStation) this.beginStationEncounter(closestStation);
     }
   }
 

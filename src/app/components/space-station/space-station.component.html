@@ -1,8 +1,8 @@
-<div #parallaxContainer class="parallax-space-wrapper" role="region" aria-label="Mapa Parallax de Estaciones Espaciales">
+<div class="parallax-space-wrapper" role="region" aria-label="Rutas a las secciones del portafolio">
   <!-- LAYER 0: Deep Space Nebula & Constellation Grid (Far Parallax Layer) -->
   <div class="parallax-layer layer-far" [style.transform]="getFarParallaxTransform()">
-    <div class="nebula-glow nebula-cyan"></div>
-    <div class="nebula-glow nebula-purple"></div>
+    <div class="nebula-glow nebula-sage"></div>
+    <div class="nebula-glow nebula-slate"></div>
     <div class="nebula-glow nebula-gold"></div>
     <div class="space-grid-pattern"></div>
   </div>
@@ -12,14 +12,14 @@
     <svg class="orbital-constellation-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
       <defs>
         <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.5" />
-          <stop offset="50%" stop-color="#bd00ff" stop-opacity="0.3" />
-          <stop offset="100%" stop-color="#00ff88" stop-opacity="0.5" />
+          <stop offset="0%" stop-color="#d4a76a" stop-opacity="0.5" />
+          <stop offset="50%" stop-color="#b77958" stop-opacity="0.3" />
+          <stop offset="100%" stop-color="#8eaa8d" stop-opacity="0.5" />
         </linearGradient>
       </defs>
       <!-- Orbital hyper-lanes connecting stations -->
       <path d="M 20 28 L 72 22 L 78 70 L 45 55 L 18 72 Z" fill="none" stroke="url(#orbitGrad)" stroke-width="0.35" stroke-dasharray="1 1" />
-      <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(56, 189, 248, 0.15)" stroke-width="0.25" />
+      <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(194, 211, 202, 0.12)" stroke-width="0.25" />
     </svg>
   </div>
 
@@ -35,6 +35,8 @@
         (mouseenter)="onStationHover(st)"
         (mouseleave)="onStationHover(null)"
         (click)="onStationClick(st)"
+        (keydown.enter)="onStationClick(st)"
+        (keydown.space)="$event.preventDefault(); onStationClick(st)"
         role="button"
         tabindex="0"
         [attr.aria-label]="st.name + ' - ' + st.category">
@@ -63,7 +65,7 @@
 
           <!-- Interactive Hover Action Badge -->
           <div class="dock-action-badge" [style.background-color]="st.accentHex">
-            <span>ACOPLAR E INGRESAR ➜</span>
+            <span>VISITAR ESTACIÓN →</span>
           </div>
         </div>
       </div>
@@ -77,25 +79,11 @@
     <div class="floating-debris particle-3"></div>
   </div>
 
-  <!-- PROXIMITY ALERT & DOCKING SEQUENCE OVERLAY -->
-  @if (hoveredStation(); as hst) {
-    <app-docking-alert
-      [station]="hst"
-      [distanceMeters]="14.8"
-      (confirmDock)="onStationClick(hst)"
-      (cancelDock)="onStationHover(null)">
-    </app-docking-alert>
-  }
-
   <!-- BOTTOM CONTROL BAR & 3D SIMULATOR CTA -->
   <div class="parallax-hud-bottom-bar">
     <div class="hud-status-badge">
       <span class="status-dot"></span>
-      <span>MODO ESPACIAL INTEGRADO • EFECTO PARALLAX ACTIVO</span>
+      <span>SELECCIONÁ UN DESTINO PARA VISITARLO</span>
     </div>
-
-    <button type="button" class="launch-3d-btn" (click)="onLaunch3D()">
-      <span>🚀 Vuelo Libre 3D (Simulador)</span>
-    </button>
   </div>
 </div>

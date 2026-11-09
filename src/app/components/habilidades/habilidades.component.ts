@@ -3,10 +3,8 @@ import { Component } from '@angular/core';
 
 export interface Habilidad {
   nombre: string;
-  icono: string;
-  nivel: string;
-  porcentaje: number;
-  color: string;
+  sigla: string;
+  aplicacion: string;
 }
 
 export interface CategoriaHabilidad {
@@ -14,71 +12,43 @@ export interface CategoriaHabilidad {
   habilidades: Habilidad[];
 }
 
-import { ResponsiveLayoutDirective } from '../../responsive-layout.directive';
-
 @Component({
-  imports: [CommonModule, ResponsiveLayoutDirective],
+  imports: [CommonModule],
   selector: 'app-habilidades',
   standalone: true,
   templateUrl: './habilidades.component.html',
   styleUrls: ['./habilidades.component.css'],
 })
 export class HabilidadesComponent {
-  vistaSeleccionada: 'todas' | 'barras' = 'todas';
-
-  categorias: CategoriaHabilidad[] = [
+  readonly categorias: CategoriaHabilidad[] = [
     {
-      titulo: 'Desarrollo Web Frontend',
+      titulo: 'Interfaces web',
       habilidades: [
-        { nombre: 'HTML5', icono: '/assets/icons/html.png', nivel: 'Avanzado', porcentaje: 95, color: '#e34c26' },
-        { nombre: 'CSS3', icono: '/assets/icons/css.png', nivel: 'Avanzado', porcentaje: 90, color: '#264de4' },
-        { nombre: 'JavaScript', icono: '/assets/icons/javascript.png', nivel: 'Alto / Avanzado', porcentaje: 92, color: '#f7df1e' },
-        { nombre: 'Canvas 2D', icono: '/assets/icons/javascript.png', nivel: 'Física, IA & Arcade', porcentaje: 88, color: '#ff7b00' },
-        { nombre: 'Angular', icono: '/assets/icons/angular.png', nivel: 'Intermedio+', porcentaje: 82, color: '#dd1b16' },
-        { nombre: 'TypeScript', icono: '/assets/icons/typescript.png', nivel: 'Intermedio+', porcentaje: 80, color: '#007acc' }
+        { nombre: 'HTML5', sigla: 'H', aplicacion: 'Estructura y contenido' },
+        { nombre: 'CSS3', sigla: 'C', aplicacion: 'Diseño adaptable y animación' },
+        { nombre: 'JavaScript', sigla: 'JS', aplicacion: 'Interacción y lógica de interfaz' },
+        { nombre: 'React', sigla: 'R', aplicacion: 'Interfaces para juegos y aplicaciones' },
+        { nombre: 'Angular', sigla: 'A', aplicacion: 'Aplicaciones y componentes' },
+        { nombre: 'TypeScript', sigla: 'TS', aplicacion: 'Código tipado para proyectos web' },
+        { nombre: 'Vite', sigla: 'V', aplicacion: 'Desarrollo y compilación web' }
       ]
     },
     {
-      titulo: 'Geotecnologías & SIG',
+      titulo: 'Juegos y geotecnologías',
       habilidades: [
-        { nombre: 'Geovisores Web', icono: '/assets/icons/html.png', nivel: 'SIG Interactivo', porcentaje: 88, color: '#38bdf8' },
-        { nombre: 'QGIS', icono: '/assets/icons/angular.png', nivel: 'Mapeo y Análisis', porcentaje: 85, color: '#4ecdc4' },
-        { nombre: 'QField', icono: '/assets/icons/angular.png', nivel: 'Datos de Campo', porcentaje: 82, color: '#2dd4bf' }
+        { nombre: 'Canvas 2D', sigla: '2D', aplicacion: 'Gráficos, física y lógica de juego' },
+        { nombre: 'QGIS', sigla: 'Q', aplicacion: 'Cartografía y análisis espacial' },
+        { nombre: 'QField', sigla: 'QF', aplicacion: 'Trabajo con datos en campo' },
+        { nombre: 'Leaflet', sigla: 'L', aplicacion: 'Mapas interactivos en la web' },
+        { nombre: 'Geovisores web', sigla: 'G', aplicacion: 'Exploración de información geográfica' }
       ]
     },
     {
-      titulo: 'Herramientas de Desarrollo',
+      titulo: 'Flujo de trabajo',
       habilidades: [
-        { nombre: 'Git', icono: '/assets/icons/github.png', nivel: 'Control de Versiones', porcentaje: 85, color: '#f05032' },
-        { nombre: 'GitHub', icono: '/assets/icons/github.png', nivel: 'Repositorios & CI/CD', porcentaje: 88, color: '#a855f7' }
+        { nombre: 'Git', sigla: 'git', aplicacion: 'Control de versiones' },
+        { nombre: 'GitHub', sigla: 'GH', aplicacion: 'Repositorios y publicación' }
       ]
     }
   ];
-
-  get todasLasHabilidades(): Habilidad[] {
-    return this.categorias.flatMap(c => c.habilidades);
-  }
-
-  setVista(vista: 'todas' | 'barras'): void {
-    this.vistaSeleccionada = vista;
-  }
-
-  handleImageError(event: Event, habilidad: Habilidad): void {
-    const target = event.target as HTMLImageElement;
-    if (target && !target.dataset['hasFallback']) {
-      target.dataset['hasFallback'] = 'true';
-      const cdnFallbacks: Record<string, string> = {
-        'HTML5': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg',
-        'CSS3': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg',
-        'JavaScript': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg',
-        'Angular': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg',
-        'TypeScript': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
-        'Git': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg',
-        'GitHub': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg'
-      };
-      if (cdnFallbacks[habilidad.nombre]) {
-        target.src = cdnFallbacks[habilidad.nombre];
-      }
-    }
-  }
 }

@@ -9,10 +9,6 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./sobre-mi.component.css']
 })
 export class SobreMiComponent {
-  ubication = 'Mendoza, Argentina';
-  email = 'fedebarzola7@gmail.com';
-  phone = '+54 261 383 6127';
-
   estudios = [
     {
       titulo: 'Tecnicatura en Geotecnologías',
@@ -21,10 +17,10 @@ export class SobreMiComponent {
       descripcion: 'Formación especializada en herramientas de Información Geográfica (SIG), desarrollo de Geovisores mediante tecnologías web, QGIS y QField.'
     },
     {
-      titulo: 'Desarrollo Web Frontend & Juegos Web',
-      institucion: 'Formación Autodidacta Avanzada & Proyectos Prácticos',
-      periodo: 'Nivel Alto / Avanzado',
-      descripcion: 'Desarrollo de aplicaciones interactivas complejas, canvas 2D, motores de física e Inteligencia Artificial en juegos web con JavaScript y Angular.'
+      titulo: 'Desarrollo web y proyectos personales',
+      institucion: 'Formación continua y práctica independiente',
+      periodo: 'Aprendizaje aplicado',
+      descripcion: 'Práctica en interfaces web, aplicaciones interactivas y juegos desarrollados con JavaScript y Canvas 2D.'
     }
   ];
 

@@ -3,9 +3,14 @@
 
   <div class="proyectos-grid" appResponsiveLayout>
     <article class="proyecto-card" *ngFor="let proyecto of proyectos" [class.destacado-card]="proyecto.destacado">
-      <div class="proyecto-imagen-wrapper">
+      <div class="proyecto-imagen-wrapper" [class.sin-captura]="!proyecto.imagen">
         <span *ngIf="proyecto.destacado" class="destacado-badge">⭐ Destacado</span>
-        <img [src]="proyecto.imagen" [alt]="proyecto.titulo" [title]="proyecto.titulo" referrerpolicy="no-referrer" (error)="handleImageFallback($event, proyecto)" loading="lazy">
+        <img *ngIf="proyecto.imagen" [src]="proyecto.imagen" [alt]="'Captura de ' + proyecto.titulo" [title]="proyecto.titulo" referrerpolicy="no-referrer" (error)="handleImageFallback($event, proyecto)" loading="lazy">
+        <div *ngIf="!proyecto.imagen" class="project-cover-note" aria-hidden="true">
+          <span>PROYECTO PERSONAL</span>
+          <strong>{{ proyecto.titulo }}</strong>
+          <i></i>
+        </div>
       </div>
 
       <div class="proyecto-info">
@@ -21,11 +26,11 @@
         </div>
 
         <div class="proyecto-actions">
-          <a *ngIf="proyecto.demoUrl" [href]="proyecto.demoUrl" target="_blank" rel="noopener" class="btn-action btn-demo">
-            <span>🌐 Ver Demo / Web</span>
+          <a *ngIf="proyecto.demoUrl" [href]="proyecto.demoUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-demo" [attr.aria-label]="'Abrir demo de ' + proyecto.titulo">
+            <span>Ver demo <span aria-hidden="true">↗</span></span>
           </a>
-          <a *ngIf="proyecto.githubUrl" [href]="proyecto.githubUrl" target="_blank" rel="noopener" class="btn-action btn-github">
-            <span>💻 GitHub Code</span>
+          <a *ngIf="proyecto.githubUrl" [href]="proyecto.githubUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-github" [attr.aria-label]="'Ver código de ' + proyecto.titulo + ' en GitHub'">
+            <span>Código <span aria-hidden="true">↗</span></span>
           </a>
         </div>
       </div>
@@ -39,8 +44,8 @@
         </div>
         <h3>Más Proyectos & Experimentos</h3>
         <p>Explora repositorios adicionales, geovisores y prototipos en GitHub.</p>
-        <a href="https://github.com/pincha1212" target="_blank" rel="noopener" class="mas-proyectos-btn">
-          <span>Ver Repositorios en GitHub</span>
+        <a href="https://github.com/pincha1212" target="_blank" rel="noopener noreferrer" class="mas-proyectos-btn">
+          <span>Ver repositorios en GitHub</span>
           <span class="arrow-icon">→</span>
         </a>
       </div>

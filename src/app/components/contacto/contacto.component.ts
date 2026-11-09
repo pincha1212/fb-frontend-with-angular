@@ -3,7 +3,6 @@ import { Component, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { FormsModule, NgForm } from '@angular/forms';
-import { APP_VERSION, AppVersionData } from '../../version';
 
 @Component({
   standalone: true,
@@ -18,16 +17,10 @@ export class ContactoComponent {
   telefono = '+54 261 383 6127';
   ubicacion = 'Mendoza, Argentina';
   mostrarFormulario = false;
-  mostrarAuditoria = false;
-  versionInfo: AppVersionData = APP_VERSION;
   enviando = false;
   mensajeEstado = '';       // Texto del mensaje (éxito o error)
   mensajeExito = false;     // true si es éxito, false si es error
   copiado = false;          // Para feedback de copiado
-
-  toggleAuditoria(): void {
-    this.mostrarAuditoria = !this.mostrarAuditoria;
-  }
 
   // ⭐ Método mejorado para copiar (sin alert)
   async copiarCorreo(): Promise<void> {

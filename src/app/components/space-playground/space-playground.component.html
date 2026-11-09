@@ -151,7 +151,11 @@
           </div>
           <div class="control-row">
             <span class="key-badge">ESPACIO</span>
-            <span>Turbo Boost Hipersónico</span>
+            <span>Activar impulso</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">F</span>
+            <span>Disparar a las naves hostiles</span>
           </div>
           <div class="control-row">
             <span class="key-badge">R</span>
@@ -176,11 +180,11 @@
         <header class="station-modal-header">
           <div class="modal-title-box">
             @switch (modalId) {
-              @case ('sobre-mi') { <span>👤 Hangar Alpha • Sobre Mí & Perfil Profesional</span> }
-              @case ('habilidades') { <span>⚡ Reactor Núcleo • Conocimientos Técnicos</span> }
-              @case ('proyectos') { <span>💻 Bahía de Misiones • Proyectos Destacados</span> }
-              @case ('experiencia') { <span>🚀 Muelle Orbital • Experiencia & Trayectoria</span> }
-              @case ('contacto') { <span>✉️ Antena de Comms • Contacto Directo</span> }
+              @case ('sobre-mi') { <span>Perfil · Federico Barzola</span> }
+              @case ('habilidades') { <span>Tecnologías</span> }
+              @case ('proyectos') { <span>Proyectos</span> }
+              @case ('experiencia') { <span>Trayectoria</span> }
+              @case ('contacto') { <span>Contacto</span> }
             }
           </div>
           <button type="button" class="station-modal-close-btn" (click)="closeStationModal()">
@@ -190,11 +194,11 @@
 
         <div class="station-modal-body">
           @switch (modalId) {
-            @case ('sobre-mi') { <app-sobre-mi></app-sobre-mi> }
+              @case ('sobre-mi') { <span>Perfil · Federico Barzola</span> }
             @case ('habilidades') { <app-habilidades></app-habilidades> }
-            @case ('proyectos') { <app-proyectos></app-proyectos> }
-            @case ('experiencia') { <app-experiencia></app-experiencia> }
-            @case ('contacto') { <app-contacto class="contact-wrapper"></app-contacto> }
+              @case ('proyectos') { <span>Proyectos</span> }
+              @case ('experiencia') { <span>Trayectoria</span> }
+              @case ('contacto') { <span>Contacto</span> }
           }
         </div>
       </div>
@@ -210,32 +214,44 @@
           <button 
             type="button" 
             class="touch-btn dpad-up"
-            (touchstart)="setTouchControl('forward', true)"
-            (touchend)="setTouchControl('forward', false)">
+            aria-label="Avanzar"
+            (pointerdown)="setTouchControl('forward', true)"
+            (pointerup)="setTouchControl('forward', false)"
+            (pointercancel)="setTouchControl('forward', false)"
+            (pointerleave)="setTouchControl('forward', false)">
             ▲
           </button>
           <div class="dpad-mid-row">
             <button 
               type="button" 
               class="touch-btn dpad-left"
-              (touchstart)="setTouchControl('left', true)"
-              (touchend)="setTouchControl('left', false)">
+              aria-label="Girar a la izquierda"
+              (pointerdown)="setTouchControl('left', true)"
+              (pointerup)="setTouchControl('left', false)"
+              (pointercancel)="setTouchControl('left', false)"
+              (pointerleave)="setTouchControl('left', false)">
               ◀
             </button>
             <div class="dpad-center">🛸</div>
             <button 
               type="button" 
               class="touch-btn dpad-right"
-              (touchstart)="setTouchControl('right', true)"
-              (touchend)="setTouchControl('right', false)">
+              aria-label="Girar a la derecha"
+              (pointerdown)="setTouchControl('right', true)"
+              (pointerup)="setTouchControl('right', false)"
+              (pointercancel)="setTouchControl('right', false)"
+              (pointerleave)="setTouchControl('right', false)">
               ▶
             </button>
           </div>
           <button 
             type="button" 
             class="touch-btn dpad-down"
-            (touchstart)="setTouchControl('backward', true)"
-            (touchend)="setTouchControl('backward', false)">
+            aria-label="Retroceder"
+            (pointerdown)="setTouchControl('backward', true)"
+            (pointerup)="setTouchControl('backward', false)"
+            (pointercancel)="setTouchControl('backward', false)"
+            (pointerleave)="setTouchControl('backward', false)">
             ▼
           </button>
         </div>
@@ -246,10 +262,21 @@
         <button 
           type="button" 
           class="touch-btn turbo-touch-btn"
+          aria-label="Activar impulso"
           [class.active]="turboActive()"
-          (touchstart)="setTouchControl('boost', true)"
-          (touchend)="setTouchControl('boost', false)">
+          (pointerdown)="setTouchControl('boost', true)"
+          (pointerup)="setTouchControl('boost', false)"
+          (pointercancel)="setTouchControl('boost', false)"
+          (pointerleave)="setTouchControl('boost', false)">
           ⚡ TURBO
+        </button>
+        <button
+          type="button"
+          class="touch-btn fire-touch-btn"
+          aria-label="Disparar a las naves hostiles"
+          [disabled]="activeRaiders() === 0"
+          (click)="firePlayerWeapons()">
+          ◎ FIRE
         </button>
       </div>
     </div>
@@ -269,12 +296,18 @@
   <app-cockpit-hud
     [speedKmh]="speedKmh()"
     [isTurboActive]="turboActive()"
-    [currentStationName]="dockedStation()?.name || 'Sector Espacial Libres'"
+    [currentStationName]="dockedStation()?.name || 'Espacio libre'"
     [stations]="stations"
     [radarBlips]="radarBlips()"
+    [headingDegrees]="headingDegrees()"
+    [pitchDegrees]="pitchDegrees()"
+    [hullIntegrity]="hullIntegrity()"
+    [activeRaiders]="activeRaiders()"
+    [combatMessage]="combatMessage()"
+    [currentCameraMode]="cameraMode()"
     (toggleTurbo)="setTouchControl('boost', $event)"
     (teleportStation)="teleportToStation($event)"
-    (cinemaModeChange)="onCinemaModeChange($event)"
+    (fireWeapons)="firePlayerWeapons()"
     (cameraModeChange)="setCameraMode($event)">
   </app-cockpit-hud>
 </div>

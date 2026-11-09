@@ -16,7 +16,7 @@
   height: 100%;
   min-height: 440px;
   max-height: 75vh;
-  background: radial-gradient(circle at 50% 40%, #0a0f1d 0%, #050711 85%);
+  background: radial-gradient(circle at 50% 40%, #0d171c 0%, #080e12 85%);
   overflow: auto;
   border-radius: 20px;
   border: 1px solid rgba(56, 189, 248, 0.25);
@@ -46,18 +46,18 @@
   opacity: 0.25;
 }
 
-.nebula-cyan {
+.nebula-sage {
   width: 450px;
   height: 450px;
-  background-color: #00f0ff;
+  background-color: #d4a76a;
   top: 10%;
   left: 15%;
 }
 
-.nebula-purple {
+.nebula-slate {
   width: 500px;
   height: 500px;
-  background-color: #bd00ff;
+  background-color: #b77958;
   bottom: 10%;
   right: 15%;
 }
@@ -65,7 +65,7 @@
 .nebula-gold {
   width: 380px;
   height: 380px;
-  background-color: #ffaa00;
+  background-color: #b99869;
   top: 40%;
   left: 50%;
 }
@@ -102,6 +102,7 @@
   transition: transform 0.15s ease-out;
   outline: none;
 }
+.floating-station-card:focus-visible .station-pod { outline: 2px solid #e2bd83; outline-offset: 3px; }
 
 .holo-light-pillar {
   position: absolute;
@@ -158,7 +159,7 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  border: 1px solid #38bdf8;
+  border: 1px solid #9bac9b;
   background-color: rgba(15, 23, 42, 0.8);
   display: flex;
   align-items: center;
@@ -176,7 +177,7 @@
   font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.12em;
-  color: #64748b;
+  color: #84958f;
   text-transform: uppercase;
 }
 
@@ -190,7 +191,7 @@
 
 .station-category {
   font-size: 0.7rem;
-  color: #94a3b8;
+  color: #89958e;
   white-space: nowrap;
 }
 
@@ -223,7 +224,7 @@
   border-radius: 9999px;
   font-size: 0.62rem;
   font-weight: 900;
-  color: #050711;
+  color: #080e12;
   white-space: nowrap;
   letter-spacing: 0.06em;
   opacity: 0;
@@ -281,7 +282,7 @@
   font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: #64748b;
+  color: #84958f;
   text-transform: uppercase;
 }
 
@@ -294,7 +295,7 @@
 .hud-description {
   font-size: 0.78rem;
   line-height: 1.4;
-  color: #cbd5e1;
+  color: #b9c4bc;
   margin: 0 0 12px 0;
 }
 
@@ -316,14 +317,14 @@
 
 .metric-label {
   font-size: 0.58rem;
-  color: #64748b;
+  color: #84958f;
   font-weight: 700;
 }
 
 .metric-value {
   font-size: 0.72rem;
   font-weight: 800;
-  color: #38bdf8;
+  color: #9bac9b;
   margin-top: 2px;
 }
 
@@ -335,7 +336,7 @@
 .hud-tag-pill {
   font-size: 0.62rem;
   background-color: rgba(255, 255, 255, 0.08);
-  color: #cbd5e1;
+  color: #b9c4bc;
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -363,7 +364,7 @@
   border-radius: 9999px;
   font-size: 0.68rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: #89958e;
   pointer-events: auto;
 }
 
@@ -371,14 +372,14 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: #00ff88;
-  box-shadow: 0 0 8px #00ff88;
+  background-color: #8eaa8d;
+  box-shadow: 0 0 8px #8eaa8d;
 }
 
 .launch-3d-btn {
   background-color: rgba(56, 189, 248, 0.2);
-  border: 1.5px solid #38bdf8;
-  color: #38bdf8;
+  border: 1.5px solid #9bac9b;
+  color: #9bac9b;
   padding: 7px 16px;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -389,9 +390,17 @@
 }
 
 .launch-3d-btn:hover {
-  background-color: #0284c7;
+  background-color: #9a784c;
   color: #ffffff;
   transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .station-beacon-pulse,
+  .energy-ring { animation: none !important; }
+  .parallax-layer,
+  .floating-station-card,
+  .station-pod { transition-duration: .01ms !important; }
 }
 
 /* ==========================================================================

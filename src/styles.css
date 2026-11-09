@@ -1,207 +1,125 @@
-* {
-    margin: 0;
+* { box-sizing: border-box; }
+html { min-width: 320px; scroll-behavior: smooth; scroll-padding-top: 90px; }
+body { min-width: 320px; min-height: 100vh; margin: 0; overflow-x: hidden; background: #0a1115; color: #e4e8df; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+button, input, textarea, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { color: inherit; }
+img { max-width: 100%; }
+:focus-visible { outline: 2px solid #e2bd83; outline-offset: 3px; }
+::selection { color: #101513; background: #d9b579; }
+
+/* Shared instrument-panel language for the portfolio's feature modules. */
+.portfolio-shell app-sobre-mi,
+.portfolio-shell app-habilidades,
+.portfolio-shell app-proyectos,
+.portfolio-shell app-experiencia,
+.portfolio-shell app-contacto { display: block; }
+
+.portfolio-shell app-sobre-mi .sobre-mi-container,
+.portfolio-shell app-habilidades .habilidades-container,
+.portfolio-shell app-proyectos .proyectos-container,
+.portfolio-shell app-experiencia .experiencia-container,
+.portfolio-shell app-contacto .contacto-container {
+  margin: 0;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border: 1px solid rgba(194, 211, 202, .15);
+  border-radius: 3px;
+  background: linear-gradient(145deg, rgba(19, 31, 35, .92), rgba(13, 23, 27, .94));
+  box-shadow: 0 20px 45px rgba(0, 0, 0, .16), inset 0 1px rgba(255,255,255,.025);
+  color: #dfe5de;
 }
 
-/* Ocultar scrollbar para todos los elementos */
-* {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+.portfolio-shell app-sobre-mi .sobre-mi-container h2,
+.portfolio-shell app-habilidades .habilidades-container h2,
+.portfolio-shell app-proyectos .proyectos-container h2,
+.portfolio-shell app-experiencia .experiencia-container h2,
+.portfolio-shell app-contacto .contacto-container h2 { display: none; }
+
+.portfolio-shell app-sobre-mi .bio-text,
+.portfolio-shell app-experiencia .objetivo-text,
+.portfolio-shell app-proyectos .proyecto-desc { color: #b7c2bb; line-height: 1.72; }
+.portfolio-shell app-sobre-mi .bio-text strong { color: #e4c18c; }
+.portfolio-shell app-sobre-mi .estudios-column h3,
+.portfolio-shell app-sobre-mi .competencias-title,
+.portfolio-shell app-experiencia .objetivo-box h3 { color: #e5e7dc; font-weight: 550; }
+.portfolio-shell app-sobre-mi .hito-card,
+.portfolio-shell app-sobre-mi .estudio-content,
+.portfolio-shell app-experiencia .exp-card,
+.portfolio-shell app-experiencia .objetivo-box,
+.portfolio-shell app-experiencia .idiomas-card,
+.portfolio-shell app-habilidades .skill-group,
+.portfolio-shell app-proyectos .proyecto-card,
+.portfolio-shell app-proyectos .mas-proyectos-card {
+  border: 1px solid rgba(194, 211, 202, .13);
+  border-radius: 3px;
+  background: rgba(8, 16, 19, .48);
+  box-shadow: none;
 }
+.portfolio-shell app-sobre-mi .hito-card:hover,
+.portfolio-shell app-proyectos .proyecto-card:hover { border-color: rgba(212, 167, 106, .48); transform: translateY(-3px); }
+.portfolio-shell app-sobre-mi .hito-number,
+.portfolio-shell app-sobre-mi .estudio-periodo,
+.portfolio-shell app-habilidades .categoria-titulo,
+.portfolio-shell app-proyectos .proyecto-titulo,
+.portfolio-shell app-experiencia .exp-puesto { color: #e2bd83; }
+.portfolio-shell app-sobre-mi .hito-label,
+.portfolio-shell app-sobre-mi .estudio-institucion,
+.portfolio-shell app-sobre-mi .estudio-desc,
+.portfolio-shell app-experiencia .exp-empresa,
+.portfolio-shell app-experiencia .exp-puntos li,
+.portfolio-shell app-experiencia .idioma-val { color: #aebbb4; }
+.portfolio-shell app-sobre-mi .estudio-dot { background: #b99869; box-shadow: 0 0 0 4px rgba(185,152,105,.11); }
+.portfolio-shell app-sobre-mi .comp-tag,
+.portfolio-shell app-habilidades .skill-row,
+.portfolio-shell app-proyectos .proyecto-subtitulo,
+.portfolio-shell app-proyectos .tecnologias span,
+.portfolio-shell app-contacto .info-pill { color: #bbc6c0; }
+.portfolio-shell app-sobre-mi .comp-tag { border: 1px solid rgba(194,211,202,.16); background: rgba(255,255,255,.035); }
 
-/* Ocultar scrollbar para WebKit (Chrome, Safari, etc.) */
-*::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  background: transparent !important;
-}
+.portfolio-shell app-habilidades .skills-intro { margin: 0 0 1.3rem; color: #aebbb4; line-height: 1.65; }
+.portfolio-shell app-habilidades .skills-catalog { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
+.portfolio-shell app-habilidades .skill-group { padding: 1rem; }
+.portfolio-shell app-habilidades .categoria-titulo { margin: 0 0 .85rem; font-size: .82rem; font-weight: 600; letter-spacing: .03em; }
+.portfolio-shell app-habilidades .skill-list { display: grid; gap: .4rem; margin: 0; padding: 0; list-style: none; }
+.portfolio-shell app-habilidades .skill-row { display: grid; grid-template-columns: 28px minmax(78px, auto) 1fr; align-items: center; gap: .55rem; min-height: 32px; color: #c8d0c8; font-size: .72rem; }
+.portfolio-shell app-habilidades .skill-monogram { display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid rgba(212,167,106,.35); color: #dab982; font: 600 .56rem Consolas, monospace; }
+.portfolio-shell app-habilidades .skill-name { font-weight: 600; }
+.portfolio-shell app-habilidades .skill-note { color: #81928a; font-size: .65rem; line-height: 1.35; }
 
-/* Asegurar que el body y html permitan scroll */
-html, body {
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-}
+.portfolio-shell app-proyectos .proyectos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
+.portfolio-shell app-proyectos .proyecto-card { overflow: hidden; }
+.portfolio-shell app-proyectos .proyecto-imagen-wrapper { position: relative; aspect-ratio: 16 / 8.5; overflow: hidden; border-bottom: 1px solid var(--line); background: #0b1418; }
+.portfolio-shell app-proyectos .proyecto-imagen-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.portfolio-shell app-proyectos .proyecto-info { padding: 1rem 1.1rem 1.1rem; }
+.portfolio-shell app-proyectos .proyecto-titulo { margin: 0 0 .25rem; font-size: 1.06rem; font-weight: 600; }
+.portfolio-shell app-proyectos .proyecto-subtitulo { display: block; font-size: .72rem; }
+.portfolio-shell app-proyectos .proyecto-desc { margin: .75rem 0; font-size: .8rem; }
+.portfolio-shell app-proyectos .tecnologias { gap: .35rem; }
+.portfolio-shell app-proyectos .tecnologias span { padding: .3rem .45rem; border: 1px solid rgba(194,211,202,.15); border-radius: 2px; background: rgba(255,255,255,.04) !important; color: #b9c4bc !important; font-size: .62rem; }
+.portfolio-shell app-proyectos .btn-action,
+.portfolio-shell app-proyectos .mas-proyectos-btn { border: 1px solid rgba(212,167,106,.42); border-radius: 2px; background: #29332e; color: #e5c893; text-decoration: none; }
+.portfolio-shell app-proyectos .btn-action:hover,
+.portfolio-shell app-proyectos .mas-proyectos-btn:hover { background: #384137; }
+.portfolio-shell app-proyectos .destacado-badge { border-radius: 0; background: #9a784c; color: #fff4df; }
 
-/* Cursor para enlaces, imágenes y botones con animación */
-a, img, button {
-  cursor: pointer;
-}
+.portfolio-shell app-contacto .contacto-container { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 1rem; }
+.portfolio-shell app-contacto .contact-info-pills { grid-column: 1; display: flex; flex-wrap: wrap; gap: .6rem; }
+.portfolio-shell app-contacto .info-pill { border: 1px solid rgba(194,211,202,.14); background: rgba(6,13,16,.3); }
+.portfolio-shell app-contacto .phone-link { color: #d8b77e; }
+.portfolio-shell app-contacto .redes-sociales { grid-column: 2; grid-row: 1; justify-content: flex-end; }
+.portfolio-shell app-contacto .redes-sociales .icon { border: 1px solid rgba(194,211,202,.2); background: #0d171b; }
+.portfolio-shell app-contacto .correo-container,
+.portfolio-shell app-contacto .contacto-container > .text-center,
+.portfolio-shell app-contacto .version-audit-footer { grid-column: 1 / -1; }
+.portfolio-shell app-contacto .contacto-container .btn-primary { border-color: #aa8a60; background: #b18f62; color: #171a17; }
+.portfolio-shell app-contacto .contact-card-form { border: 1px solid rgba(194,211,202,.18) !important; border-radius: 3px !important; background: #101b1f !important; }
+.portfolio-shell app-contacto .contact-card-form .form-control { border-color: rgba(194,211,202,.22); border-radius: 2px; background: #0a1216; color: #e4e8df; }
+.portfolio-shell app-contacto .contact-card-form .form-label { color: #c4cec6; }
+.portfolio-shell app-contacto .mailto-link { color: #d8b77e !important; }
 
-
-
-/* Variables de Color Globales (Modo Oscuro Permanente) */
-:root, [data-theme="dark"], body {
-  --bg-main: #0a0e1a;
-  --bg-card: rgba(15, 23, 42, 0.82);
-  --bg-card-inner: rgba(30, 41, 59, 0.65);
-  --bg-card-hover: rgba(30, 41, 59, 0.85);
-  --border-card: rgba(255, 255, 255, 0.12);
-  --border-card-hover: rgba(56, 189, 248, 0.4);
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --accent-cyan: #38bdf8;
-  --accent-emerald: #34d399;
-  --accent-orange: #ff7b00;
-  --shadow-card: 0 20px 50px rgba(0, 0, 0, 0.5);
-}
-
-/* Aplicación global de variables de color */
-body {
-  background-color: var(--bg-main);
-  color: var(--text-primary);
-  transition: background-color 0.4s ease, color 0.4s ease;
-}
-
-/* Estilos comunes para títulos de sección */
-h2 {
-  font-size: 2.5rem;
-  color: var(--text-primary);
-  margin-bottom: 20px;
-  font-family: Arial, sans-serif;
-  text-transform: uppercase;
-  display: flex;
-  justify-content: inherit;
-}
-
-/* Estilos comunes para cards */
-.card-base {
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-card);
-  border-radius: 20px;
-  box-shadow: var(--shadow-card);
-  color: var(--text-primary);
-  transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
-}
-
-/* Animación de vibración para el cursor de espada */
-@keyframes shake {
-  0% { transform: translate(0, 0); }
-  50% { transform: translate(2px, -2px); }
-  100% { transform: translate(-2px, 2px); }
-}
-
-/* Animación de "crecimiento" para el cursor de pico */
-@keyframes grow {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-/* Media queries comunes */
-@media (max-width: 768px) {
-  h2 {
-    font-size: 2rem;
-  }
-}
-
-/* ==========================================================================
-   Global Animated CSS Starfield & Shooting Star Overlay
-   ========================================================================== */
-.global-starfield-container {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 2;
-  overflow: hidden;
-}
-
-/* Layer 1: Distant Twinkling Micro Stars */
-.starfield-layer-1 {
-  position: absolute;
-  inset: -120px;
-  background-image: 
-    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.95), transparent),
-    radial-gradient(1.5px 1.5px at 28% 48%, rgba(56, 189, 248, 0.85), transparent),
-    radial-gradient(1px 1px at 42% 72%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(2px 2px at 62% 22%, rgba(192, 132, 252, 0.85), transparent),
-    radial-gradient(1.5px 1.5px at 78% 88%, rgba(255, 255, 255, 0.95), transparent),
-    radial-gradient(1px 1px at 88% 38%, rgba(56, 189, 248, 0.75), transparent),
-    radial-gradient(1.5px 1.5px at 18% 82%, rgba(255, 255, 255, 0.85), transparent),
-    radial-gradient(2px 2px at 38% 12%, rgba(56, 189, 248, 0.9), transparent),
-    radial-gradient(1px 1px at 58% 52%, rgba(255, 255, 255, 0.75), transparent),
-    radial-gradient(1.5px 1.5px at 82% 62%, rgba(245, 158, 11, 0.85), transparent),
-    radial-gradient(1px 1px at 96% 92%, rgba(255, 255, 255, 0.9), transparent);
-  background-size: 550px 550px;
-  animation: starfieldDrift1 80s linear infinite, starfieldTwinkle 4s ease-in-out infinite alternate;
-  opacity: 0.85;
-}
-
-/* Layer 2: Medium Glowing Cyan & Lilac Nebular Stars */
-.starfield-layer-2 {
-  position: absolute;
-  inset: -120px;
-  background-image: 
-    radial-gradient(2.5px 2.5px at 22% 32%, rgba(56, 189, 248, 0.95), transparent),
-    radial-gradient(3px 3px at 52% 82%, rgba(168, 85, 247, 0.9), transparent),
-    radial-gradient(2.5px 2.5px at 82% 18%, rgba(255, 255, 255, 1), transparent),
-    radial-gradient(2px 2px at 32% 68%, rgba(52, 211, 153, 0.85), transparent),
-    radial-gradient(3px 3px at 72% 48%, rgba(56, 189, 248, 0.95), transparent);
-  background-size: 750px 750px;
-  animation: starfieldDrift2 120s linear infinite, starfieldTwinkle 5s ease-in-out infinite alternate-reverse;
-  opacity: 0.75;
-}
-
-/* Shooting Star Streaks */
-.shooting-star-streak {
-  position: absolute;
-  top: 15%;
-  left: 35%;
-  width: 140px;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(56, 189, 248, 1), rgba(56, 189, 248, 0.4), transparent);
-  border-radius: 999px;
-  transform: rotate(-35deg);
-  opacity: 0;
-  animation: shootingStar 11s ease-in-out infinite;
-}
-
-.shooting-star-streak-2 {
-  position: absolute;
-  top: 55%;
-  left: 70%;
-  width: 180px;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(168, 85, 247, 1), rgba(168, 85, 247, 0.3), transparent);
-  border-radius: 999px;
-  transform: rotate(-40deg);
-  opacity: 0;
-  animation: shootingStar 16s 6s ease-in-out infinite;
-}
-
-@keyframes starfieldDrift1 {
-  from { transform: translateY(0px) translateX(0px); }
-  to { transform: translateY(-550px) translateX(-150px); }
-}
-
-@keyframes starfieldDrift2 {
-  from { transform: translateY(0px) translateX(0px); }
-  to { transform: translateY(-750px) translateX(180px); }
-}
-
-@keyframes starfieldTwinkle {
-  0% { opacity: 0.45; }
-  50% { opacity: 0.95; }
-  100% { opacity: 0.6; }
-}
-
-@keyframes shootingStar {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) rotate(-35deg) scaleX(0.2);
-  }
-  3% {
-    opacity: 1;
-    transform: translate(-140px, 140px) rotate(-35deg) scaleX(1);
-  }
-  6% {
-    opacity: 0;
-    transform: translate(-300px, 300px) rotate(-35deg) scaleX(0.1);
-  }
-  100% {
-    opacity: 0;
-  }
+@media (max-width: 760px) {
+  .portfolio-shell app-habilidades .skills-catalog,
+  .portfolio-shell app-proyectos .proyectos-grid { grid-template-columns: 1fr; }
+  .portfolio-shell app-contacto .contacto-container { grid-template-columns: 1fr; }
+  .portfolio-shell app-contacto .redes-sociales { grid-column: 1; grid-row: auto; justify-content: flex-start; }
 }

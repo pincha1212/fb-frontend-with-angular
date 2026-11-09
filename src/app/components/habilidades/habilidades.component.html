@@ -1,47 +1,16 @@
-<div class="habilidades-container card-base">
-  <h2>Conocimientos Técnicos</h2>
+<section class="habilidades-container card-base" aria-label="Tecnologías y herramientas">
+  <p class="skills-intro">Herramientas que he usado para construir los proyectos de este portafolio.</p>
 
-  <!-- MODO 1: Insignias Estilizadas en Layout Flexbox -->
-  <div *ngIf="vistaSeleccionada === 'todas'" class="flexbox-badges-wrapper" appResponsiveLayout>
-    <div *ngFor="let habilidad of todasLasHabilidades" class="skill-badge-flex">
-      <div class="badge-icon" [style.border-color]="habilidad.color">
-        <img [src]="habilidad.icono" [alt]="habilidad.nombre" referrerpolicy="no-referrer" (error)="handleImageError($event, habilidad)" />
-      </div>
-      <div class="badge-content">
-        <div class="badge-header">
-          <span class="badge-title">{{ habilidad.nombre }}</span>
-          <span class="badge-percent" [style.color]="habilidad.color">{{ habilidad.porcentaje }}%</span>
-        </div>
-        <span class="badge-level">{{ habilidad.nivel }}</span>
-        <div class="badge-mini-bar">
-          <div class="badge-mini-fill" [style.width.%]="habilidad.porcentaje" [style.background-color]="habilidad.color"></div>
-        </div>
-      </div>
-    </div>
+  <div class="skills-catalog">
+    <section class="skill-group" *ngFor="let categoria of categorias">
+      <h3 class="categoria-titulo">{{ categoria.titulo }}</h3>
+      <ul class="skill-list">
+        <li class="skill-row" *ngFor="let habilidad of categoria.habilidades">
+          <span class="skill-monogram" aria-hidden="true">{{ habilidad.sigla }}</span>
+          <span class="skill-name">{{ habilidad.nombre }}</span>
+          <span class="skill-note">{{ habilidad.aplicacion }}</span>
+        </li>
+      </ul>
+    </section>
   </div>
-
-  <!-- MODO 2: Vista por Categorías con Barras de Progreso Desglosadas -->
-  <div *ngIf="vistaSeleccionada === 'barras'" class="categorias-progress-wrapper">
-    <div *ngFor="let cat of categorias" class="categoria-section">
-      <h3 class="categoria-titulo">{{ cat.titulo }}</h3>
-      
-      <div class="progress-list-flex">
-        <div *ngFor="let habilidad of cat.habilidades" class="progress-item">
-          <div class="progress-info">
-            <div class="progress-label">
-              <img [src]="habilidad.icono" [alt]="habilidad.nombre" class="progress-icon" referrerpolicy="no-referrer" (error)="handleImageError($event, habilidad)" />
-              <strong class="progress-name">{{ habilidad.nombre }}</strong>
-              <span class="progress-level-badge">{{ habilidad.nivel }}</span>
-            </div>
-            <span class="progress-value" [style.color]="habilidad.color">{{ habilidad.porcentaje }}%</span>
-          </div>
-
-          <div class="progress-track">
-            <div class="progress-fill" [style.width.%]="habilidad.porcentaje" [style.background]="'linear-gradient(90deg, ' + habilidad.color + ' 0%, #38bdf8 100%)'"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-  
+</section>

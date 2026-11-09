@@ -30,55 +30,28 @@ export class ProyectosComponent {
     'SIG / QGIS': '#4ecdc4',
     'React': '#61dafb',
     'Angular': '#dd1b16',
-    'TypeScript': '#007acc'
+    'TypeScript': '#007acc',
+    'Vite': '#8b73e8',
+    'Leaflet': '#78a65a'
   };
 
   proyectos: Proyecto[] = [
     {
       titulo: 'CLASH OF GODS',
-      subtitulo: 'Videojuego Web Canvas 2D',
-      descripcion: 'Desarrollo de videojuego web de combate mitológico inspirado en el ping-pong arcade. Implementación de física 2D, IA para oponentes, habilidades especiales, arenas e interfaz responsiva.',
-      tecnologias: ['JavaScript', 'Canvas 2D', 'HTML', 'CSS'],
-      imagen: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
-          <defs>
-            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#3b0d1a"/>
-              <stop offset="100%" stop-color="#0f172a"/>
-            </linearGradient>
-          </defs>
-          <rect width="600" height="340" fill="url(#g1)"/>
-          <circle cx="300" cy="120" r="50" fill="#dd1b16" opacity="0.3"/>
-          <text x="300" y="135" font-family="Arial, sans-serif" font-size="44" fill="#ffbe0b" text-anchor="middle">⚔️</text>
-          <text x="300" y="200" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">CLASH OF GODS</text>
-          <text x="300" y="235" font-family="Arial, sans-serif" font-size="14" fill="#ff7b00" text-anchor="middle">Juego Web Canvas 2D con Física e IA</text>
-        </svg>
-      `),
-      githubUrl: 'https://github.com/pincha1212',
-      demoUrl: 'https://github.com/pincha1212',
+      subtitulo: 'Arena mitológica · React y Canvas 2D',
+      descripcion: 'Juego de duelos inspirado en Pong, con partidas contra la CPU o para dos jugadores. Incluye selección de personajes, arenas y habilidades.',
+      tecnologias: ['React', 'TypeScript', 'Canvas 2D', 'Vite'],
+      imagen: '',
+      githubUrl: 'https://github.com/pincha1212/clash-of-gods-pingPong',
       destacado: true
     },
     {
       titulo: 'GEOVISOR WEB',
-      subtitulo: 'Proyecto Académico SIG (UNCuyo)',
-      descripcion: 'Geovisor web desarrollado como parte de la Tecnicatura en Geotecnologías (UNCuyo). Visualización e interacción con cartografía digital, capas SIG y herramientas de análisis territorial.',
-      tecnologias: ['JavaScript', 'SIG / QGIS', 'HTML', 'CSS'],
-      imagen: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
-          <defs>
-            <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#0d3b45"/>
-              <stop offset="100%" stop-color="#092138"/>
-            </linearGradient>
-          </defs>
-          <rect width="600" height="340" fill="url(#g2)"/>
-          <circle cx="300" cy="120" r="50" fill="#4ecdc4" opacity="0.3"/>
-          <text x="300" y="135" font-family="Arial, sans-serif" font-size="44" fill="#4ecdc4" text-anchor="middle">🗺️</text>
-          <text x="300" y="200" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">GEOVISOR INTERACTIVO</text>
-          <text x="300" y="235" font-family="Arial, sans-serif" font-size="14" fill="#34d399" text-anchor="middle">Geotecnologías & SIG — UNCuyo</text>
-        </svg>
-      `),
-      githubUrl: 'https://github.com/pincha1212',
+      subtitulo: 'Geovisor de plazas · Gran Mendoza',
+      descripcion: 'Mapa interactivo con vistas de calles, satélite y relieve; capas temáticas, herramientas de dibujo y carga de archivos geográficos.',
+      tecnologias: ['JavaScript', 'Leaflet', 'SIG / QGIS', 'HTML', 'CSS'],
+      imagen: '',
+      githubUrl: 'https://github.com/pincha1212/My-first-geoViewer',
       destacado: true
     },
     {
@@ -86,7 +59,7 @@ export class ProyectosComponent {
       subtitulo: 'Streaming & Catálogo TMDB',
       descripcion: 'Plataforma web de búsqueda y exploración de películas en tiempo real consumiendo la API REST de TMDB con filtros dinámicos, recomendaciones y tráilers.',
       tecnologias: ['JavaScript', 'API', 'CSS', 'HTML'],
-      imagen: '/assets/images/netfliz-clone.jpg',
+      imagen: 'assets/images/netfliz-clone.jpg',
       demoUrl: 'https://pincha1212.github.io/FDPelis/',
       githubUrl: 'https://github.com/pincha1212/FDPelis'
     },
@@ -95,7 +68,7 @@ export class ProyectosComponent {
       subtitulo: 'Pronóstico Meteorológico en Vivo',
       descripcion: 'Aplicación del clima interactiva que consulta las condiciones atmosféricas globales y pronósticos en tiempo real mediante la API OpenWeatherMap.',
       tecnologias: ['JavaScript', 'API', 'CSS', 'HTML'],
-      imagen: '/assets/images/weather.jpg',
+      imagen: 'assets/images/weather.jpg',
       demoUrl: 'https://pincha1212.github.io/weather/',
       githubUrl: 'https://github.com/pincha1212/weather'
     },
@@ -104,7 +77,7 @@ export class ProyectosComponent {
       subtitulo: 'Calculadora Interactiva',
       descripcion: 'Calculadora web moderna con diseño limpio, soporte para operaciones matemáticas completas e interfaz adaptativa.',
       tecnologias: ['HTML', 'CSS', 'JavaScript'],
-      imagen: '/assets/images/calculator.jpg',
+      imagen: 'assets/images/calculator.jpg',
       demoUrl: 'https://pincha1212.github.io/calculator/',
       githubUrl: 'https://github.com/pincha1212/calculator'
     }
