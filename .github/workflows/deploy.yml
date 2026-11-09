@@ -30,16 +30,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build Angular Project
         run: npm run build
 
-      - name: Create 404.html for SPA Routing
-        run: cp dist/fb-frontend-with-angular/browser/index.html dist/fb-frontend-with-angular/browser/404.html
+      - name: Prepare Deployment Artifacts
+        run: |
+          if [ -d "dist/fb-frontend-with-angular/browser" ]; then
+            cp dist/fb-frontend-with-angular/browser/index.html dist/fb-frontend-with-angular/browser/404.html 2>/dev/null || true
+            echo "DEPLOY_DIR=dist/fb-frontend-with-angular/browser" >> $GITHUB_ENV
+          else
+            cp dist/fb-frontend-with-angular/index.html dist/fb-frontend-with-angular/404.html 2>/dev/null || true
+            echo "DEPLOY_DIR=dist/fb-frontend-with-angular" >> $GITHUB_ENV
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -47,7 +53,7 @@ jobs:
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/fb-frontend-with-angular/browser
+          path: ${{ env.DEPLOY_DIR }}
 
       - name: Deploy to GitHub Pages
         id: deployment
