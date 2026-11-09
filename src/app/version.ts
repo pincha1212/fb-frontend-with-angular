@@ -19,11 +19,29 @@ export interface AppVersionData {
 }
 
 export const APP_VERSION: AppVersionData = {
-  currentVersion: '3.4.0',
+  currentVersion: '3.5.0',
   lastUpdated: '2026-11-09',
   author: 'Federico Barzola',
   environment: 'Production & Preview',
   changelog: [
+    {
+      version: '3.5.0',
+      date: '2026-11-09',
+      title: 'Cabina de vuelo asistida y atmósfera orbital',
+      description: 'La navegación ahora permite orientar la nave con el mouse y avanzar hacia esa dirección, con giros amortiguados y frenado predecible. La identidad visual suma estrellas en movimiento, reflejos de escáner y una paleta de cielo profundo con acentos de instrumentación.',
+      auditTrail: [
+        {
+          component: 'SpacePlaygroundComponent',
+          action: 'Vuelo orientado por cámara',
+          detail: 'El mouse controla rumbo y elevación bajo captura explícita; W impulsa en la dirección de vista, S frena y los estabilizadores reducen la deriva.'
+        },
+        {
+          component: 'AppComponent & Styles',
+          action: 'Acabado visual espacial',
+          detail: 'Se incorporaron profundidad de estrellas, nebulosa, luz orbital, barridos de escáner y paneles de instrumentación con acentos cian, violeta y ámbar.'
+        }
+      ]
+    },
     {
       version: '3.4.0',
       date: '2026-11-09',

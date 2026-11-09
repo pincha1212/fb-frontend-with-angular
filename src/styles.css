@@ -1,12 +1,12 @@
 * { box-sizing: border-box; }
 html { min-width: 320px; scroll-behavior: smooth; scroll-padding-top: 90px; }
-body { min-width: 320px; min-height: 100vh; margin: 0; overflow-x: hidden; background: #060b12; color: #e4e8df; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+body { min-width: 320px; min-height: 100vh; margin: 0; overflow-x: hidden; background: #050711; color: #e8edf7; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
 button, input, textarea, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { color: inherit; }
 img { max-width: 100%; }
-:focus-visible { outline: 2px solid #e2bd83; outline-offset: 3px; }
-::selection { color: #101513; background: #d9b579; }
+:focus-visible { outline: 2px solid #a8edfa; outline-offset: 3px; }
+::selection { color: #101513; background: #75d8e9; }
 
 /* Shared spacecraft instrument language for every portfolio station. */
 .portfolio-shell app-sobre-mi,
@@ -20,13 +20,69 @@ img { max-width: 100%; }
 .portfolio-shell app-proyectos .proyectos-container,
 .portfolio-shell app-experiencia .experiencia-container,
 .portfolio-shell app-contacto .contacto-container {
+  position: relative;
+  overflow: hidden;
   margin: 0;
   padding: clamp(1.1rem, 2.6vw, 1.8rem);
-  border: 1px solid rgba(174, 194, 202, .19);
+  border: 1px solid rgba(126, 165, 207, .22);
   border-radius: 3px;
-  background: linear-gradient(145deg, rgba(15, 27, 36, .97), rgba(9, 17, 24, .98));
-  box-shadow: inset 0 1px rgba(255,255,255,.03), 0 16px 38px rgba(0,0,0,.13);
-  color: #dfe5de;
+  background: linear-gradient(135deg, rgba(21, 31, 56, .83), rgba(8, 14, 28, .87));
+  box-shadow: inset 0 1px rgba(213,231,255,.055), 0 16px 42px rgba(0,0,0,.19), 0 0 35px rgba(52,103,165,.055);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #e2eaf3;
+}
+.portfolio-shell app-sobre-mi .sobre-mi-container::before,
+.portfolio-shell app-habilidades .habilidades-container::before,
+.portfolio-shell app-proyectos .proyectos-container::before,
+.portfolio-shell app-experiencia .experiencia-container::before,
+.portfolio-shell app-contacto .contacto-container::before,
+.portfolio-shell app-sobre-mi .sobre-mi-container::after,
+.portfolio-shell app-habilidades .habilidades-container::after,
+.portfolio-shell app-proyectos .proyectos-container::after,
+.portfolio-shell app-experiencia .experiencia-container::after,
+.portfolio-shell app-contacto .contacto-container::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 17px;
+  height: 17px;
+  border-color: rgba(113, 216, 236, .72);
+  border-style: solid;
+  pointer-events: none;
+  transition: width .24s ease, height .24s ease, border-color .24s ease;
+}
+.portfolio-shell app-sobre-mi .sobre-mi-container::before,
+.portfolio-shell app-habilidades .habilidades-container::before,
+.portfolio-shell app-proyectos .proyectos-container::before,
+.portfolio-shell app-experiencia .experiencia-container::before,
+.portfolio-shell app-contacto .contacto-container::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+.portfolio-shell app-sobre-mi .sobre-mi-container::after,
+.portfolio-shell app-habilidades .habilidades-container::after,
+.portfolio-shell app-proyectos .proyectos-container::after,
+.portfolio-shell app-experiencia .experiencia-container::after,
+.portfolio-shell app-contacto .contacto-container::after {
+  right: -1px;
+  bottom: -1px;
+  border-width: 0 1px 1px 0;
+}
+.portfolio-shell app-sobre-mi .sobre-mi-container:hover::before,
+.portfolio-shell app-habilidades .habilidades-container:hover::before,
+.portfolio-shell app-proyectos .proyectos-container:hover::before,
+.portfolio-shell app-experiencia .experiencia-container:hover::before,
+.portfolio-shell app-contacto .contacto-container:hover::before,
+.portfolio-shell app-sobre-mi .sobre-mi-container:hover::after,
+.portfolio-shell app-habilidades .habilidades-container:hover::after,
+.portfolio-shell app-proyectos .proyectos-container:hover::after,
+.portfolio-shell app-experiencia .experiencia-container:hover::after,
+.portfolio-shell app-contacto .contacto-container:hover::after {
+  width: 26px;
+  height: 26px;
+  border-color: #a8edfa;
 }
 
 .portfolio-shell app-sobre-mi .sobre-mi-container h2,
@@ -38,9 +94,9 @@ img { max-width: 100%; }
 .portfolio-shell app-sobre-mi .sobre-mi-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(1.4rem, 3vw, 2.5rem); }
 .portfolio-shell app-sobre-mi .bio-text,
 .portfolio-shell app-experiencia .objetivo-text,
-.portfolio-shell app-proyectos .proyecto-desc { color: #b7c2bb; line-height: 1.72; }
+.portfolio-shell app-proyectos .proyecto-desc { color: #b6c6d7; line-height: 1.72; }
 .portfolio-shell app-sobre-mi .bio-text { margin: 0 0 1rem; font-size: .94rem; }
-.portfolio-shell app-sobre-mi .bio-text strong { color: #e4c18c; font-weight: 600; }
+.portfolio-shell app-sobre-mi .bio-text strong { color: #a8edfa; font-weight: 600; }
 .portfolio-shell app-sobre-mi .hitos-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; margin-top: 1.5rem; }
 .portfolio-shell app-sobre-mi .hito-card,
 .portfolio-shell app-sobre-mi .estudio-content,
@@ -52,35 +108,42 @@ img { max-width: 100%; }
 .portfolio-shell app-proyectos .mas-proyectos-card {
   border: 1px solid rgba(174, 194, 202, .14);
   border-radius: 3px;
-  background: rgba(5, 12, 18, .52);
+  background: linear-gradient(140deg, rgba(17, 27, 48, .68), rgba(5, 11, 23, .58));
   box-shadow: none;
+  backdrop-filter: blur(7px);
 }
+.portfolio-shell app-habilidades .skill-group,
+.portfolio-shell app-experiencia .exp-card,
+.portfolio-shell app-experiencia .objetivo-box { transition: border-color .2s ease, background .2s ease, box-shadow .2s ease; }
+.portfolio-shell app-habilidades .skill-group:hover,
+.portfolio-shell app-experiencia .exp-card:hover,
+.portfolio-shell app-experiencia .objetivo-box:hover { border-color: rgba(115, 197, 235, .35); box-shadow: inset 0 0 22px rgba(97, 143, 215, .055); }
 .portfolio-shell app-sobre-mi .hito-card { min-width: 0; padding: .8rem .65rem; text-align: left; transition: border-color .18s ease, background .18s ease; }
 .portfolio-shell app-sobre-mi .hito-card:hover,
-.portfolio-shell app-proyectos .proyecto-card:hover { border-color: rgba(212, 167, 106, .48); background-color: rgba(18, 30, 37, .94); transform: translateY(-2px); }
-.portfolio-shell app-sobre-mi .hito-number { display: block; margin: 0 0 .35rem; color: #e2bd83; font: 600 .68rem/1.2 Consolas, monospace; }
+.portfolio-shell app-proyectos .proyecto-card:hover { border-color: rgba(91, 204, 231, .5); background-color: rgba(18, 30, 52, .94); transform: translateY(-2px); }
+.portfolio-shell app-sobre-mi .hito-number { display: block; margin: 0 0 .35rem; color: #a8edfa; font: 600 .68rem/1.2 Consolas, monospace; }
 .portfolio-shell app-sobre-mi .hito-label { color: #93a3a9; font-size: .65rem; line-height: 1.4; text-transform: uppercase; letter-spacing: .04em; }
 .portfolio-shell app-sobre-mi .competencias-wrapper { margin-top: 1.4rem !important; }
 .portfolio-shell app-sobre-mi .competencias-title,
 .portfolio-shell app-sobre-mi .estudios-column h3,
-.portfolio-shell app-experiencia .objetivo-box h3 { color: #e5e7dc; font-size: .82rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.portfolio-shell app-experiencia .objetivo-box h3 { color: #e4eaf2; font-size: .82rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .portfolio-shell app-sobre-mi .competencias-tags { display: flex; flex-wrap: wrap; gap: .45rem; }
-.portfolio-shell app-sobre-mi .comp-tag { padding: .38rem .55rem; border: 1px solid rgba(174,194,202,.15); border-radius: 2px; background: rgba(255,255,255,.03); color: #b8c5c7; font-size: .68rem; }
-.portfolio-shell app-sobre-mi .comp-tag:hover { border-color: rgba(212,167,106,.42); background: rgba(212,167,106,.07); color: #e5d0a8; }
+.portfolio-shell app-sobre-mi .comp-tag { padding: .38rem .55rem; border: 1px solid rgba(174,194,202,.15); border-radius: 2px; background: rgba(255,255,255,.03); color: #b8c9dc; font-size: .68rem; }
+.portfolio-shell app-sobre-mi .comp-tag:hover { border-color: rgba(91,204,231,.46); background: rgba(91,204,231,.07); color: #c2b8ff; }
 .portfolio-shell app-sobre-mi .estudios-column h3 { margin: 0 0 .9rem; padding-bottom: .6rem; border-bottom: 1px solid rgba(174,194,202,.16); }
 .portfolio-shell app-sobre-mi .timeline-container { position: relative; display: grid; gap: .7rem; padding-left: 1.1rem; border-left: 1px solid rgba(174,194,202,.24); }
 .portfolio-shell app-sobre-mi .estudio-item { position: relative; }
-.portfolio-shell app-sobre-mi .estudio-dot { position: absolute; left: -1.43rem; top: .9rem; width: 7px; height: 7px; border: 1px solid #d8b77e; border-radius: 50%; background: #111c22; box-shadow: 0 0 0 3px rgba(185,152,105,.1); }
+.portfolio-shell app-sobre-mi .estudio-dot { position: absolute; left: -1.43rem; top: .9rem; width: 7px; height: 7px; border: 1px solid #74d9eb; border-radius: 50%; background: #111c22; box-shadow: 0 0 0 3px rgba(120,128,224,.12); }
 .portfolio-shell app-sobre-mi .estudio-content { padding: .8rem; }
-.portfolio-shell app-sobre-mi .estudio-periodo { display: inline-block; margin: 0 0 .45rem; padding: 0; background: transparent; color: #d8b77e; font: 600 .62rem/1.3 Consolas, monospace; text-transform: uppercase; }
-.portfolio-shell app-sobre-mi .estudio-titulo { margin: 0 0 .18rem; color: #e1e5df; font-size: .9rem; font-weight: 600; }
+.portfolio-shell app-sobre-mi .estudio-periodo { display: inline-block; margin: 0 0 .45rem; padding: 0; background: transparent; color: #74d9eb; font: 600 .62rem/1.3 Consolas, monospace; text-transform: uppercase; }
+.portfolio-shell app-sobre-mi .estudio-titulo { margin: 0 0 .18rem; color: #e0e9f3; font-size: .9rem; font-weight: 600; }
 .portfolio-shell app-sobre-mi .estudio-institucion { display: block; margin: 0 0 .45rem; color: #93a3a9; font-size: .68rem; }
 .portfolio-shell app-sobre-mi .estudio-desc { margin: 0; color: #aebbb4; font-size: .72rem; line-height: 1.55; }
 
 .portfolio-shell app-habilidades .skills-intro { margin: 0 0 1.2rem; color: #aebbb4; font-size: .84rem; line-height: 1.65; }
 .portfolio-shell app-habilidades .skills-catalog { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
 .portfolio-shell app-habilidades .skill-group { min-width: 0; padding: .9rem; }
-.portfolio-shell app-habilidades .categoria-titulo { margin: 0 0 .75rem; padding-bottom: .55rem; border-bottom: 1px solid rgba(174,194,202,.15); color: #d8b77e; font-size: .78rem; font-weight: 600; letter-spacing: .04em; }
+.portfolio-shell app-habilidades .categoria-titulo { margin: 0 0 .75rem; padding-bottom: .55rem; border-bottom: 1px solid rgba(174,194,202,.15); color: #74d9eb; font-size: .78rem; font-weight: 600; letter-spacing: .04em; }
 .portfolio-shell app-habilidades .skill-list { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
 .portfolio-shell app-habilidades .skill-row { display: grid; grid-template-columns: 26px minmax(70px, auto) minmax(0, 1fr); align-items: center; gap: .5rem; min-height: 34px; color: #c8d0c8; font-size: .7rem; }
 .portfolio-shell app-habilidades .skill-monogram { display: grid; place-items: center; width: 24px; height: 24px; border: 1px solid rgba(174,194,202,.2); color: #c2ced0; font: 600 .55rem Consolas, monospace; }
@@ -92,32 +155,36 @@ img { max-width: 100%; }
 .portfolio-shell app-proyectos .proyecto-imagen-wrapper { position: relative; aspect-ratio: 16 / 7.8; overflow: hidden; border-bottom: 1px solid rgba(174,194,202,.14); background: #09121b; }
 .portfolio-shell app-proyectos .proyecto-imagen-wrapper img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.72) contrast(1.04); transition: transform .35s ease, filter .35s ease; }
 .portfolio-shell app-proyectos .proyecto-card:hover .proyecto-imagen-wrapper img { transform: scale(1.035); filter: saturate(.9) contrast(1.06); }
-.portfolio-shell app-proyectos .project-cover-note { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: .85rem 1rem; overflow: hidden; background: radial-gradient(ellipse at 72% 35%, rgba(93,132,151,.32), transparent 28%), linear-gradient(135deg, #152533, #09121b 66%); }
+.portfolio-shell app-proyectos .project-cover-note { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: .85rem 1rem; overflow: hidden; background: radial-gradient(ellipse at 72% 35%, rgba(94,123,200,.29), transparent 28%), radial-gradient(ellipse at 18% 80%, rgba(48,166,191,.13), transparent 36%), linear-gradient(135deg, #17233d, #090e1d 66%); }
 .portfolio-shell app-proyectos .project-cover-note::before { content: ""; position: absolute; right: 12%; top: -25%; width: 48%; aspect-ratio: 1; border: 1px solid rgba(191,206,196,.18); border-radius: 50%; box-shadow: 0 0 0 12px rgba(191,206,196,.025), 0 0 0 26px rgba(191,206,196,.02); }
-.portfolio-shell app-proyectos .project-cover-note::after { content: ""; position: absolute; inset: 0; opacity: .35; background: repeating-linear-gradient(0deg, transparent 0 35px, rgba(175,197,203,.08) 36px), repeating-linear-gradient(90deg, transparent 0 54px, rgba(175,197,203,.06) 55px); mask-image: linear-gradient(90deg, transparent, black); }
+.portfolio-shell app-proyectos .project-cover-note::after { content: ""; position: absolute; inset: 0; opacity: .35; background: repeating-linear-gradient(0deg, transparent 0 35px, rgba(151,193,229,.1) 36px), repeating-linear-gradient(90deg, transparent 0 54px, rgba(175,173,245,.07) 55px); mask-image: linear-gradient(90deg, transparent, black); }
 .portfolio-shell app-proyectos .project-cover-note span,
 .portfolio-shell app-proyectos .project-cover-note strong,
 .portfolio-shell app-proyectos .project-cover-note i { position: relative; z-index: 1; }
-.portfolio-shell app-proyectos .project-cover-note span { color: #b5c5c6; font: 600 .54rem/1.3 Consolas, monospace; letter-spacing: .14em; }
-.portfolio-shell app-proyectos .project-cover-note strong { max-width: 70%; margin-top: .35rem; color: #e7e8df; font-size: .95rem; font-weight: 600; }
-.portfolio-shell app-proyectos .project-cover-note i { width: 28px; height: 1px; margin-top: .65rem; background: #d8b77e; }
+.portfolio-shell app-proyectos .project-cover-note span { color: #b8ccdf; font: 600 .54rem/1.3 Consolas, monospace; letter-spacing: .14em; }
+.portfolio-shell app-proyectos .project-cover-note strong { max-width: 70%; margin-top: .35rem; color: #edf0f7; font-size: .95rem; font-weight: 600; }
+.portfolio-shell app-proyectos .project-cover-note i { width: 28px; height: 1px; margin-top: .65rem; background: #74d9eb; }
 .portfolio-shell app-proyectos .proyecto-info { display: flex; flex-direction: column; padding: .9rem 1rem 1rem; }
-.portfolio-shell app-proyectos .proyecto-titulo { margin: 0 0 .2rem; color: #e0e5de; font-size: .98rem; font-weight: 600; letter-spacing: .015em; }
+.portfolio-shell app-proyectos .proyecto-titulo { margin: 0 0 .2rem; color: #e0eaf3; font-size: .98rem; font-weight: 600; letter-spacing: .015em; }
 .portfolio-shell app-proyectos .proyecto-subtitulo { display: block; color: #9eb0b4; font-size: .68rem; }
 .portfolio-shell app-proyectos .proyecto-desc { flex: 1; margin: .65rem 0 .8rem; font-size: .77rem; }
 .portfolio-shell app-proyectos .tecnologias { display: flex; flex-wrap: wrap; gap: .32rem; margin-bottom: .85rem; }
-.portfolio-shell app-proyectos .tecnologias span { padding: .26rem .4rem; border: 1px solid rgba(174,194,202,.15); border-radius: 2px; background: rgba(255,255,255,.035) !important; color: #b9c4bc !important; font-size: .59rem; font-weight: 500; box-shadow: none; }
+.portfolio-shell app-proyectos .tecnologias span { padding: .26rem .4rem; border: 1px solid rgba(174,194,202,.15); border-radius: 2px; background: rgba(255,255,255,.035) !important; color: #c2cedd !important; font-size: .59rem; font-weight: 500; box-shadow: none; }
 .portfolio-shell app-proyectos .proyecto-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: auto; }
 .portfolio-shell app-proyectos .btn-action,
-.portfolio-shell app-proyectos .mas-proyectos-btn { min-height: 34px; padding: .48rem .65rem; border: 1px solid rgba(174,194,202,.22); border-radius: 2px; background: rgba(16,28,36,.8); color: #d0bd92; font-size: .68rem; font-weight: 600; text-align: center; text-decoration: none; transition: background .18s ease, border-color .18s ease; }
+.portfolio-shell app-proyectos .mas-proyectos-btn { position: relative; overflow: hidden; min-height: 34px; padding: .48rem .65rem; border: 1px solid rgba(139,182,217,.28); border-radius: 2px; background: rgba(16,23,42,.8); color: #a6eff8; font-size: .68rem; font-weight: 600; text-align: center; text-decoration: none; transition: background .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.portfolio-shell app-proyectos .btn-action::after,
+.portfolio-shell app-proyectos .mas-proyectos-btn::after { content: ""; position: absolute; inset: 0 auto 0 -120%; width: 70%; background: linear-gradient(90deg, transparent, rgba(173,236,255,.16), transparent); transform: skewX(-18deg); transition: left .5s ease; pointer-events: none; }
+.portfolio-shell app-proyectos .btn-action:hover::after,
+.portfolio-shell app-proyectos .mas-proyectos-btn:hover::after { left: 140%; }
 .portfolio-shell app-proyectos .btn-action { flex: 1; }
 .portfolio-shell app-proyectos .btn-action:hover,
-.portfolio-shell app-proyectos .mas-proyectos-btn:hover { border-color: rgba(212,167,106,.52); background: #26343a; color: #f0d6a1; }
-.portfolio-shell app-proyectos .destacado-badge { position: absolute; top: .65rem; left: .65rem; padding: .28rem .42rem; border: 1px solid rgba(210,191,147,.48); border-radius: 2px; background: rgba(8,16,22,.86); color: #e3cca0; font: 600 .52rem/1.3 Consolas, monospace; letter-spacing: .08em; }
+.portfolio-shell app-proyectos .mas-proyectos-btn:hover { border-color: rgba(91,204,231,.62); background: #1b2942; color: #e2fbff; box-shadow: 0 0 18px rgba(86,189,223,.09); }
+.portfolio-shell app-proyectos .destacado-badge { position: absolute; top: .65rem; left: .65rem; padding: .28rem .42rem; border: 1px solid rgba(113,216,236,.48); border-radius: 2px; background: rgba(8,12,25,.86); color: #a8edfa; font: 600 .52rem/1.3 Consolas, monospace; letter-spacing: .08em; }
 .portfolio-shell app-proyectos .mas-proyectos-card { display: flex; min-height: 100%; align-items: center; justify-content: center; padding: 1rem; text-align: center; }
 .portfolio-shell app-proyectos .mas-proyectos-content { display: flex; flex-direction: column; align-items: center; }
-.portfolio-shell app-proyectos .mas-icon-wrapper { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: .75rem; border: 1px solid rgba(174,194,202,.2); color: #d8b77e; font: 600 .62rem Consolas, monospace; }
-.portfolio-shell app-proyectos .mas-proyectos-content h3 { margin: 0 0 .45rem; color: #e0e5de; font-size: .94rem; font-weight: 600; }
+.portfolio-shell app-proyectos .mas-icon-wrapper { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: .75rem; border: 1px solid rgba(174,194,202,.2); color: #74d9eb; font: 600 .62rem Consolas, monospace; }
+.portfolio-shell app-proyectos .mas-proyectos-content h3 { margin: 0 0 .45rem; color: #e0eaf3; font-size: .94rem; font-weight: 600; }
 .portfolio-shell app-proyectos .mas-proyectos-content p { max-width: 250px; margin: 0 0 .8rem; color: #9eaaa9; font-size: .74rem; line-height: 1.55; }
 
 .portfolio-shell app-experiencia .exp-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: .8rem; }
@@ -125,26 +192,26 @@ img { max-width: 100%; }
 .portfolio-shell app-experiencia .badge { display: inline-flex; align-items: center; gap: .45rem; padding: .28rem .42rem; border: 1px solid rgba(174,194,202,.2); border-radius: 2px; background: rgba(255,255,255,.025); color: #c2ced0; font: 600 .56rem/1.3 Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
 .portfolio-shell app-experiencia .exp-card { margin: 0 0 .65rem; padding: .9rem; }
 .portfolio-shell app-experiencia .exp-header { margin: 0 0 .55rem; }
-.portfolio-shell app-experiencia .exp-puesto { margin: 0 0 .25rem; color: #e1e5df; font-size: .9rem; font-weight: 600; }
-.portfolio-shell app-experiencia .exp-empresa { color: #d8b77e; font: 600 .61rem/1.35 Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+.portfolio-shell app-experiencia .exp-puesto { margin: 0 0 .25rem; color: #e0e9f3; font-size: .9rem; font-weight: 600; }
+.portfolio-shell app-experiencia .exp-empresa { color: #74d9eb; font: 600 .61rem/1.35 Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
 .portfolio-shell app-experiencia .exp-puntos { margin: 0; padding-left: 1rem; color: #aebbb4; font-size: .74rem; line-height: 1.58; }
 .portfolio-shell app-experiencia .exp-puntos li { margin: 0 0 .3rem; }
 .portfolio-shell app-experiencia .objetivo-box { height: fit-content; padding: 1rem; }
 .portfolio-shell app-experiencia .objetivo-box h3 { margin: 0 0 .65rem; }
 .portfolio-shell app-experiencia .objetivo-text { margin: 0 0 .9rem; font-size: .78rem; }
-.portfolio-shell app-experiencia .idiomas-card { margin-top: .9rem !important; padding: .75rem; border-left: 2px solid #b99a69; }
-.portfolio-shell app-experiencia .idioma-label { display: block; margin-bottom: .3rem; color: #d8b77e; font: 600 .62rem Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.portfolio-shell app-experiencia .idiomas-card { margin-top: .9rem !important; padding: .75rem; border-left: 2px solid #66d4e6; }
+.portfolio-shell app-experiencia .idioma-label { display: block; margin-bottom: .3rem; color: #74d9eb; font: 600 .62rem Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
 .portfolio-shell app-experiencia .idioma-val { color: #aebbb4; font-size: .7rem; line-height: 1.5; }
 
 .portfolio-shell app-contacto .contacto-container { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: .85rem; font-style: normal; text-align: left; }
 .portfolio-shell app-contacto .contact-info-pills { grid-column: 1; display: flex; flex-wrap: wrap; gap: .5rem; }
-.portfolio-shell app-contacto .info-pill { display: inline-flex; align-items: center; gap: .45rem; min-height: 35px; padding: .4rem .6rem; border: 1px solid rgba(174,194,202,.16); border-radius: 2px; background: rgba(6,13,16,.3); color: #b8c5c7; font-size: .72rem; }
-.portfolio-shell app-contacto .pill-icon { color: #d8b77e; font: 600 .64rem Consolas, monospace; }
-.portfolio-shell app-contacto .phone-link { color: #d8b77e; text-decoration: none; }
-.portfolio-shell app-contacto .phone-link:hover { color: #f0d6a1; text-decoration: underline; }
+.portfolio-shell app-contacto .info-pill { display: inline-flex; align-items: center; gap: .45rem; min-height: 35px; padding: .4rem .6rem; border: 1px solid rgba(174,194,202,.16); border-radius: 2px; background: rgba(6,13,16,.3); color: #b8c9dc; font-size: .72rem; }
+.portfolio-shell app-contacto .pill-icon { color: #74d9eb; font: 600 .64rem Consolas, monospace; }
+.portfolio-shell app-contacto .phone-link { color: #74d9eb; text-decoration: none; }
+.portfolio-shell app-contacto .phone-link:hover { color: #c2b8ff; text-decoration: underline; }
 .portfolio-shell app-contacto .redes-sociales { grid-column: 2; grid-row: 1; display: flex; justify-content: flex-end; gap: .5rem; margin: 0; }
-.portfolio-shell app-contacto .redes-sociales .icon { display: grid; place-items: center; width: 36px; height: 36px; padding: 7px; border: 1px solid rgba(174,194,202,.2); border-radius: 2px; background: #0d171b; transition: border-color .18s ease, background .18s ease; }
-.portfolio-shell app-contacto .redes-sociales .icon:hover { border-color: #b99a69; background: #17252c; transform: none; }
+.portfolio-shell app-contacto .redes-sociales .icon { display: grid; place-items: center; width: 36px; height: 36px; padding: 7px; border: 1px solid rgba(130,164,202,.26); border-radius: 2px; background: #111a2b; transition: border-color .18s ease, background .18s ease; }
+.portfolio-shell app-contacto .redes-sociales .icon:hover { border-color: #66d4e6; background: #17253e; transform: none; }
 .portfolio-shell app-contacto .redes-sociales .icon img { display: block; width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(.85); }
 .portfolio-shell app-contacto .correo-container,
 .portfolio-shell app-contacto .contacto-container > .text-center,
@@ -152,26 +219,31 @@ img { max-width: 100%; }
 .portfolio-shell app-contacto .correo-container { align-items: flex-start; margin-top: .1rem; }
 .portfolio-shell app-contacto .input-group { justify-content: flex-start; gap: .4rem; max-width: 430px; }
 .portfolio-shell app-contacto .input-group input,
-.portfolio-shell app-contacto .contact-card-form .form-control { min-height: 38px; border: 1px solid rgba(174,194,202,.22) !important; border-radius: 2px; background: #071018 !important; color: #e4e8df !important; box-shadow: none !important; font-size: .75rem; }
+.portfolio-shell app-contacto .contact-card-form .form-control { min-height: 38px; border: 1px solid rgba(130,164,202,.27) !important; border-radius: 2px; background: #080e1d !important; color: #e8edf7 !important; box-shadow: none !important; font-size: .75rem; }
 .portfolio-shell app-contacto .input-group input { padding: .5rem .65rem; }
 .portfolio-shell app-contacto .input-group input:focus,
-.portfolio-shell app-contacto .contact-card-form .form-control:focus { border-color: #b99a69 !important; box-shadow: 0 0 0 2px rgba(185,154,105,.12) !important; }
+.portfolio-shell app-contacto .contact-card-form .form-control:focus { border-color: #66d4e6 !important; box-shadow: 0 0 0 2px rgba(91,204,231,.14) !important; }
 .portfolio-shell app-contacto .input-group button,
 .portfolio-shell app-contacto .contacto-container .btn-primary,
-.portfolio-shell app-contacto .contact-card-form .btn-success { min-height: 36px; padding: .45rem .72rem; border: 1px solid rgba(212,167,106,.45); border-radius: 2px; background: #a78659; color: #111714; font-size: .71rem; font-weight: 650; }
+.portfolio-shell app-contacto .contact-card-form .btn-success { min-height: 36px; padding: .45rem .72rem; border: 1px solid rgba(91,204,231,.58); border-radius: 2px; background: linear-gradient(125deg, #5db9ce, #8583d9); color: #080d19; font-size: .71rem; font-weight: 650; }
 .portfolio-shell app-contacto .input-group button:hover,
 .portfolio-shell app-contacto .contacto-container .btn-primary:hover,
-.portfolio-shell app-contacto .contact-card-form .btn-success:hover { border-color: #e2bd83; background: #c0a06c; transform: none; }
+.portfolio-shell app-contacto .contact-card-form .btn-success:hover { border-color: #a8edfa; background: #91e4f2; transform: none; }
 .portfolio-shell app-contacto .input-group button.copiado { border-color: #84a99a; background: #526f65; color: #f1f4eb; }
 .portfolio-shell app-contacto .contacto-container > .text-center { margin: 0 !important; text-align: left !important; }
-.portfolio-shell app-contacto .contact-card-form { max-width: 560px !important; margin: .4rem 0 0 !important; padding: 1rem !important; border: 1px solid rgba(174,194,202,.18) !important; border-radius: 3px !important; background: #101b1f !important; }
+.portfolio-shell app-contacto .contact-card-form { max-width: 560px !important; margin: .4rem 0 0 !important; padding: 1rem !important; border: 1px solid rgba(126,165,207,.22) !important; border-radius: 3px !important; background: linear-gradient(135deg, rgba(18,29,53,.88), rgba(7,13,26,.92)) !important; box-shadow: inset 0 1px rgba(213,231,255,.04), 0 12px 28px rgba(0,0,0,.18); }
 .portfolio-shell app-contacto .contact-card-form .form-label { display: block; margin-bottom: .35rem; color: #c4cec6; font-size: .72rem; font-weight: 550; }
 .portfolio-shell app-contacto .contact-card-form textarea.form-control { min-height: 100px; }
-.portfolio-shell app-contacto .contact-card-form .mailto-link { color: #d8b77e !important; font-size: .7rem; }
+.portfolio-shell app-contacto .contact-card-form .mailto-link { color: #74d9eb !important; font-size: .7rem; }
 .portfolio-shell app-contacto .validation-error small { color: #e0a18c !important; font-size: .7rem; }
 .portfolio-shell app-contacto .estado-mensaje { display: inline-block; margin-top: .6rem; padding: .5rem .65rem; border: 1px solid rgba(174,194,202,.2); border-radius: 2px; background: rgba(5,12,18,.7); color: #c7d0c9; font-size: .72rem; }
 .portfolio-shell app-contacto .estado-mensaje.exito { border-color: rgba(132,169,154,.55); color: #b9d1c3; }
 .portfolio-shell app-contacto .estado-mensaje.error { border-color: rgba(209,123,102,.55); color: #e3ad9c; }
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #070a15; }
+::-webkit-scrollbar-thumb { border: 2px solid #070a15; background: linear-gradient(180deg, #5faebf, #7966c8); }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #95e6ef, #a795ef); }
 
 @media (max-width: 760px) {
   .portfolio-shell app-sobre-mi .sobre-mi-grid,

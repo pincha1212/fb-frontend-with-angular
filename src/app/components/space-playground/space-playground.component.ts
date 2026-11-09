@@ -87,10 +87,12 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   isDockCollapsed = signal(false);
   isHelpOpen = signal(false);
   isMobileDevice = signal(false);
+  hasMouseControl = signal(false);
   activeStationModal = signal<string | null>(null);
   isTransiting = signal(false);
   destinationName = signal('');
   isCinema = signal(false);
+  isPointerLocked = signal(false);
   customGlbLoaded = signal(false);
   customGlbName = signal('');
   radarBlips = signal<any[]>([]);
@@ -183,11 +185,16 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   private shipRotationY = Math.PI; // Face forward
   private shipRoll = 0;
   private shipPitch = 0;
+  private shipYawRate = 0;
+  private shipPitchRate = 0;
   private shipSpeed = 0;
-  private maxNormalSpeed = 24.0;
-  private maxTurboSpeed = 44.0;
-  private acceleration = 32.0;
-  private turnSpeed = 2.8;
+  private maxNormalSpeed = 20.0;
+  private maxTurboSpeed = 36.0;
+  private acceleration = 18.0;
+  private brakingForce = 24.0;
+  private coastDrag = 0.72;
+  private turnSpeed = 1.12;
+  private pitchSpeed = 0.72;
   private isBoosting = false;
 
   // Engine audio synthesis
@@ -247,6 +254,9 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     if (typeof window !== 'undefined') {
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       this.isMobileDevice.set(isTouch || window.innerWidth < 800);
+      this.hasMouseControl.set(
+        typeof window.matchMedia === 'function' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+      );
     }
   }
 
@@ -313,8 +323,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     container.appendChild(this.renderer.domElement);
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x050a11);
-    this.scene.fog = new THREE.FogExp2(0x050a11, 0.0015);
+    this.scene.background = new THREE.Color(0x050711);
+    this.scene.fog = new THREE.FogExp2(0x050711, 0.0015);
 
     this.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 400);
     this.camera.position.set(0, 15, 25);
@@ -1106,26 +1116,32 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   private setupEvents(): void {
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
+    window.addEventListener('blur', this.clearInputState);
+    window.addEventListener('mousemove', this.onMouseMove);
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+    document.addEventListener('pointerlockchange', this.onPointerLockChange);
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
     // Ignore if typing in an input
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+    const target = e.target as HTMLElement | null;
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) {
       return;
     }
+    if (this.isHelpOpen() || this.activeStationModal()) return;
     const key = e.key.toLowerCase();
     this.keysPressed[key] = true;
-    if (['w', 'a', 's', 'd', 'q', 'e', 'arrowleft', 'arrowright'].includes(key)) e.preventDefault();
+    if (['w', 'a', 's', 'd', 'q', 'e', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) e.preventDefault();
 
     if (e.code === 'Space') {
       e.preventDefault();
       this.isBoosting = true;
       this.turboActive.set(true);
     }
-    if (key === 'r') {
+    if (key === 'r' && !e.repeat) {
       this.resetShipPosition();
     }
-    if (key === 'c') {
+    if (key === 'c' && !e.repeat) {
       this.cycleCamera();
     }
   };
@@ -1139,6 +1155,49 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     }
   };
 
+  private onVisibilityChange = (): void => {
+    if (document.hidden) this.clearInputState();
+  };
+
+  private onPointerLockChange = (): void => {
+    const isLocked = document.pointerLockElement === this.renderer?.domElement;
+    this.isPointerLocked.set(isLocked);
+    if (!isLocked) {
+      this.shipYawRate = 0;
+      this.shipPitchRate = 0;
+    }
+  };
+
+  private onMouseMove = (event: MouseEvent): void => {
+    if (document.pointerLockElement !== this.renderer?.domElement) return;
+
+    const sensitivity = 0.0021;
+    this.shipRotationY += event.movementX * sensitivity;
+    this.shipPitch = THREE.MathUtils.clamp(
+      this.shipPitch - event.movementY * sensitivity,
+      -0.92,
+      0.92
+    );
+    this.shipYawRate = 0;
+    this.shipPitchRate = 0;
+  };
+
+  private clearInputState = (): void => {
+    this.keysPressed = {};
+    this.touchState.forward = false;
+    this.touchState.backward = false;
+    this.touchState.left = false;
+    this.touchState.right = false;
+    this.touchState.pitchUp = false;
+    this.touchState.pitchDown = false;
+    this.touchState.boost = false;
+    this.touchState.fire = false;
+    this.isBoosting = false;
+    this.turboActive.set(false);
+    this.shipYawRate = 0;
+    this.shipPitchRate = 0;
+  };
+
   // Touch Virtual Controls
   setTouchControl(control: 'forward' | 'backward' | 'left' | 'right' | 'pitchUp' | 'pitchDown' | 'boost' | 'fire', state: boolean): void {
     this.touchState[control] = state;
@@ -1149,6 +1208,16 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     if (control === 'fire') this.touchState.fire = state;
   }
 
+  captureMouse(event: MouseEvent): void {
+    if (!this.hasMouseControl() || event.target !== this.renderer?.domElement || document.pointerLockElement) return;
+    if (this.cameraMode() === 'top' || this.cameraMode() === 'cinematic') this.setCameraMode('chase');
+    try {
+      this.renderer.domElement.requestPointerLock();
+    } catch {
+      this.isPointerLocked.set(false);
+    }
+  }
+
   resetShipPosition(): void {
     this.shipPosition.set(0, 0, 12);
     this.shipVelocity.set(0, 0, 0);
@@ -1156,6 +1225,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.shipRotationY = Math.PI;
     this.shipRoll = 0;
     this.shipPitch = 0;
+    this.shipYawRate = 0;
+    this.shipPitchRate = 0;
     this.playChime([330, 440]);
   }
 
@@ -1180,6 +1251,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       this.shipPosition.y += Math.sin(progress * Math.PI) * 10;
       this.shipGroup.lookAt(st.position.x, st.position.y, st.position.z);
       this.shipVelocity.set(0, 0, 0);
+      this.shipYawRate = 0;
+      this.shipPitchRate = 0;
 
       if (progress >= 1.0) {
         clearInterval(transitInterval);
@@ -1263,7 +1336,9 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   }
 
   cycleCamera(): void {
-    const modes: ('chase' | 'cockpit' | 'top' | 'cinematic')[] = ['chase', 'cockpit', 'top', 'cinematic'];
+    const modes: ('chase' | 'cockpit' | 'top' | 'cinematic')[] = this.isPointerLocked()
+      ? ['chase', 'cockpit']
+      : ['chase', 'cockpit', 'top', 'cinematic'];
     const nextIdx = (modes.indexOf(this.cameraMode()) + 1) % modes.length;
     this.setCameraMode(modes[nextIdx]);
   }
@@ -1273,10 +1348,12 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   }
 
   toggleHelp(): void {
+    if (!this.isHelpOpen()) this.releasePointerLock();
     this.isHelpOpen.update(v => !v);
   }
 
   openStationModal(sectionId: string): void {
+    this.releasePointerLock();
     this.activeStationModal.set(sectionId);
     this.playChime([523, 659, 784]);
   }
@@ -1343,32 +1420,42 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     const backwardInput = (this.keysPressed['s'] || this.touchState.backward) ? 1 : 0;
     const leftInput = (this.keysPressed['a'] || this.keysPressed['arrowleft'] || this.touchState.left) ? 1 : 0;
     const rightInput = (this.keysPressed['d'] || this.keysPressed['arrowright'] || this.touchState.right) ? 1 : 0;
-    const pitchUpInput = (this.keysPressed['q'] || this.touchState.pitchUp) ? 1 : 0;
-    const pitchDownInput = (this.keysPressed['e'] || this.touchState.pitchDown) ? 1 : 0;
-    const throttle = forwardInput - backwardInput;
+    const pitchUpInput = (this.keysPressed['q'] || this.keysPressed['arrowup'] || this.touchState.pitchUp) ? 1 : 0;
+    const pitchDownInput = (this.keysPressed['e'] || this.keysPressed['arrowdown'] || this.touchState.pitchDown) ? 1 : 0;
     const steering = leftInput - rightInput;
     const pitchInput = pitchUpInput - pitchDownInput;
 
-    const turnFactor = this.shipSpeed > 1.0 ? 1 : 0.65;
-    this.shipRotationY += steering * this.turnSpeed * turnFactor * delta;
-    this.shipPitch = THREE.MathUtils.clamp(
-      this.shipPitch - pitchInput * this.turnSpeed * 0.48 * delta,
-      -1.15,
-      1.15
-    );
-    this.shipRoll = THREE.MathUtils.damp(this.shipRoll, -steering * 0.25, 5.0, delta);
+    // Flight assist eases into turns and damps them after release. Pitch gently
+    // returns to level so small corrections do not leave the ship pointed away.
+    this.shipYawRate = THREE.MathUtils.damp(this.shipYawRate, steering * this.turnSpeed, 7.5, delta);
+    this.shipRotationY += this.shipYawRate * delta;
+    this.shipPitchRate = THREE.MathUtils.damp(this.shipPitchRate, -pitchInput * this.pitchSpeed, 7.5, delta);
+    this.shipPitch = THREE.MathUtils.clamp(this.shipPitch + this.shipPitchRate * delta, -0.92, 0.92);
+    if (pitchInput === 0 && !this.isPointerLocked()) this.shipPitch = THREE.MathUtils.damp(this.shipPitch, 0, 0.62, delta);
+    this.shipRoll = THREE.MathUtils.damp(this.shipRoll, -steering * 0.18, 5.5, delta);
 
     const cosPitch = Math.cos(this.shipPitch);
     const forward = this._vecA
       .set(Math.sin(this.shipRotationY) * cosPitch, -Math.sin(this.shipPitch), Math.cos(this.shipRotationY) * cosPitch)
       .normalize();
 
-    if (throttle !== 0) {
-      const engineFactor = this.isBoosting ? 1.35 : 1;
-      this.shipVelocity.addScaledVector(forward, throttle * this.acceleration * engineFactor * delta);
+    if (backwardInput) {
+      // S is a predictable brake: cancel current drift first, without turning
+      // the same key into an unexpected reverse-thrust input.
+      const speed = this.shipVelocity.length();
+      const brakeStep = speed > 0 ? Math.min(1, (this.brakingForce * delta) / speed) : 1;
+      this.shipVelocity.multiplyScalar(1 - brakeStep);
+    } else if (forwardInput) {
+      const engineFactor = this.isBoosting ? 1.28 : 1;
+      const maxSpeed = this.isBoosting ? this.maxTurboSpeed : this.maxNormalSpeed;
+      const targetSpeed = Math.min(maxSpeed, this.shipVelocity.length() + this.acceleration * engineFactor * delta);
+      this._vecB.copy(forward).multiplyScalar(targetSpeed);
+      // With the engines engaged, flight assist gently aligns travel with the
+      // view direction instead of letting old sideways drift fight the pilot.
+      this.shipVelocity.lerp(this._vecB, Math.min(1, delta * 3.4));
     } else {
-      // In vacuum the craft keeps drifting; only a faint flight-control correction slows it.
-      this.shipVelocity.multiplyScalar(Math.pow(0.9995, delta * 60));
+      // The assisted stabilizers reduce drift gradually after W is released.
+      this.shipVelocity.multiplyScalar(Math.exp(-this.coastDrag * delta));
     }
 
     const maxSpeed = this.isBoosting ? this.maxTurboSpeed : this.maxNormalSpeed;
@@ -1572,6 +1659,11 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   private disposeThree(): void {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
+    window.removeEventListener('blur', this.clearInputState);
+    window.removeEventListener('mousemove', this.onMouseMove);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    document.removeEventListener('pointerlockchange', this.onPointerLockChange);
+    this.releasePointerLock();
 
     if (this.renderer) {
       this.renderer.dispose();
@@ -1580,5 +1672,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       }
     }
     this.scene.clear();
+  }
+
+  private releasePointerLock(): void {
+    if (document.pointerLockElement === this.renderer?.domElement) document.exitPointerLock();
+    this.isPointerLocked.set(false);
   }
 }

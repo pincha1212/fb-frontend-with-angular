@@ -1,6 +1,6 @@
 <div class="space-viewport-root">
   <!-- Three.js Canvas Container (Dedicated isolated container) -->
-  <div #canvasContainer class="canvas-mount"></div>
+  <div #canvasContainer class="canvas-mount" (click)="captureMouse($event)"></div>
 
   <!-- TOP HUD: Minimal telemetry header (Unobstructed center) -->
   <header class="hud-top-bar" [class.cinema-hidden]="isCinema()" role="banner">
@@ -69,6 +69,13 @@
     </div>
   </header>
 
+  @if (hasMouseControl() && !isPointerLocked()) {
+    <div class="mouse-pilot-hint" role="status">
+      <span class="mouse-hint-dot" aria-hidden="true"></span>
+      Clic en el espacio para tomar el mouse · W avanza · Esc libera
+    </div>
+  }
+
   <!-- Orbital transfer in progress -->
   @if (isTransiting()) {
     <div class="transit-active-banner" role="status" aria-live="polite">
@@ -132,14 +139,18 @@
         <div class="help-body">
           <div class="control-row">
             <span class="key-badge">W / S</span>
-            <span>Aplicar empuje y contramarcha</span>
+            <span>Avanzar hacia donde mirás / frenar la deriva</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">MOUSE</span>
+            <span>Orientar la nave y la cámara; con W, el vuelo sigue esa dirección</span>
           </div>
           <div class="control-row">
             <span class="key-badge">A / D</span>
             <span>Girar sobre el eje vertical</span>
           </div>
           <div class="control-row">
-            <span class="key-badge">Q / E</span>
+            <span class="key-badge">↑ ↓ / Q E</span>
             <span>Orientar el morro hacia arriba o abajo</span>
           </div>
           <div class="control-row">
@@ -240,7 +251,8 @@
           <button 
             type="button" 
             class="touch-btn dpad-down"
-            aria-label="Retroceder"
+            aria-label="Frenar la nave"
+            title="Frenar"
             (pointerdown)="setTouchControl('backward', true)"
             (pointerup)="setTouchControl('backward', false)"
             (pointercancel)="setTouchControl('backward', false)"

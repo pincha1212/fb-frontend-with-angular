@@ -10,7 +10,7 @@
   position: relative;
   overflow: hidden;
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  color: #dfe5de;
+  color: #e7edf7;
   user-select: none;
 }
 
@@ -19,7 +19,7 @@
   width: 100%;
   height: 100vh;
   min-height: 550px;
-  background-color: #080e12;
+  background-color: #050711;
   overflow: hidden;
 }
 
@@ -38,6 +38,38 @@
   width: 100%;
   height: 100%;
   outline: none;
+  cursor: crosshair;
+}
+
+.mouse-pilot-hint {
+  position: absolute;
+  top: 102px;
+  left: 50%;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: calc(100% - 32px);
+  padding: 8px 12px;
+  border: 1px solid rgba(113, 216, 236, .34);
+  background: rgba(5, 9, 20, .76);
+  color: #c7d9e7;
+  font: 600 .62rem/1.4 Consolas, monospace;
+  letter-spacing: .035em;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+  box-shadow: 0 7px 25px rgba(0, 0, 0, .25), 0 0 20px rgba(76, 171, 208, .07);
+  backdrop-filter: blur(8px);
+}
+
+.mouse-hint-dot {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8fe7ee;
+  box-shadow: 0 0 10px rgba(113, 216, 236, .75);
 }
 
 /* ==========================================================================
@@ -94,7 +126,7 @@
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: #9bac9b;
+  color: #a9d7ea;
   text-transform: uppercase;
 }
 
@@ -124,7 +156,7 @@
   font-size: 0.88rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  color: #9bac9b;
+  color: #8fd7eb;
 }
 
 .telemetry-value small {
@@ -173,9 +205,9 @@
 }
 
 .hud-icon-btn:hover {
-  background-color: #1a2425;
-  border-color: #9bac9b;
-  color: #9bac9b;
+  background-color: #17233b;
+  border-color: #71d8ec;
+  color: #a8edfa;
 }
 
 .hud-icon-btn.active {
@@ -752,6 +784,7 @@
    Responsive Breakpoints
    ========================================================================== */
 @media (max-width: 860px) {
+  .mouse-pilot-hint { top: 128px; font-size: .56rem; }
   .hud-top-bar {
     top: 8px;
     left: 8px;
@@ -922,24 +955,24 @@
 }
 
 /* The flight console uses restrained instrument markings instead of arcade effects. */
-.hud-badge-title, .telemetry-value, .help-header h3 { color: #c2ced0; }
-.telemetry-pill { background: rgba(7, 14, 20, .92); border-color: rgba(174, 194, 202, .2); }
+.hud-badge-title, .telemetry-value, .help-header h3 { color: #a8dcef; }
+.telemetry-pill { background: rgba(8, 13, 29, .92); border-color: rgba(119, 173, 213, .24); }
 .turbo-text { color: #d9c59b !important; text-shadow: none; }
 .turbo-alert-pill { background: rgba(57, 49, 35, .8); border-color: rgba(192, 165, 112, .55); color: #d9c59b; }
 .transit-active-banner { animation: none; border-color: rgba(164, 186, 195, .44); box-shadow: 0 12px 42px rgba(0, 0, 0, .5); }
-.transit-pulse { width: 7px; height: 7px; animation: none; background: #9eafb3; box-shadow: 0 0 7px rgba(158, 175, 179, .45); }
-.transit-tag { color: #9eb4bc; }
-.hud-icon-btn, .hud-close-btn { background: rgba(7, 14, 20, .92); border-color: rgba(174, 194, 202, .22); color: #b8c5c7; }
-.hud-icon-btn:hover, .hud-close-btn:hover { border-color: #849ca4; background: #192832; color: #edf0ea; }
-.glb-upload-label { background: linear-gradient(#26343b, #121d24); border: 1px solid rgba(164, 186, 195, .33); color: #c1ccce; }
-.glb-upload-label:hover { background: #30414a; box-shadow: none; color: #f0f1e8; }
+.transit-pulse { width: 7px; height: 7px; animation: none; background: #74d9eb; box-shadow: 0 0 7px rgba(113, 216, 236, .45); }
+.transit-tag { color: #a8cce0; }
+.hud-icon-btn, .hud-close-btn { background: rgba(7, 12, 27, .92); border-color: rgba(130, 164, 202, .24); color: #b8c9dc; }
+.hud-icon-btn:hover, .hud-close-btn:hover { border-color: #71d8ec; background: #18243d; color: #e8f7ff; }
+.glb-upload-label { background: linear-gradient(#202c49, #10172d); border: 1px solid rgba(130, 164, 202, .34); color: #c1d4e5; }
+.glb-upload-label:hover { background: #293755; box-shadow: none; color: #f0f4ff; }
 .glb-upload-label { position: relative; cursor: pointer; }
 .model-upload-input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
-.station-modal-overlay { background: rgba(2, 7, 13, .9); }
-.station-modal-container { background: #09121a; border-color: rgba(160, 181, 190, .3); }
-.station-modal-header { background: #0d1822; }
-.station-modal-close-btn { border: 1px solid rgba(164, 186, 195, .3); border-radius: 3px; background: #16232c; color: #bec9ca; }
-.station-modal-close-btn:hover { background: #253943; color: #f1f1e8; }
+.station-modal-overlay { background: rgba(3, 5, 17, .9); }
+.station-modal-container { background: #090e20; border-color: rgba(130, 164, 202, .3); }
+.station-modal-header { background: #0d142a; }
+.station-modal-close-btn { border: 1px solid rgba(130, 164, 202, .3); border-radius: 3px; background: #16213b; color: #c4d2e6; }
+.station-modal-close-btn:hover { background: #253456; color: #f1f5ff; }
 .touch-cluster-right { display: flex; flex-direction: column; align-items: center; gap: 7px; }
 .touch-pitch-controls { display: flex; gap: 5px; }
 .pitch-up-btn, .pitch-down-btn { width: 34px; height: 30px; font-size: .86rem; }
@@ -947,6 +980,7 @@
 .turbo-touch-btn.active, .turbo-touch-btn:active { background: #827152; color: #fff4d6; }
 
 @media (max-width: 600px) {
+  .mouse-pilot-hint { display: none; }
   .touch-cluster-right { flex-direction: row; align-items: flex-end; gap: 6px; }
   .touch-pitch-controls { flex-direction: column; }
   .pitch-up-btn, .pitch-down-btn { width: 31px; height: 28px; }
