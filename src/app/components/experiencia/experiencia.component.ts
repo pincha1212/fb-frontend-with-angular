@@ -11,26 +11,26 @@ import { CommonModule } from '@angular/common';
 export class ExperienciaComponent {
   experiencias = [
     {
-      puesto: 'Simulación Laboral Collaborative Frontend',
+      puesto: 'Práctica colaborativa de desarrollo front-end',
       empresa: 'NoCountry',
       periodo: 'Experiencia Práctica',
       puntos: [
-        'Participación activa en dinámicas de equipo multidisciplinares.',
-        'Organización, asignación y cumplimiento riguroso de tareas bajo metodologías de desarrollo ágil.',
-        'Colaboración continua en un entorno de trabajo remoto simulado para la entrega de productos funcionales.'
+        'Colaboré con un equipo multidisciplinario en la planificación y construcción de un producto web.',
+        'Organicé tareas y avances con una metodología de trabajo ágil.',
+        'Participé en la revisión de entregas dentro de un equipo remoto.'
       ]
     },
     {
-      puesto: 'Desarrollo Frontend & Geovisores SIG',
+      puesto: 'Desarrollo front-end y geovisores SIG',
       empresa: 'Universidad Nacional de Cuyo (UNCuyo)',
       periodo: 'Formación en Geotecnologías',
       puntos: [
-        'Diseño y maquetación de interfaz interactiva utilizando HTML5, CSS3 y JavaScript.',
-        'Organización, estructuración y despliegue de datos espaciales con QGIS y QField.',
-        'Integración de tecnologías frontend con herramientas geográficas para la creación de soluciones interactivas.'
+        'Diseñé interfaces y desarrollé funcionalidades con HTML, CSS y JavaScript.',
+        'Trabajé con QGIS y QField para organizar y representar información geográfica.',
+        'Integré datos espaciales en geovisores web.'
       ]
     }
   ];
 
-  objetivo = 'Desarrollarme profesionalmente en el ámbito tecnológico, especialmente en desarrollo web frontend, aplicaciones interactivas y videojuegos web. Aspiro a crecer dentro de equipos de trabajo, aportar soluciones, asumir responsabilidades y avanzar hacia posiciones de mayor coordinación.';
+  objetivo = 'Desarrollarme profesionalmente en el ámbito tecnológico, especialmente en desarrollo front-end, aplicaciones web y soluciones geoespaciales. Aspiro a crecer en equipos de trabajo, aportar soluciones claras, asumir responsabilidades y avanzar hacia posiciones de mayor coordinación.';
 }

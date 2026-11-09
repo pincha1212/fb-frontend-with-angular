@@ -21,30 +21,7 @@ export interface Proyecto {
   styleUrls: ['./proyectos.component.css']
 })
 export class ProyectosComponent {
-  techColors: { [key: string]: string } = {
-    'JavaScript': '#f7df1e',
-    'HTML': '#e34c26',
-    'CSS': '#264de4',
-    'API': '#00ff95',
-    'Canvas 2D': '#ff7b00',
-    'SIG / QGIS': '#4ecdc4',
-    'React': '#61dafb',
-    'Angular': '#dd1b16',
-    'TypeScript': '#007acc',
-    'Vite': '#8b73e8',
-    'Leaflet': '#78a65a'
-  };
-
   proyectos: Proyecto[] = [
-    {
-      titulo: 'CLASH OF GODS',
-      subtitulo: 'Arena mitológica · React y Canvas 2D',
-      descripcion: 'Juego de duelos inspirado en Pong, con partidas contra la CPU o para dos jugadores. Incluye selección de personajes, arenas y habilidades.',
-      tecnologias: ['React', 'TypeScript', 'Canvas 2D', 'Vite'],
-      imagen: '',
-      githubUrl: 'https://github.com/pincha1212/clash-of-gods-pingPong',
-      destacado: true
-    },
     {
       titulo: 'GEOVISOR WEB',
       subtitulo: 'Geovisor de plazas · Gran Mendoza',
@@ -55,37 +32,41 @@ export class ProyectosComponent {
       destacado: true
     },
     {
-      titulo: 'CineApp',
-      subtitulo: 'Streaming & Catálogo TMDB',
-      descripcion: 'Plataforma web de búsqueda y exploración de películas en tiempo real consumiendo la API REST de TMDB con filtros dinámicos, recomendaciones y tráilers.',
-      tecnologias: ['JavaScript', 'API', 'CSS', 'HTML'],
-      imagen: 'assets/images/netfliz-clone.jpg',
-      demoUrl: 'https://pincha1212.github.io/FDPelis/',
-      githubUrl: 'https://github.com/pincha1212/FDPelis'
-    },
-    {
       titulo: 'Weather App',
-      subtitulo: 'Pronóstico Meteorológico en Vivo',
-      descripcion: 'Aplicación del clima interactiva que consulta las condiciones atmosféricas globales y pronósticos en tiempo real mediante la API OpenWeatherMap.',
+      subtitulo: 'Pronóstico meteorológico en vivo',
+      descripcion: 'Aplicación del clima que consulta condiciones atmosféricas y pronósticos para distintas ubicaciones mediante la API de OpenWeatherMap.',
       tecnologias: ['JavaScript', 'API', 'CSS', 'HTML'],
       imagen: 'assets/images/weather.jpg',
       demoUrl: 'https://pincha1212.github.io/weather/',
       githubUrl: 'https://github.com/pincha1212/weather'
     },
     {
+      titulo: 'CineApp',
+      subtitulo: 'Catálogo de cine · API TMDB',
+      descripcion: 'Aplicación web para buscar películas en el catálogo de TMDB, con filtros, recomendaciones y acceso a tráilers.',
+      tecnologias: ['JavaScript', 'API', 'CSS', 'HTML'],
+      imagen: 'assets/images/netfliz-clone.jpg',
+      demoUrl: 'https://pincha1212.github.io/FDPelis/',
+      githubUrl: 'https://github.com/pincha1212/FDPelis'
+    },
+    {
       titulo: 'Calculator Web',
-      subtitulo: 'Calculadora Interactiva',
-      descripcion: 'Calculadora web moderna con diseño limpio, soporte para operaciones matemáticas completas e interfaz adaptativa.',
+      subtitulo: 'Herramienta de cálculo web',
+      descripcion: 'Calculadora adaptable para operaciones matemáticas de uso cotidiano.',
       tecnologias: ['HTML', 'CSS', 'JavaScript'],
       imagen: 'assets/images/calculator.jpg',
       demoUrl: 'https://pincha1212.github.io/calculator/',
       githubUrl: 'https://github.com/pincha1212/calculator'
+    },
+    {
+      titulo: 'Clash of Gods',
+      subtitulo: 'Juego de duelos 2D · React y Canvas',
+      descripcion: 'Proyecto de juego inspirado en Pong, con partidas individuales o para dos personas, selección de personajes y arenas.',
+      tecnologias: ['React', 'TypeScript', 'Canvas 2D', 'Vite'],
+      imagen: '',
+      githubUrl: 'https://github.com/pincha1212/clash-of-gods-pingPong'
     }
   ];
-
-  getTechColor(tech: string): string {
-    return this.techColors[tech] || '#ffffff';
-  }
 
   handleImageFallback(event: Event, proyecto: Proyecto): void {
     const target = event.target as HTMLImageElement;
@@ -101,9 +82,11 @@ export class ProyectosComponent {
           </defs>
           <rect width="600" height="340" fill="url(#g)"/>
           <circle cx="300" cy="140" r="45" fill="#4ecdc4" opacity="0.2"/>
-          <text x="300" y="150" font-family="Arial, sans-serif" font-size="36" fill="#4ecdc4" text-anchor="middle">💻</text>
-          <text x="300" y="220" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">${proyecto.titulo}</text>
-          <text x="300" y="250" font-family="Arial, sans-serif" font-size="14" fill="#a0aec0" text-anchor="middle">Proyecto Front-end</text>
+          <circle cx="300" cy="145" r="76" fill="none" stroke="#aebec1" stroke-opacity=".42"/>
+          <circle cx="300" cy="145" r="52" fill="#617a83" opacity=".48"/>
+          <path d="M210 145h180M300 55v180" stroke="#d5bd8c" stroke-opacity=".55" stroke-dasharray="3 7"/>
+          <text x="300" y="252" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#e4e8df" text-anchor="middle">${proyecto.titulo}</text>
+          <text x="300" y="278" font-family="Arial, sans-serif" font-size="12" fill="#aebdc1" text-anchor="middle">SEÑAL DE PROYECTO · FB / WEB</text>
         </svg>
       `.trim();
       target.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);

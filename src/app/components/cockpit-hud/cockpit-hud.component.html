@@ -12,13 +12,13 @@
         <button type="button" class="cam-pill active" (click)="setCamera('cinematic')">Cinemática</button>
       </div>
       <div class="cinema-dock-actions">
-        <button type="button" class="cinema-action-pill" (click)="fireWeapons.emit()" title="Disparar a los hostiles"><span>Disparar [F]</span></button>
+        <button type="button" class="cinema-action-pill" (click)="fireWeapons.emit()" [disabled]="activeHostiles === 0" title="Activar defensas ante contactos no identificados"><span>Defensa [F]</span></button>
         <button type="button" class="cinema-exit-pill" (click)="toggleCinemaMode()" title="Salir de la vista amplia"><span>Salir [C]</span></button>
       </div>
     </div>
   }
 
-  <div class="cockpit-reticle-overlay" [class.combat-active]="activeRaiders > 0" aria-hidden="true">
+  <div class="cockpit-reticle-overlay" [class.combat-active]="activeHostiles > 0" aria-hidden="true">
     <div class="hud-crosshair-center"><div class="reticle-ring"></div><div class="reticle-dot"></div><div class="reticle-bracket left"></div><div class="reticle-bracket right"></div></div>
     <div class="horizon-pitch-ladder">
       <span class="pitch-tag">{{ pitchDegrees > 0 ? '+' : '' }}{{ pitchDegrees }}°</span>
@@ -28,7 +28,7 @@
 
   @if (combatMessage) {
     <div class="combat-status-banner" role="status" aria-live="polite">
-      <span class="combat-status-light"></span><strong>{{ combatMessage }}</strong><span>{{ activeRaiders }} EN VUELO</span>
+      <span class="combat-status-light"></span><strong>{{ combatMessage }}</strong><span>{{ activeHostiles }} EN VUELO</span>
     </div>
   }
 
@@ -47,7 +47,7 @@
           <div class="gauge-bar-track"><div class="gauge-bar-fill shield-fill" [class.hull-damaged]="hullIntegrity < 55" [style.width.%]="hullIntegrity"></div></div>
         </div>
         <div class="telemetry-mini-grid">
-          <div class="telemetry-box contact-count" [class.contact-alert]="activeRaiders > 0"><span class="box-label">HOSTILES</span><span class="box-val">{{ activeRaiders === 0 ? 'NINGUNO' : activeRaiders + ' DETECTADOS' }}</span></div>
+          <div class="telemetry-box contact-count" [class.contact-alert]="activeHostiles > 0"><span class="box-label">CONTACTOS</span><span class="box-val">{{ activeHostiles === 0 ? 'SIN SEÑAL' : activeHostiles + ' EN RADAR' }}</span></div>
           <div class="telemetry-box"><span class="box-label">CASCO</span><span class="box-val">{{ hullIntegrity < 35 ? 'REVISAR' : 'OPERATIVO' }}</span></div>
         </div>
       </section>
@@ -55,19 +55,19 @@
       <section class="hud-cluster cluster-center" aria-label="Velocidad y orientación">
         <div class="current-sector-banner"><span class="sector-dot"></span><span class="sector-title">{{ currentStationName }}</span></div>
         <div class="speedometer-display">
-          <div class="speed-number-wrap"><span class="speed-value" [class.is-turbo]="isTurboActive">{{ speedKmh }}</span><span class="speed-unit">KM/H</span></div>
-          <div class="speed-progress-arc" role="meter" aria-label="Velocidad" [attr.aria-valuenow]="speedKmh" [attr.aria-valuemin]="0" [attr.aria-valuemax]="maxSpeedKmh"><div class="speed-arc-fill" [style.width.%]="speedPercent"></div></div>
+          <div class="speed-number-wrap"><span class="speed-value" [class.is-turbo]="isTurboActive">{{ speedKms }}</span><span class="speed-unit">KM/S</span></div>
+          <div class="speed-progress-arc" role="meter" aria-label="Velocidad" [attr.aria-valuenow]="speedKms" [attr.aria-valuemin]="0" [attr.aria-valuemax]="maxSpeedKms"><div class="speed-arc-fill" [style.width.%]="speedPercent"></div></div>
         </div>
         <div class="compass-bar-wrap"><span class="compass-label">RUMBO · INCLINACIÓN</span><div class="compass-tape"><span class="compass-degree">{{ headingDegrees }}° · {{ pitchDegrees }}°</span></div></div>
         <div class="center-control-row">
-          <button type="button" class="turbo-hud-btn" [class.active]="isTurboActive" (click)="onToggleTurbo()">IMPULSO · ESPACIO</button>
-          <button type="button" class="fire-hud-btn" (click)="fireWeapons.emit()" [disabled]="activeRaiders === 0" [attr.aria-label]="activeRaiders === 0 ? 'Sin objetivos hostiles' : 'Disparar a las naves hostiles'">DISPARAR · F</button>
+          <button type="button" class="turbo-hud-btn" [class.active]="isTurboActive" (click)="onToggleTurbo()">EMPUJE AUXILIAR · ESPACIO</button>
+          <button type="button" class="fire-hud-btn" (click)="fireWeapons.emit()" [disabled]="activeHostiles === 0" [attr.aria-label]="activeHostiles === 0 ? 'No hay contactos para interceptar' : 'Activar defensas ante naves no identificadas'">DEFENSA · F</button>
         </div>
       </section>
 
       <section class="hud-cluster cluster-right" aria-label="Radar y controles de cámara">
         <div class="hud-cluster-header-row"><div class="hud-badge-tag">RADAR DE NAVEGACIÓN</div><button type="button" class="map-drawer-toggle-btn" [class.active]="isMapDrawerOpen()" (click)="toggleMapDrawer()" [attr.aria-expanded]="isMapDrawerOpen()" aria-controls="galactic-map-drawer">MAPA</button></div>
-        <div class="radar-scope-wrap" role="img" aria-label="Radar con la nave al centro, estaciones y señales hostiles alrededor">
+        <div class="radar-scope-wrap" role="img" aria-label="Radar con la nave al centro, estaciones orbitales y contactos no identificados">
           <div class="radar-sweep-line"></div><div class="radar-ring r-inner"></div><div class="radar-ring r-outer"></div><div class="radar-crosshair"></div><div class="radar-ship-center">▲</div>
           @for (blip of radarBlips; track blip.label) {
             <div class="radar-blip-dot" [class.hostile-blip]="blip.isHostile" [style.left.%]="blip.x" [style.top.%]="blip.y" [style.background-color]="blip.color" [title]="(blip.isHostile ? 'Hostil: ' : 'Estación: ') + blip.label"></div>

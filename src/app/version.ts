@@ -19,11 +19,29 @@ export interface AppVersionData {
 }
 
 export const APP_VERSION: AppVersionData = {
-  currentVersion: '3.2.0',
-  lastUpdated: '2026-11-07',
+  currentVersion: '3.4.0',
+  lastUpdated: '2026-11-09',
   author: 'Federico Barzola',
   environment: 'Production & Preview',
   changelog: [
+    {
+      version: '3.4.0',
+      date: '2026-11-09',
+      title: 'Carta orbital y estaciones de datos',
+      description: 'El portafolio unifica la interfaz visual con la experiencia espacial: navegación orbital en tres ejes, estaciones satelitales a distintas altitudes, cuerpos planetarios y una carta de destinos.',
+      auditTrail: [
+        {
+          component: 'SpacePlaygroundComponent',
+          action: 'Vuelo y entorno de espacio profundo',
+          detail: 'Se incorporaron orientación vertical, deriva inercial y referencias planetarias para que el vuelo se sienta como una travesía orbital.'
+        },
+        {
+          component: 'SpaceStationComponent',
+          action: 'Carta orbital de estaciones',
+          detail: 'Los destinos ahora se presentan como módulos satelitales sobre un mapa orbital interactivo, con su información real de portafolio.'
+        }
+      ]
+    },
     {
       version: '3.2.0',
       date: '2026-11-07',
@@ -63,18 +81,18 @@ export const APP_VERSION: AppVersionData = {
     {
       version: '3.0.0',
       date: '2026-11-06',
-      title: 'Escenario 3D Interactivo: Nave Espacial & Estación Orbital',
-      description: 'Implementación completa del escenario interactivo 3D con Three.js enfocado en la exploración espacial del portfolio: piloto de caza estelar procedural con cinemática de vuelo, inclinación (roll/pitch) y propulsión turbo, plataforma orbital con campo de asteroides y cielo estrellado mediante CSS animado global, 5 hangares/estaciones de aterrizaje para el portfolio (Sobre Mí, Habilidades, Proyectos, Experiencia, Contacto) con modales inmersivos dentro del minijuego, física de colisión contra contenedores de carga, cristales cuánticos coleccionables, pads de aceleración, sintetizador de audio procedimental (Web Audio API) y HUD de control con panel inferior plegable y soporte táctil para móviles.',
+      title: 'Escenario 3D interactivo: nave espacial y estaciones orbitales',
+      description: 'Primera versión del escenario interactivo de Three.js para explorar las secciones del portafolio mediante estaciones, una nave de vuelo controlable, un mapa orbital y una cabina con lecturas de navegación.',
       auditTrail: [
         {
           component: 'SpacePlaygroundComponent',
-          action: 'Three.js 3D Spaceship & Orbital Outpost Engine',
-          detail: 'Modelo procedural de nave espacial (9 piezas en THREE.Group), física de propulsión inercial, detección de software WebGL, partículas de plasma, 5 estaciones orbitales y recolectables.'
+          action: 'Escena Three.js con nave y estaciones orbitales',
+          detail: 'Modelo procedural de nave, asteroides, cielo estrellado, estaciones para cada sección y control desde cabina con soporte táctil.'
         },
         {
           component: 'AppComponent & SectionProgressIndicatorComponent',
           action: 'Space Mode Integration & Deep Linking',
-          detail: 'Lanzador prominente en Hero, botón directo en barra de acordeón y navegación lateral, con aterrizaje interactivo que abre automáticamente las secciones desplegables del portfolio.'
+          detail: 'Lanzador en Hero y acceso a las secciones del portafolio desde las estaciones orbitales.'
         }
       ]
     },

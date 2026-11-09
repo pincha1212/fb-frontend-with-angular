@@ -1,6 +1,6 @@
 # Portafolio de Federico Barzola
 
-Portafolio personal para presentar proyectos de desarrollo front-end, juegos web y geotecnologías. Está hecho con Angular y mantiene una versión tradicional del portafolio junto con un simulador espacial 3D opcional.
+Portafolio de Federico Barzola, desarrollador front-end y estudiante de Geotecnologías en Mendoza. La interfaz combina cartografía de misión e instrumentación de vuelo con una experiencia 3D opcional para recorrer estaciones satelitales.
 
 ## Desarrollo local
 
@@ -13,14 +13,15 @@ La aplicación queda disponible en `http://localhost:3000`.
 
 ## Simulador
 
-- `W` o `↑`: avanzar; `S` o `↓`: retroceder.
-- `A` / `D` o flechas: girar.
-- `Espacio`: impulso.
-- `F`: disparar durante un encuentro.
+- `W` / `S`: aplicar empuje hacia delante o contramarcha.
+- `A` / `D` o flechas izquierda/derecha: orientar el rumbo.
+- `Q` / `E`: inclinar el morro hacia arriba o abajo.
+- `Espacio`: solicitar empuje auxiliar.
+- `F`: activar las defensas ante naves no identificadas.
 - `C`: cambiar la cámara; `R`: reposicionar la nave.
 - En pantallas táctiles se muestran controles en pantalla.
 
-Al acercarse a una estación, aparecen dos o tres naves hostiles. El radar muestra las estaciones y los contactos enemigos; el panel permite disparar y consultar el estado del casco.
+El vuelo conserva su deriva al soltar el empuje y permite maniobrar en tres dimensiones. Al llegar a una estación pueden aparecer dos o tres naves no identificadas. El radar muestra estaciones y contactos; el panel permite revisar la integridad del casco y activar defensas.
 
 ## Publicación
 

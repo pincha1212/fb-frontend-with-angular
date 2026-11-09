@@ -20,7 +20,7 @@ export class SobreMiComponent {
       titulo: 'Desarrollo web y proyectos personales',
       institucion: 'Formación continua y práctica independiente',
       periodo: 'Aprendizaje aplicado',
-      descripcion: 'Práctica en interfaces web, aplicaciones interactivas y juegos desarrollados con JavaScript y Canvas 2D.'
+      descripcion: 'Práctica independiente en interfaces web, aplicaciones interactivas y visualizaciones con JavaScript y Canvas 2D.'
     }
   ];
 
@@ -34,7 +34,7 @@ export class SobreMiComponent {
 
   hitos = [
     { numero: 'UNCuyo', label: 'Geotecnologías - 2º Año' },
-    { numero: 'Canvas 2D', label: 'Juegos Web e IA' },
-    { numero: 'SIG', label: 'Geovisores Interactivos' }
+    { numero: 'Canvas 2D', label: 'Visualización e interacción' },
+    { numero: 'SIG', label: 'Cartografía web' }
   ];
 }

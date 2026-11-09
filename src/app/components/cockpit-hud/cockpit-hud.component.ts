@@ -18,8 +18,8 @@ import { SpaceStationComponent } from '../space-station/space-station.component'
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CockpitHUDComponent {
-  @Input() speedKmh = 240;
-  @Input() maxSpeedKmh = 520;
+  @Input() speedKms = 0;
+  @Input() maxSpeedKms = 44;
   @Input() isTurboActive = false;
   @Input() currentStationName = 'Sector Espacial Libres';
   @Input() stations: any[] = [];
@@ -27,7 +27,7 @@ export class CockpitHUDComponent {
   @Input() headingDegrees = 0;
   @Input() pitchDegrees = 0;
   @Input() hullIntegrity = 100;
-  @Input() activeRaiders = 0;
+  @Input() activeHostiles = 0;
   @Input() combatMessage = '';
   @Input() currentCameraMode: 'chase' | 'cockpit' | 'top' | 'cinematic' = 'chase';
 
@@ -37,7 +37,7 @@ export class CockpitHUDComponent {
   @Output() fireWeapons = new EventEmitter<void>();
 
   get speedPercent(): number {
-    return this.maxSpeedKmh > 0 ? Math.min(100, Math.max(0, (this.speedKmh / this.maxSpeedKmh) * 100)) : 0;
+    return this.maxSpeedKms > 0 ? Math.min(100, Math.max(0, (this.speedKms / this.maxSpeedKms) * 100)) : 0;
   }
 
   isExpanded = signal(true);

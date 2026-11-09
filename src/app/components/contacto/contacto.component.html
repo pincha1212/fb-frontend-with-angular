@@ -1,13 +1,13 @@
-<address class="contacto-container">
+<address class="contacto-container" aria-label="Canales de contacto">
   <h2>Contacto</h2>
 
   <div class="contact-info-pills mb-4">
     <div class="info-pill">
-      <span class="pill-icon">📍</span>
+      <span class="pill-icon" aria-hidden="true">LOC</span>
       <span>{{ ubicacion }}</span>
     </div>
     <div class="info-pill">
-      <span class="pill-icon">📱</span>
+      <span class="pill-icon" aria-hidden="true">TEL</span>
       <a [href]="'tel:' + telefono" class="phone-link">{{ telefono }}</a>
     </div>
   </div>
@@ -42,9 +42,8 @@
       {{ mostrarFormulario ? 'Cerrar formulario' : 'Escribirme un mensaje' }}
     </button>
 
-    <form *ngIf="mostrarFormulario" 
-          class="contact-card-form container mt-3 p-4 rounded-4 text-start" 
-          style="max-width: 520px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(56, 189, 248, 0.3);"
+    <form *ngIf="mostrarFormulario"
+          class="contact-card-form container mt-3 p-4 text-start"
           #contactForm="ngForm"
           (ngSubmit)="enviarFormulario(contactForm)"
           novalidate>
@@ -53,7 +52,7 @@
           <label for="contact-name" class="form-label font-semibold text-slate-200">Nombre</label>
         <input id="contact-name" type="text" name="name" class="form-control" required minlength="2" #nameInput="ngModel" ngModel autocomplete="name" placeholder="Tu nombre">
         <div *ngIf="nameInput.invalid && (nameInput.dirty || nameInput.touched)" class="validation-error mt-1">
-          <small class="text-rose-400">⚠️ Por favor ingresa tu nombre (mínimo 2 caracteres).</small>
+          <small>Revisá el nombre; debe tener al menos 2 caracteres.</small>
         </div>
       </div>
 
@@ -61,7 +60,7 @@
         <label for="contact-email" class="form-label font-semibold text-slate-200">Tu correo</label>
         <input id="contact-email" type="email" name="_replyto" class="form-control" required email autocomplete="email" #emailInput="ngModel" ngModel placeholder="nombre@ejemplo.com">
         <div *ngIf="emailInput.invalid && (emailInput.dirty || emailInput.touched)" class="validation-error mt-1">
-          <small class="text-rose-400">⚠️ Por favor ingresa un correo electrónico válido (ej. usuario&#64;dominio.com).</small>
+          <small>Ingresá un correo electrónico válido.</small>
         </div>
       </div>
 
@@ -69,7 +68,7 @@
         <label for="contact-message" class="form-label font-semibold text-slate-200">Mensaje</label>
         <textarea id="contact-message" name="message" class="form-control" rows="4" required minlength="10" #msgInput="ngModel" ngModel placeholder="¿En qué puedo ayudarte?"></textarea>
         <div *ngIf="msgInput.invalid && (msgInput.dirty || msgInput.touched)" class="validation-error mt-1">
-          <small class="text-rose-400">⚠️ El mensaje debe contener al menos 10 caracteres.</small>
+          <small>El mensaje debe tener al menos 10 caracteres.</small>
         </div>
       </div>
 

@@ -1,491 +1,119 @@
-/* ==========================================================================
-   SpaceStationComponent - Parallax Floating Orbital Stations Styles
-   ========================================================================== */
+:host { display: block; width: 100%; color: #dce4e2; }
 
-:host {
-  display: block;
-  width: 100%;
-  position: relative;
+.orbital-chart {
+  --chart-ink: #dce4e2;
+  --chart-soft: #8f9fa5;
+  --chart-line: rgba(163, 183, 190, .2);
   overflow: hidden;
-  user-select: none;
-}
-
-.parallax-space-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 440px;
-  max-height: 75vh;
-  background: radial-gradient(circle at 50% 40%, #0d171c 0%, #080e12 85%);
-  overflow: auto;
-  border-radius: 20px;
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 20px 40px rgba(0, 0, 0, 0.6);
-}
-
-/* ==========================================================================
-   Parallax Multi-Layer System
-   ========================================================================== */
-.parallax-layer {
-  position: absolute;
-  inset: -60px; /* Bleed margins to prevent edge clipping during parallax shifts */
-  pointer-events: none;
-  transition: transform 0.1s cubic-bezier(0.1, 0.8, 0.3, 1);
-  will-change: transform;
-}
-
-/* Layer 0: Far Background (Nebula & Space Grid) */
-.layer-far {
-  z-index: 1;
-}
-
-.nebula-glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.25;
-}
-
-.nebula-sage {
-  width: 450px;
-  height: 450px;
-  background-color: #d4a76a;
-  top: 10%;
-  left: 15%;
-}
-
-.nebula-slate {
-  width: 500px;
-  height: 500px;
-  background-color: #b77958;
-  bottom: 10%;
-  right: 15%;
-}
-
-.nebula-gold {
-  width: 380px;
-  height: 380px;
-  background-color: #b99869;
-  top: 40%;
-  left: 50%;
-}
-
-.space-grid-pattern {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
-
-/* Layer 1: Mid Background (SVG Constellations & Orbits) */
-.layer-mid {
-  z-index: 2;
-}
-
-.orbital-constellation-svg {
-  width: 100%;
-  height: 100%;
-}
-
-/* Layer 2: Interactive Floating Stations */
-.layer-interactive {
-  z-index: 10;
-  pointer-events: auto;
-}
-
-.floating-station-card {
-  position: absolute;
-  cursor: pointer;
-  transform-origin: center center;
-  transition: transform 0.15s ease-out;
-  outline: none;
-}
-.floating-station-card:focus-visible .station-pod { outline: 2px solid #e2bd83; outline-offset: 3px; }
-
-.holo-light-pillar {
-  position: absolute;
-  bottom: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120px;
-  height: 180px;
-  opacity: 0.3;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.floating-station-card.is-hovered .holo-light-pillar {
-  opacity: 0.85;
-}
-
-/* Station Pod Structure */
-.station-pod {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background-color: rgba(11, 15, 25, 0.92);
-  border: 1.5px solid rgba(56, 189, 248, 0.4);
-  padding: 12px 18px;
-  border-radius: 18px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.floating-station-card.is-hovered .station-pod {
-  transform: scale(1.08) translateY(-6px);
-  background-color: rgba(15, 23, 42, 0.98);
-}
-
-.station-beacon-pulse {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  animation: beaconPulse 1.2s infinite alternate;
-}
-
-@keyframes beaconPulse {
-  from { opacity: 0.4; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1.4); }
-}
-
-.station-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid #9bac9b;
-  background-color: rgba(15, 23, 42, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.35rem;
-  flex-shrink: 0;
-}
-
-.station-label-block {
-  display: flex;
-  flex-direction: column;
-}
-
-.station-code-tag {
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: #84958f;
-  text-transform: uppercase;
-}
-
-.station-name {
-  margin: 2px 0 0 0;
-  font-size: 1rem;
-  font-weight: 800;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.station-category {
-  font-size: 0.7rem;
-  color: #89958e;
-  white-space: nowrap;
-}
-
-.energy-ring {
-  position: absolute;
-  inset: -8px;
-  border-radius: 22px;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  animation: spinRing 12s linear infinite;
-}
-
-.floating-station-card.is-hovered .energy-ring {
-  opacity: 0.7;
-}
-
-@keyframes spinRing {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.dock-action-badge {
-  position: absolute;
-  bottom: -28px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 4px 10px;
-  border-radius: 9999px;
-  font-size: 0.62rem;
-  font-weight: 900;
-  color: #080e12;
-  white-space: nowrap;
-  letter-spacing: 0.06em;
-  opacity: 0;
-  transition: all 0.25s ease;
-}
-
-.floating-station-card.is-hovered .dock-action-badge {
-  opacity: 1;
-  bottom: -34px;
-}
-
-/* Layer 3: Foreground Parallax Debris */
-.layer-foreground {
-  z-index: 15;
-}
-
-.floating-debris {
-  position: absolute;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-}
-
-.particle-1 { width: 4px; height: 4px; top: 15%; left: 30%; }
-.particle-2 { width: 6px; height: 6px; top: 75%; left: 80%; }
-.particle-3 { width: 5px; height: 5px; top: 50%; left: 10%; }
-
-/* ==========================================================================
-   Telemetry HUD Panel
-   ========================================================================== */
-.hud-telemetry-panel {
-  position: absolute;
-  bottom: 70px;
-  left: 24px;
-  width: min(340px, calc(100vw - 48px));
-  background-color: rgba(11, 15, 25, 0.94);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
-  z-index: 25;
-  animation: hudFadeIn 0.2s ease-out;
-}
-
-@keyframes hudFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.hud-panel-header {
-  margin-bottom: 8px;
-}
-
-.hud-tag {
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: #84958f;
-  text-transform: uppercase;
-}
-
-.hud-title {
-  margin: 2px 0 0 0;
-  font-size: 1.05rem;
-  font-weight: 800;
-}
-
-.hud-description {
-  font-size: 0.78rem;
-  line-height: 1.4;
-  color: #b9c4bc;
-  margin: 0 0 12px 0;
-}
-
-.hud-metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.hud-metric-item {
-  background-color: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 6px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-}
-
-.metric-label {
-  font-size: 0.58rem;
-  color: #84958f;
-  font-weight: 700;
-}
-
-.metric-value {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #9bac9b;
-  margin-top: 2px;
-}
-
-.hud-tags-list {
-  display: flex;
-  gap: 6px;
-}
-
-.hud-tag-pill {
-  font-size: 0.62rem;
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #b9c4bc;
-  padding: 2px 8px;
+  border: 1px solid rgba(169, 189, 194, .25);
   border-radius: 4px;
+  background: #070d12;
+  box-shadow: inset 0 0 42px rgba(28, 52, 66, .18);
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
-/* Bottom Control Bar */
-.parallax-hud-bottom-bar {
-  position: absolute;
-  bottom: 16px;
-  left: 24px;
-  right: 24px;
+.chart-heading, .chart-footer {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  z-index: 20;
+  gap: .65rem;
+  padding: .7rem .8rem;
+  background: rgba(7, 13, 18, .96);
+}
+.chart-heading { border-bottom: 1px solid var(--chart-line); }
+.chart-heading h3 { margin: .18rem 0 0; color: var(--chart-ink); font-size: .9rem; font-weight: 550; letter-spacing: .015em; }
+.chart-eyebrow, .chart-reference, .chart-footer { color: var(--chart-soft); font: 600 .57rem/1.4 Consolas, monospace; letter-spacing: .085em; }
+.chart-eyebrow { margin: 0; color: #b7c7cb; }
+.chart-reference { white-space: nowrap; }
+
+.chart-canvas {
+  position: relative;
+  height: clamp(320px, 43vh, 450px);
+  min-height: 320px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(49, 74, 82, .16), transparent 40%),
+    radial-gradient(ellipse at 20% 30%, rgba(29, 53, 68, .2), transparent 39%),
+    #070d12;
+}
+.chart-stars {
+  position: absolute;
+  inset: 0;
+  opacity: .65;
+  background-image:
+    radial-gradient(1px 1px at 12% 20%, #dce4e2 55%, transparent 100%),
+    radial-gradient(1px 1px at 29% 78%, #aebdc2 55%, transparent 100%),
+    radial-gradient(1px 1px at 81% 19%, #dce4e2 55%, transparent 100%),
+    radial-gradient(1px 1px at 91% 64%, #b0c4c8 55%, transparent 100%),
+    radial-gradient(1px 1px at 63% 87%, #dae0d5 55%, transparent 100%),
+    radial-gradient(1px 1px at 43% 14%, #dce4e2 55%, transparent 100%);
+}
+.orbital-plane {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 77%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(159, 184, 189, .15);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(-22deg) scaleY(.52);
   pointer-events: none;
 }
+.plane-two { width: 57%; transform: translate(-50%, -50%) rotate(27deg) scaleY(.55); border-color: rgba(151, 170, 174, .11); }
+.plane-three { width: 37%; transform: translate(-50%, -50%) rotate(5deg) scaleY(.48); border-style: dashed; border-color: rgba(191, 176, 137, .13); }
 
-.hud-status-badge {
-  display: flex;
+.orbital-station {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 12px;
   align-items: center;
-  gap: 8px;
-  background-color: rgba(11, 15, 25, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 6px 14px;
-  border-radius: 9999px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #89958e;
-  pointer-events: auto;
-}
-
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #8eaa8d;
-  box-shadow: 0 0 8px #8eaa8d;
-}
-
-.launch-3d-btn {
-  background-color: rgba(56, 189, 248, 0.2);
-  border: 1.5px solid #9bac9b;
-  color: #9bac9b;
-  padding: 7px 16px;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 800;
+  gap: .48rem;
+  width: 168px;
+  min-height: 56px;
+  padding: .42rem .45rem;
+  border: 1px solid rgba(151, 171, 177, .19);
+  border-radius: 3px;
+  background: rgba(8, 15, 20, .9);
+  color: var(--chart-ink);
+  text-align: left;
   cursor: pointer;
-  pointer-events: auto;
-  transition: all 0.2s ease;
+  transform: translate(-50%, -50%);
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
 }
-
-.launch-3d-btn:hover {
-  background-color: #9a784c;
-  color: #ffffff;
-  transform: translateY(-1px);
+.orbital-station:hover, .orbital-station.is-hovered, .orbital-station:focus-visible {
+  z-index: 3;
+  border-color: rgba(197, 195, 169, .72);
+  background: rgba(17, 29, 36, .98);
+  box-shadow: 0 0 22px rgba(121, 159, 171, .17);
 }
+.orbital-station:focus-visible { outline: 2px solid #c4c6aa; outline-offset: 2px; }
 
+.station-silhouette { position: relative; display: block; width: 34px; height: 28px; }
+.station-body { position: absolute; z-index: 2; left: 13px; top: 10px; width: 8px; height: 8px; border: 1px solid #c1c9c4; background: #46575b; transform: rotate(45deg); }
+.solar-wing { position: absolute; top: 8px; width: 10px; height: 12px; border: 1px solid #738990; background: repeating-linear-gradient(90deg, #17252b 0 3px, #31434a 3px 4px); }
+.wing-left { left: 0; }.wing-right { right: 0; }
+.station-signal { position: absolute; right: 7px; top: 3px; width: 3px; height: 3px; border-radius: 50%; background: #c8ba90; box-shadow: 0 0 7px rgba(200, 186, 144, .6); }
+.station-label-block { display: grid; min-width: 0; gap: .1rem; }
+.station-code-tag { overflow: hidden; color: #95a9ad; font: 600 .48rem/1.2 Consolas, monospace; letter-spacing: .04em; text-overflow: ellipsis; white-space: nowrap; }
+.station-name { color: #e0e4dc; font-size: .67rem; font-weight: 600; line-height: 1.2; }
+.station-category { overflow: hidden; color: #98a4a5; font-size: .52rem; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.station-open-mark { color: #b8bdab; font: .76rem Consolas, monospace; opacity: .68; }
+.orbital-station:hover .station-open-mark, .orbital-station:focus-visible .station-open-mark { opacity: 1; }
+
+.chart-footer { min-height: 30px; border-top: 1px solid var(--chart-line); font-size: .5rem; letter-spacing: .035em; }
+.chart-footer span { display: inline-flex; align-items: center; gap: .35rem; }
+.chart-footer i { width: 5px; height: 5px; border-radius: 50%; background: #9ead9c; }
+
+@media (max-width: 420px) {
+  .chart-canvas { height: 330px; }
+  .orbital-station { width: 144px; grid-template-columns: 28px minmax(0, 1fr) 9px; gap: .32rem; padding: .35rem .3rem; }
+  .station-silhouette { transform: scale(.82); transform-origin: left center; }
+  .chart-footer { align-items: flex-start; flex-direction: column; gap: .3rem; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .station-beacon-pulse,
-  .energy-ring { animation: none !important; }
-  .parallax-layer,
-  .floating-station-card,
-  .station-pod { transition-duration: .01ms !important; }
-}
-
-/* ==========================================================================
-   Responsive Adaptation
-   ========================================================================== */
-@media (max-width: 800px) {
-  .parallax-space-wrapper {
-    height: 520px;
-    min-height: 480px;
-  }
-
-  .station-pod {
-    padding: 8px 12px;
-  }
-
-  .station-name {
-    font-size: 0.88rem;
-  }
-
-  .station-category {
-    display: none;
-  }
-
-  .hud-telemetry-panel {
-    bottom: 60px;
-    left: 12px;
-    right: 12px;
-    width: auto;
-  }
-
-  .parallax-hud-bottom-bar {
-    left: 12px;
-    right: 12px;
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-  }
-}
-
-/* Compact Drawer Adaptation when inside Cockpit Galactic Map */
-:host-context(.galactic-map-drawer) .parallax-space-wrapper {
-  height: 100% !important;
-  min-height: 380px !important;
-  max-height: none !important;
-  border-radius: 12px;
-}
-
-:host-context(.galactic-map-drawer) .station-pod {
-  padding: 6px 10px;
-  border-radius: 10px;
-  gap: 6px;
-}
-
-:host-context(.galactic-map-drawer) .station-icon-wrap {
-  width: 32px;
-  height: 32px;
-  font-size: 0.95rem;
-  border-radius: 8px;
-}
-
-:host-context(.galactic-map-drawer) .station-name {
-  font-size: 0.8rem;
-}
-
-:host-context(.galactic-map-drawer) .station-category {
-  font-size: 0.58rem;
-}
-
-:host-context(.galactic-map-drawer) .dock-action-badge {
-  display: none;
-}
-
-:host-context(.galactic-map-drawer) .parallax-hud-bottom-bar {
-  padding: 6px 10px;
-  bottom: 8px;
-  left: 10px;
-  right: 10px;
-}
-
-:host-context(.galactic-map-drawer) .launch-3d-btn {
-  padding: 4px 10px;
-  font-size: 0.65rem;
-}
-
-:host-context(.galactic-map-drawer) .hud-status-badge {
-  font-size: 0.58rem;
-  padding: 3px 8px;
+  .orbital-station { transition: none; }
 }

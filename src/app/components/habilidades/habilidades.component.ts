@@ -27,16 +27,16 @@ export class HabilidadesComponent {
         { nombre: 'HTML5', sigla: 'H', aplicacion: 'Estructura y contenido' },
         { nombre: 'CSS3', sigla: 'C', aplicacion: 'Diseño adaptable y animación' },
         { nombre: 'JavaScript', sigla: 'JS', aplicacion: 'Interacción y lógica de interfaz' },
-        { nombre: 'React', sigla: 'R', aplicacion: 'Interfaces para juegos y aplicaciones' },
+        { nombre: 'React', sigla: 'R', aplicacion: 'Interfaces y aplicaciones web' },
         { nombre: 'Angular', sigla: 'A', aplicacion: 'Aplicaciones y componentes' },
         { nombre: 'TypeScript', sigla: 'TS', aplicacion: 'Código tipado para proyectos web' },
         { nombre: 'Vite', sigla: 'V', aplicacion: 'Desarrollo y compilación web' }
       ]
     },
     {
-      titulo: 'Juegos y geotecnologías',
+      titulo: 'Cartografía y visualización',
       habilidades: [
-        { nombre: 'Canvas 2D', sigla: '2D', aplicacion: 'Gráficos, física y lógica de juego' },
+        { nombre: 'Canvas 2D', sigla: '2D', aplicacion: 'Gráficos y visualización interactiva' },
         { nombre: 'QGIS', sigla: 'Q', aplicacion: 'Cartografía y análisis espacial' },
         { nombre: 'QField', sigla: 'QF', aplicacion: 'Trabajo con datos en campo' },
         { nombre: 'Leaflet', sigla: 'L', aplicacion: 'Mapas interactivos en la web' },

@@ -5,31 +5,24 @@
   <!-- TOP HUD: Minimal telemetry header (Unobstructed center) -->
   <header class="hud-top-bar" [class.cinema-hidden]="isCinema()" role="banner">
     <div class="hud-telemetry-cluster">
-      <div class="hud-badge pulse-border">
-        <span class="hud-badge-icon">🚀</span>
+      <div class="hud-badge">
+        <span class="hud-badge-icon" aria-hidden="true">⌖</span>
         <div class="hud-badge-info">
-          <span class="hud-badge-title">STARFIGHTER FB-21</span>
-          <span class="hud-badge-sub">Estación Orbital • Federico Barzola</span>
+          <span class="hud-badge-title">NAVE DE EXPLORACIÓN · FB-01</span>
+          <span class="hud-badge-sub">Sistema orbital · Federico Barzola</span>
         </div>
       </div>
 
       <div class="telemetry-pill">
-        <span class="telemetry-label">VEL</span>
+        <span class="telemetry-label">VELOCIDAD</span>
         <span class="telemetry-value" [class.turbo-text]="turboActive()">
-          {{ speedKmh() }} <small>KM/H</small>
-        </span>
-      </div>
-
-      <div class="telemetry-pill">
-        <span class="telemetry-label">CRISTALES</span>
-        <span class="telemetry-value crystal-text">
-          💎 {{ crystalsCollected() }} / {{ totalCrystals() }}
+          {{ speedKms() }} <small>KM/S</small>
         </span>
       </div>
 
       @if (turboActive()) {
         <div class="turbo-alert-pill">
-          <span>⚡ TURBO BOOST</span>
+          <span>EMPUJE AUXILIAR ACTIVO</span>
         </div>
       }
     </div>
@@ -37,13 +30,13 @@
     <div class="hud-top-actions">
       <!-- Centrar Nave -->
       <button type="button" class="hud-icon-btn" (click)="resetShipPosition()" title="Reposicionar nave">
-        <span>🔄 Centrar</span>
+        <span>⌖ Recentrar</span>
       </button>
 
       <!-- Cargar GLB -->
-      <label class="hud-icon-btn glb-upload-label" title="Cargar tu Transformador o Nave en formato .GLB / .GLTF">
-        <span>🚀 Cargar .GLB</span>
-        <input type="file" accept=".glb,.gltf" style="display: none;" (change)="onLoadCustomGlb($event)">
+      <label class="hud-icon-btn glb-upload-label" title="Cargar un modelo de nave .GLB o .GLTF">
+        <span>Añadir modelo 3D</span>
+        <input type="file" accept=".glb,.gltf" class="model-upload-input" aria-label="Seleccionar un modelo de nave GLB o GLTF" (change)="onLoadCustomGlb($event)">
       </label>
 
       <!-- Audio Toggle -->
@@ -52,8 +45,8 @@
         class="hud-icon-btn" 
         [class.active]="soundEnabled()"
         (click)="toggleSound()"
-        title="Alternar Sonido Motor Iónico">
-        <span>{{ soundEnabled() ? '🔊 Audio FX: ON' : '🔇 Audio: OFF' }}</span>
+        title="Alternar sonido del motor">
+        <span>{{ soundEnabled() ? 'SONIDO · ACTIVO' : 'SONIDO · MUDO' }}</span>
       </button>
 
       <!-- Help info modal toggle -->
@@ -62,7 +55,7 @@
         class="hud-icon-btn" 
         (click)="toggleHelp()"
         title="Ver Controles de Vuelo">
-        <span>⌨️ Controles</span>
+        <span>CONTROLES</span>
       </button>
 
       <!-- Return to portfolio button -->
@@ -70,24 +63,24 @@
         type="button" 
         class="hud-close-btn" 
         (click)="closePlayground.emit()"
-        title="Volver a la vista clásica del portfolio">
-        <span>✕ Salir de Modo 3D</span>
+        title="Volver al portafolio">
+        <span>VOLVER AL PORTAFOLIO</span>
       </button>
     </div>
   </header>
 
-  <!-- HYPER-DRIVE WARP JUMP BANNER OVERLAY -->
-  @if (isWarping()) {
-    <div class="warp-active-banner" role="status" aria-live="polite">
-      <div class="warp-pulse"></div>
-      <div class="warp-info">
-        <span class="warp-tag">⚡ SALTO HIPERESPACIAL EN PROGRESO</span>
-        <h3 class="warp-target">Viajando a {{ warpTargetName() }}...</h3>
+  <!-- Orbital transfer in progress -->
+  @if (isTransiting()) {
+    <div class="transit-active-banner" role="status" aria-live="polite">
+      <div class="transit-pulse"></div>
+      <div class="transit-info">
+        <span class="transit-tag">TRÁNSITO ORBITAL · AUTOPILOTO</span>
+        <h3 class="transit-target">En ruta a {{ destinationName() }}…</h3>
       </div>
     </div>
   }
 
-  <!-- STATION DOCKING TRANSMISSION OVERLAY (Active when ship is at a station) -->
+  <!-- Station data link -->
   @if (dockedStation(); as st) {
     <aside class="station-transmission-card" aria-label="Estación Orbital Detectada">
       <div class="station-card-header">
@@ -95,7 +88,7 @@
           <span>{{ st.icon }}</span>
         </div>
         <div class="station-headings">
-          <span class="station-sub-tag">TRANSMISIÓN HOLOGRÁFICA</span>
+          <span class="station-sub-tag">ENLACE DE DATOS · ESTACIÓN ALCANZADA</span>
           <h2 class="station-title" [style.color]="st.glowHex">{{ st.name }}</h2>
           <span class="station-subtitle">{{ st.subtitle }}</span>
         </div>
@@ -115,7 +108,7 @@
           class="station-primary-action-btn"
           [style.background-color]="st.glowHex"
           (click)="onSelectStation(st)">
-          <span>📂 {{ st.ctaLabel }}</span>
+          <span>{{ st.ctaLabel }}</span>
           <span>➜</span>
         </button>
         <button 
@@ -133,33 +126,33 @@
     <div class="help-modal-overlay" (click)="toggleHelp()">
       <div class="help-modal-card" (click)="$event.stopPropagation()">
         <div class="help-header">
-          <h3>🎮 Guía de Vuelo Espacial</h3>
+          <h3>Controles de vuelo · 3 ejes</h3>
           <button type="button" class="close-x-btn" (click)="toggleHelp()">✕</button>
         </div>
         <div class="help-body">
           <div class="control-row">
-            <span class="key-badge">W / ↑</span>
-            <span>Acelerar hacia adelante</span>
+            <span class="key-badge">W / S</span>
+            <span>Aplicar empuje y contramarcha</span>
           </div>
           <div class="control-row">
-            <span class="key-badge">S / ↓</span>
-            <span>Frenar / Reversa</span>
+            <span class="key-badge">A / D</span>
+            <span>Girar sobre el eje vertical</span>
           </div>
           <div class="control-row">
-            <span class="key-badge">A / D / ← / →</span>
-            <span>Giro con inclinación (Roll / Yaw)</span>
+            <span class="key-badge">Q / E</span>
+            <span>Orientar el morro hacia arriba o abajo</span>
           </div>
           <div class="control-row">
             <span class="key-badge">ESPACIO</span>
-            <span>Activar impulso</span>
+            <span>Solicitar empuje auxiliar</span>
           </div>
           <div class="control-row">
             <span class="key-badge">F</span>
-            <span>Disparar a las naves hostiles</span>
+            <span>Activar defensa ante una nave no identificada</span>
           </div>
           <div class="control-row">
             <span class="key-badge">R</span>
-            <span>Reiniciar posición de la nave</span>
+            <span>Regresar al punto de partida</span>
           </div>
           <div class="control-row">
             <span class="key-badge">C</span>
@@ -167,7 +160,7 @@
           </div>
         </div>
         <div class="help-footer">
-          <button type="button" class="help-close-btn" (click)="toggleHelp()">¡Entendido!</button>
+          <button type="button" class="help-close-btn" (click)="toggleHelp()">Cerrar</button>
         </div>
       </div>
     </div>
@@ -232,7 +225,7 @@
               (pointerleave)="setTouchControl('left', false)">
               ◀
             </button>
-            <div class="dpad-center">🛸</div>
+            <div class="dpad-center">NAV</div>
             <button 
               type="button" 
               class="touch-btn dpad-right"
@@ -259,6 +252,14 @@
 
       <!-- Action Boost Button (Right side) -->
       <div class="touch-cluster-right">
+        <div class="touch-pitch-controls" aria-label="Orientación vertical">
+          <button type="button" class="touch-btn pitch-up-btn" aria-label="Orientar el morro hacia arriba"
+            (pointerdown)="setTouchControl('pitchUp', true)" (pointerup)="setTouchControl('pitchUp', false)"
+            (pointercancel)="setTouchControl('pitchUp', false)" (pointerleave)="setTouchControl('pitchUp', false)">↑</button>
+          <button type="button" class="touch-btn pitch-down-btn" aria-label="Orientar el morro hacia abajo"
+            (pointerdown)="setTouchControl('pitchDown', true)" (pointerup)="setTouchControl('pitchDown', false)"
+            (pointercancel)="setTouchControl('pitchDown', false)" (pointerleave)="setTouchControl('pitchDown', false)">↓</button>
+        </div>
         <button 
           type="button" 
           class="touch-btn turbo-touch-btn"
@@ -268,15 +269,15 @@
           (pointerup)="setTouchControl('boost', false)"
           (pointercancel)="setTouchControl('boost', false)"
           (pointerleave)="setTouchControl('boost', false)">
-          ⚡ TURBO
+          AUXILIAR
         </button>
         <button
           type="button"
           class="touch-btn fire-touch-btn"
-          aria-label="Disparar a las naves hostiles"
-          [disabled]="activeRaiders() === 0"
+          aria-label="Activar defensa ante naves no identificadas"
+          [disabled]="activeHostiles() === 0"
           (click)="firePlayerWeapons()">
-          ◎ FIRE
+          DEFENSA · F
         </button>
       </div>
     </div>
@@ -287,22 +288,22 @@
   <!-- CUSTOM GLB SUCCESS NOTIFICATION BANNER -->
   @if (customGlbLoaded()) {
     <div class="custom-glb-banner" role="status">
-      <span>✨ Transformador / Nave .GLB cargado: <strong>{{ customGlbName() }}</strong></span>
+      <span>Modelo de nave añadido: <strong>{{ customGlbName() }}</strong></span>
       <button type="button" class="banner-close" (click)="customGlbLoaded.set(false)">✕</button>
     </div>
   }
 
   <!-- COCKPIT HUD OVERLAY INSTRUMENT PANEL -->
   <app-cockpit-hud
-    [speedKmh]="speedKmh()"
+    [speedKms]="speedKms()"
     [isTurboActive]="turboActive()"
-    [currentStationName]="dockedStation()?.name || 'Espacio libre'"
+    [currentStationName]="dockedStation()?.name || 'Espacio profundo'"
     [stations]="stations"
     [radarBlips]="radarBlips()"
     [headingDegrees]="headingDegrees()"
     [pitchDegrees]="pitchDegrees()"
     [hullIntegrity]="hullIntegrity()"
-    [activeRaiders]="activeRaiders()"
+    [activeHostiles]="activeHostiles()"
     [combatMessage]="combatMessage()"
     [currentCameraMode]="cameraMode()"
     (toggleTurbo)="setTouchControl('boost', $event)"

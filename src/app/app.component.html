@@ -33,19 +33,19 @@
       <a href="#contacto">Contacto</a>
     </nav>
 
-    <button type="button" class="header-flight-button" (click)="openSpaceMode()">
+    <button type="button" class="header-flight-button" (click)="openSpaceMode()" aria-label="Abrir la experiencia de vuelo espacial en 3D">
       <span class="flight-button-indicator" aria-hidden="true"></span>
-      Abrir simulador
+      Entrar a la cabina
     </button>
   </header>
 
   <div id="contenido" class="page-content" [attr.inert]="isSpaceModeActive() ? '' : null">
     <section id="inicio" class="hero-section" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="section-kicker"><span class="kicker-line"></span> PORTAFOLIO · 2026</p>
-        <h1 id="hero-title">Del mapa al píxel.<br><span>Experiencias que se pueden explorar.</span></h1>
+        <p class="section-kicker"><span class="kicker-line"></span> PORTAFOLIO PERSONAL · MENDOZA</p>
+        <h1 id="hero-title">Soy Federico.<br><span>Desarrollo web y cartografía.</span></h1>
         <p class="hero-description">
-          Soy Federico, desarrollador front-end y estudiante de Geotecnologías. Trabajo entre aplicaciones web, juegos en Canvas y mapas interactivos; me importa que cada interfaz sea clara y tenga algo propio.
+          Soy desarrollador front-end y estudio Geotecnologías en Mendoza. Acá comparto los proyectos web y mapas en los que fui trabajando, además de una experiencia espacial interactiva.
         </p>
 
         <div class="hero-actions">
@@ -57,7 +57,7 @@
           <span class="location-mark" aria-hidden="true">⌖</span>
           <span>Mendoza, Argentina</span>
           <span class="footnote-divider" aria-hidden="true"></span>
-          <span>Frontend · Geotecnologías · Juegos web</span>
+          <span>Interfaces web · Geotecnologías · Cartografía</span>
         </div>
       </div>
 
@@ -71,18 +71,18 @@
             <div class="distant-moon"></div>
             <div class="flight-path"><span></span><span></span><span></span></div>
             <span class="viewport-coordinate">32° 53′ S&nbsp; · &nbsp;68° 50′ O</span>
-            <span class="viewport-label">ÓRBITA BAJA · TIERRA</span>
+            <span class="viewport-label">VENTANA DE OBSERVACIÓN · TIERRA</span>
             <span class="viewport-reticle" aria-hidden="true"></span>
           </div>
           <div class="frame-bolt bolt-one" aria-hidden="true"></div>
           <div class="frame-bolt bolt-two" aria-hidden="true"></div>
           <div class="frame-bolt bolt-three" aria-hidden="true"></div>
           <div class="frame-bolt bolt-four" aria-hidden="true"></div>
-          <div class="viewport-frame-label"><span>VENTANILLA 01</span><span>FB / NAV</span></div>
+          <div class="viewport-frame-label"><span>ESCOTILLA 01</span><span>FB / NAV</span></div>
         </div>
 
         <div class="hero-instrument-panel" aria-hidden="true">
-          <div class="instrument-label"><span>COMUNICACIONES</span><strong>CANAL ABIERTO</strong><i></i></div>
+          <div class="instrument-label"><span>COMUNICACIONES</span><strong>ENLACE ABIERTO</strong><i></i></div>
           <div class="instrument-divider"></div>
           <div class="instrument-heading"><span>NAVEGACIÓN</span><strong>LOCAL</strong><small>AR</small></div>
           <div class="instrument-compass"><span>N</span><span>E</span><span>S</span><span>O</span><i></i></div>
@@ -90,40 +90,40 @@
           <div class="instrument-throttle"><span>SISTEMAS</span><div><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><strong>FRONT-END · SIG</strong></div>
           <div class="panel-screw screw-left"></div><div class="panel-screw screw-right"></div>
         </div>
-        <p class="visual-caption"><span>01 / 05</span> SISTEMA DE NAVEGACIÓN PERSONALIZADO</p>
+        <p class="visual-caption"><span>01 / 05</span> VISTA DESDE ÓRBITA TERRESTRE</p>
       </div>
 
       <a class="scroll-cue" href="#sobre-mi"><span></span> Desplazarse para explorar</a>
     </section>
 
     <section id="sobre-mi" class="portfolio-section" aria-labelledby="profile-heading">
-      <div class="section-heading"><span class="section-index">01</span><div><p class="section-kicker">PUNTO DE PARTIDA</p><h2 id="profile-heading">Perfil</h2></div></div>
+      <div class="section-heading"><span class="section-index">01</span><div><p class="section-kicker">PERFIL</p><h2 id="profile-heading">Perfil</h2></div></div>
       <app-sobre-mi></app-sobre-mi>
     </section>
 
     <section id="habilidades" class="portfolio-section" aria-labelledby="skills-heading">
-      <div class="section-heading"><span class="section-index">02</span><div><p class="section-kicker">HERRAMIENTAS DE TRABAJO</p><h2 id="skills-heading">Tecnologías</h2></div></div>
+      <div class="section-heading"><span class="section-index">02</span><div><p class="section-kicker">HERRAMIENTAS</p><h2 id="skills-heading">Tecnologías</h2></div></div>
       <app-habilidades></app-habilidades>
     </section>
 
     <section id="proyectos" class="portfolio-section" aria-labelledby="projects-heading">
-      <div class="section-heading"><span class="section-index">03</span><div><p class="section-kicker">TRABAJO EN ÓRBITA</p><h2 id="projects-heading">Proyectos seleccionados</h2></div></div>
+      <div class="section-heading"><span class="section-index">03</span><div><p class="section-kicker">INSTRUMENTOS Y EXPERIMENTOS</p><h2 id="projects-heading">Proyectos</h2></div></div>
       <app-proyectos></app-proyectos>
     </section>
 
     <section id="experiencia" class="portfolio-section" aria-labelledby="experience-heading">
-      <div class="section-heading"><span class="section-index">04</span><div><p class="section-kicker">RUTA RECORRIDA</p><h2 id="experience-heading">Trayectoria</h2></div></div>
+      <div class="section-heading"><span class="section-index">04</span><div><p class="section-kicker">FORMACIÓN Y EXPERIENCIA</p><h2 id="experience-heading">Trayectoria</h2></div></div>
       <app-experiencia></app-experiencia>
     </section>
 
     <section id="contacto" class="portfolio-section contact-section" aria-labelledby="contact-heading">
-      <div class="section-heading"><span class="section-index">05</span><div><p class="section-kicker">CANAL ABIERTO</p><h2 id="contact-heading">Hablemos</h2></div></div>
+      <div class="section-heading"><span class="section-index">05</span><div><p class="section-kicker">CONTACTO</p><h2 id="contact-heading">Hablemos</h2></div></div>
       <app-contacto></app-contacto>
     </section>
 
     <footer class="site-footer">
       <a class="footer-brand" href="#inicio">FB<span> / </span>Federico Barzola</a>
-      <p>Hecho en Mendoza, con curiosidad y código.</p>
+      <p>Mendoza, Argentina · Portafolio de Federico Barzola.</p>
       <a href="#inicio">Volver arriba ↑</a>
     </footer>
   </div>

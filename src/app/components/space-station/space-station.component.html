@@ -1,89 +1,43 @@
-<div class="parallax-space-wrapper" role="region" aria-label="Rutas a las secciones del portafolio">
-  <!-- LAYER 0: Deep Space Nebula & Constellation Grid (Far Parallax Layer) -->
-  <div class="parallax-layer layer-far" [style.transform]="getFarParallaxTransform()">
-    <div class="nebula-glow nebula-sage"></div>
-    <div class="nebula-glow nebula-slate"></div>
-    <div class="nebula-glow nebula-gold"></div>
-    <div class="space-grid-pattern"></div>
-  </div>
+<section class="orbital-chart" role="region" aria-label="Carta orbital con rutas a las secciones del portafolio">
+  <header class="chart-heading">
+    <div>
+      <p class="chart-eyebrow">CARTA ORBITAL · SECTOR LOCAL</p>
+      <h3>Red de estaciones</h3>
+    </div>
+    <span class="chart-reference">FB / NAV-01</span>
+  </header>
 
-  <!-- LAYER 1: Orbital Connectors & Vector Constellation Lines (Mid Parallax Layer) -->
-  <div class="parallax-layer layer-mid" [style.transform]="getMidParallaxTransform()">
-    <svg class="orbital-constellation-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#d4a76a" stop-opacity="0.5" />
-          <stop offset="50%" stop-color="#b77958" stop-opacity="0.3" />
-          <stop offset="100%" stop-color="#8eaa8d" stop-opacity="0.5" />
-        </linearGradient>
-      </defs>
-      <!-- Orbital hyper-lanes connecting stations -->
-      <path d="M 20 28 L 72 22 L 78 70 L 45 55 L 18 72 Z" fill="none" stroke="url(#orbitGrad)" stroke-width="0.35" stroke-dasharray="1 1" />
-      <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(194, 211, 202, 0.12)" stroke-width="0.25" />
-    </svg>
-  </div>
-
-  <!-- LAYER 2: Main Floating Orbital Stations (Interactive Parallax Layer) -->
-  <div class="parallax-layer layer-interactive">
+  <div class="chart-canvas">
+    <div class="chart-stars" aria-hidden="true"></div>
+    <div class="orbital-plane plane-one" aria-hidden="true"></div>
+    <div class="orbital-plane plane-two" aria-hidden="true"></div>
+    <div class="orbital-plane plane-three" aria-hidden="true"></div>
     @for (st of stations; track st.id) {
-      <div 
-        class="floating-station-card"
+      <button
+        type="button"
+        class="orbital-station"
         [style.left.%]="st.baseX"
         [style.top.%]="st.baseY"
-        [style.transform]="getStationTransform(st)"
         [class.is-hovered]="hoveredStation()?.id === st.id"
         (mouseenter)="onStationHover(st)"
         (mouseleave)="onStationHover(null)"
+        (focus)="onStationHover(st)"
+        (blur)="onStationHover(null)"
         (click)="onStationClick(st)"
-        (keydown.enter)="onStationClick(st)"
-        (keydown.space)="$event.preventDefault(); onStationClick(st)"
-        role="button"
-        tabindex="0"
-        [attr.aria-label]="st.name + ' - ' + st.category">
-        
-        <!-- Holo Light Beam Column -->
-        <div class="holo-light-pillar" [style.background]="'radial-gradient(ellipse at bottom, ' + st.glowColor + ' 0%, transparent 70%)'"></div>
-
-        <!-- Station Structural Pod -->
-        <div class="station-pod" [style.border-color]="st.accentHex" [style.box-shadow]="'0 0 24px ' + st.glowColor">
-          <div class="station-beacon-pulse" [style.background-color]="st.accentHex"></div>
-
-          <!-- Station Icon Badge -->
-          <div class="station-icon-wrap" [style.border-color]="st.accentHex">
-            <span class="station-icon">{{ st.icon }}</span>
-          </div>
-
-          <!-- Station Info Labels -->
-          <div class="station-label-block">
-            <span class="station-code-tag">{{ st.code }}</span>
-            <h3 class="station-name" [style.color]="st.accentHex">{{ st.name }}</h3>
-            <span class="station-category">{{ st.category }}</span>
-          </div>
-
-          <!-- Pulsing Energy Ring -->
-          <div class="energy-ring" [style.border-color]="st.accentHex"></div>
-
-          <!-- Interactive Hover Action Badge -->
-          <div class="dock-action-badge" [style.background-color]="st.accentHex">
-            <span>VISITAR ESTACIÓN →</span>
-          </div>
-        </div>
-      </div>
+        [attr.aria-label]="st.name + ' · ' + st.category + '. Abrir sección.'">
+        <span class="station-silhouette" aria-hidden="true"><span class="station-body"></span><span class="solar-wing wing-left"></span><span class="solar-wing wing-right"></span><span class="station-signal"></span></span>
+        <span class="station-label-block">
+          <span class="station-code-tag">{{ st.code }}</span>
+          <strong class="station-name">{{ st.name }}</strong>
+          <span class="station-category">{{ st.category }}</span>
+        </span>
+        <span class="station-open-mark" aria-hidden="true">↗</span>
+      </button>
     }
   </div>
 
-  <!-- LAYER 3: Passing Cosmic Dust & Meteors (Foreground Parallax Layer) -->
-  <div class="parallax-layer layer-foreground" [style.transform]="getForegroundParallaxTransform()">
-    <div class="floating-debris particle-1"></div>
-    <div class="floating-debris particle-2"></div>
-    <div class="floating-debris particle-3"></div>
-  </div>
-
-  <!-- BOTTOM CONTROL BAR & 3D SIMULATOR CTA -->
-  <div class="parallax-hud-bottom-bar">
-    <div class="hud-status-badge">
-      <span class="status-dot"></span>
-      <span>SELECCIONÁ UN DESTINO PARA VISITARLO</span>
-    </div>
-  </div>
-</div>
+  <footer class="chart-footer">
+    <span><i aria-hidden="true"></i> 05 BALIZAS DE DATOS</span>
+    <span>Seleccioná una estación para abrir su registro</span>
+  </footer>
+</section>

@@ -1,10 +1,10 @@
 <article class="proyectos-container card-base">
-  <h2>Proyectos Destacados</h2>
+  <h2>Archivo de proyectos</h2>
 
   <div class="proyectos-grid" appResponsiveLayout>
     <article class="proyecto-card" *ngFor="let proyecto of proyectos" [class.destacado-card]="proyecto.destacado">
       <div class="proyecto-imagen-wrapper" [class.sin-captura]="!proyecto.imagen">
-        <span *ngIf="proyecto.destacado" class="destacado-badge">⭐ Destacado</span>
+        <span *ngIf="proyecto.destacado" class="destacado-badge">SELECCIÓN · SIG</span>
         <img *ngIf="proyecto.imagen" [src]="proyecto.imagen" [alt]="'Captura de ' + proyecto.titulo" [title]="proyecto.titulo" referrerpolicy="no-referrer" (error)="handleImageFallback($event, proyecto)" loading="lazy">
         <div *ngIf="!proyecto.imagen" class="project-cover-note" aria-hidden="true">
           <span>PROYECTO PERSONAL</span>
@@ -18,9 +18,8 @@
         <span *ngIf="proyecto.subtitulo" class="proyecto-subtitulo">{{ proyecto.subtitulo }}</span>
         <p class="proyecto-desc">{{ proyecto.descripcion }}</p>
 
-        <div class="tecnologias">
-          <span *ngFor="let tech of proyecto.tecnologias" [style.background-color]="getTechColor(tech)"
-            [style.color]="tech === 'JavaScript' || tech === 'API' ? '#000' : '#fff'">
+        <div class="tecnologias" role="list" [attr.aria-label]="'Tecnologías de ' + proyecto.titulo">
+          <span *ngFor="let tech of proyecto.tecnologias" role="listitem">
             {{ tech }}
           </span>
         </div>
@@ -36,14 +35,13 @@
       </div>
     </article>
 
-    <!-- Tarjeta Especial: Explorar más proyectos -->
     <article class="proyecto-card mas-proyectos-card">
       <div class="mas-proyectos-content">
         <div class="mas-icon-wrapper">
-          <span class="mas-icon">📂</span>
+          <span class="mas-icon" aria-hidden="true">GH</span>
         </div>
-        <h3>Más Proyectos & Experimentos</h3>
-        <p>Explora repositorios adicionales, geovisores y prototipos en GitHub.</p>
+        <h3>Más proyectos</h3>
+        <p>Otros desarrollos y experimentos disponibles en mis repositorios.</p>
         <a href="https://github.com/pincha1212" target="_blank" rel="noopener noreferrer" class="mas-proyectos-btn">
           <span>Ver repositorios en GitHub</span>
           <span class="arrow-icon">→</span>
