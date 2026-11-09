@@ -1,0 +1,280 @@
+<div class="space-viewport-root">
+  <!-- Three.js Canvas Container (Dedicated isolated container) -->
+  <div #canvasContainer class="canvas-mount"></div>
+
+  <!-- TOP HUD: Minimal telemetry header (Unobstructed center) -->
+  <header class="hud-top-bar" [class.cinema-hidden]="isCinema()" role="banner">
+    <div class="hud-telemetry-cluster">
+      <div class="hud-badge pulse-border">
+        <span class="hud-badge-icon">🚀</span>
+        <div class="hud-badge-info">
+          <span class="hud-badge-title">STARFIGHTER FB-21</span>
+          <span class="hud-badge-sub">Estación Orbital • Federico Barzola</span>
+        </div>
+      </div>
+
+      <div class="telemetry-pill">
+        <span class="telemetry-label">VEL</span>
+        <span class="telemetry-value" [class.turbo-text]="turboActive()">
+          {{ speedKmh() }} <small>KM/H</small>
+        </span>
+      </div>
+
+      <div class="telemetry-pill">
+        <span class="telemetry-label">CRISTALES</span>
+        <span class="telemetry-value crystal-text">
+          💎 {{ crystalsCollected() }} / {{ totalCrystals() }}
+        </span>
+      </div>
+
+      @if (turboActive()) {
+        <div class="turbo-alert-pill">
+          <span>⚡ TURBO BOOST</span>
+        </div>
+      }
+    </div>
+
+    <div class="hud-top-actions">
+      <!-- Centrar Nave -->
+      <button type="button" class="hud-icon-btn" (click)="resetShipPosition()" title="Reposicionar nave">
+        <span>🔄 Centrar</span>
+      </button>
+
+      <!-- Cargar GLB -->
+      <label class="hud-icon-btn glb-upload-label" title="Cargar tu Transformador o Nave en formato .GLB / .GLTF">
+        <span>🚀 Cargar .GLB</span>
+        <input type="file" accept=".glb,.gltf" style="display: none;" (change)="onLoadCustomGlb($event)">
+      </label>
+
+      <!-- Audio Toggle -->
+      <button 
+        type="button" 
+        class="hud-icon-btn" 
+        [class.active]="soundEnabled()"
+        (click)="toggleSound()"
+        title="Alternar Sonido Motor Iónico">
+        <span>{{ soundEnabled() ? '🔊 Audio FX: ON' : '🔇 Audio: OFF' }}</span>
+      </button>
+
+      <!-- Help info modal toggle -->
+      <button 
+        type="button" 
+        class="hud-icon-btn" 
+        (click)="toggleHelp()"
+        title="Ver Controles de Vuelo">
+        <span>⌨️ Controles</span>
+      </button>
+
+      <!-- Return to portfolio button -->
+      <button 
+        type="button" 
+        class="hud-close-btn" 
+        (click)="closePlayground.emit()"
+        title="Volver a la vista clásica del portfolio">
+        <span>✕ Salir de Modo 3D</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- HYPER-DRIVE WARP JUMP BANNER OVERLAY -->
+  @if (isWarping()) {
+    <div class="warp-active-banner" role="status" aria-live="polite">
+      <div class="warp-pulse"></div>
+      <div class="warp-info">
+        <span class="warp-tag">⚡ SALTO HIPERESPACIAL EN PROGRESO</span>
+        <h3 class="warp-target">Viajando a {{ warpTargetName() }}...</h3>
+      </div>
+    </div>
+  }
+
+  <!-- STATION DOCKING TRANSMISSION OVERLAY (Active when ship is at a station) -->
+  @if (dockedStation(); as st) {
+    <aside class="station-transmission-card" aria-label="Estación Orbital Detectada">
+      <div class="station-card-header">
+        <div class="station-icon-halo" [style.border-color]="st.glowHex">
+          <span>{{ st.icon }}</span>
+        </div>
+        <div class="station-headings">
+          <span class="station-sub-tag">TRANSMISIÓN HOLOGRÁFICA</span>
+          <h2 class="station-title" [style.color]="st.glowHex">{{ st.name }}</h2>
+          <span class="station-subtitle">{{ st.subtitle }}</span>
+        </div>
+      </div>
+
+      <p class="station-desc">{{ st.description }}</p>
+
+      <div class="station-tags-row">
+        @for (tag of st.tags; track tag) {
+          <span class="station-tag-pill">{{ tag }}</span>
+        }
+      </div>
+
+      <div class="station-card-actions">
+        <button 
+          type="button" 
+          class="station-primary-action-btn"
+          [style.background-color]="st.glowHex"
+          (click)="onSelectStation(st)">
+          <span>📂 {{ st.ctaLabel }}</span>
+          <span>➜</span>
+        </button>
+        <button 
+          type="button" 
+          class="station-secondary-btn"
+          (click)="resetShipPosition()">
+          <span>Desacoplar</span>
+        </button>
+      </div>
+    </aside>
+  }
+
+  <!-- KEYBOARD HELP POPUP MODAL -->
+  @if (isHelpOpen()) {
+    <div class="help-modal-overlay" (click)="toggleHelp()">
+      <div class="help-modal-card" (click)="$event.stopPropagation()">
+        <div class="help-header">
+          <h3>🎮 Guía de Vuelo Espacial</h3>
+          <button type="button" class="close-x-btn" (click)="toggleHelp()">✕</button>
+        </div>
+        <div class="help-body">
+          <div class="control-row">
+            <span class="key-badge">W / ↑</span>
+            <span>Acelerar hacia adelante</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">S / ↓</span>
+            <span>Frenar / Reversa</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">A / D / ← / →</span>
+            <span>Giro con inclinación (Roll / Yaw)</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">ESPACIO</span>
+            <span>Turbo Boost Hipersónico</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">R</span>
+            <span>Reiniciar posición de la nave</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">C</span>
+            <span>Cambiar ángulo de cámara</span>
+          </div>
+        </div>
+        <div class="help-footer">
+          <button type="button" class="help-close-btn" (click)="toggleHelp()">¡Entendido!</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- IN-GAME STATION CONTENT MODAL OVERLAY (Portfolio content inside 3D environment) -->
+  @if (activeStationModal(); as modalId) {
+    <div class="station-modal-overlay" (click)="closeStationModal()">
+      <div class="station-modal-container" (click)="$event.stopPropagation()">
+        <header class="station-modal-header">
+          <div class="modal-title-box">
+            @switch (modalId) {
+              @case ('sobre-mi') { <span>👤 Hangar Alpha • Sobre Mí & Perfil Profesional</span> }
+              @case ('habilidades') { <span>⚡ Reactor Núcleo • Conocimientos Técnicos</span> }
+              @case ('proyectos') { <span>💻 Bahía de Misiones • Proyectos Destacados</span> }
+              @case ('experiencia') { <span>🚀 Muelle Orbital • Experiencia & Trayectoria</span> }
+              @case ('contacto') { <span>✉️ Antena de Comms • Contacto Directo</span> }
+            }
+          </div>
+          <button type="button" class="station-modal-close-btn" (click)="closeStationModal()">
+            <span>✕ Volver al Simulador 3D</span>
+          </button>
+        </header>
+
+        <div class="station-modal-body">
+          @switch (modalId) {
+            @case ('sobre-mi') { <app-sobre-mi></app-sobre-mi> }
+            @case ('habilidades') { <app-habilidades></app-habilidades> }
+            @case ('proyectos') { <app-proyectos></app-proyectos> }
+            @case ('experiencia') { <app-experiencia></app-experiencia> }
+            @case ('contacto') { <app-contacto class="contact-wrapper"></app-contacto> }
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MOBILE / TOUCH VIRTUAL CONTROLS -->
+  @if (isMobileDevice()) {
+    <div class="mobile-touch-overlay" role="region" aria-label="Controles táctiles">
+      <!-- Steering D-Pad (Left side) -->
+      <div class="touch-cluster-left">
+        <div class="dpad-cross">
+          <button 
+            type="button" 
+            class="touch-btn dpad-up"
+            (touchstart)="setTouchControl('forward', true)"
+            (touchend)="setTouchControl('forward', false)">
+            ▲
+          </button>
+          <div class="dpad-mid-row">
+            <button 
+              type="button" 
+              class="touch-btn dpad-left"
+              (touchstart)="setTouchControl('left', true)"
+              (touchend)="setTouchControl('left', false)">
+              ◀
+            </button>
+            <div class="dpad-center">🛸</div>
+            <button 
+              type="button" 
+              class="touch-btn dpad-right"
+              (touchstart)="setTouchControl('right', true)"
+              (touchend)="setTouchControl('right', false)">
+              ▶
+            </button>
+          </div>
+          <button 
+            type="button" 
+            class="touch-btn dpad-down"
+            (touchstart)="setTouchControl('backward', true)"
+            (touchend)="setTouchControl('backward', false)">
+            ▼
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Boost Button (Right side) -->
+      <div class="touch-cluster-right">
+        <button 
+          type="button" 
+          class="touch-btn turbo-touch-btn"
+          [class.active]="turboActive()"
+          (touchstart)="setTouchControl('boost', true)"
+          (touchend)="setTouchControl('boost', false)">
+          ⚡ TURBO
+        </button>
+      </div>
+    </div>
+  }
+
+
+
+  <!-- CUSTOM GLB SUCCESS NOTIFICATION BANNER -->
+  @if (customGlbLoaded()) {
+    <div class="custom-glb-banner" role="status">
+      <span>✨ Transformador / Nave .GLB cargado: <strong>{{ customGlbName() }}</strong></span>
+      <button type="button" class="banner-close" (click)="customGlbLoaded.set(false)">✕</button>
+    </div>
+  }
+
+  <!-- COCKPIT HUD OVERLAY INSTRUMENT PANEL -->
+  <app-cockpit-hud
+    [speedKmh]="speedKmh()"
+    [isTurboActive]="turboActive()"
+    [currentStationName]="dockedStation()?.name || 'Sector Espacial Libres'"
+    [stations]="stations"
+    [radarBlips]="radarBlips()"
+    (toggleTurbo)="setTouchControl('boost', $event)"
+    (teleportStation)="teleportToStation($event)"
+    (cinemaModeChange)="onCinemaModeChange($event)"
+    (cameraModeChange)="setCameraMode($event)">
+  </app-cockpit-hud>
+</div>

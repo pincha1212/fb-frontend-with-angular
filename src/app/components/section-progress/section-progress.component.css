@@ -1,0 +1,216 @@
+:host {
+  position: fixed;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  pointer-events: auto;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.section-progress-nav {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 6px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.progress-track {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+  z-index: 1;
+}
+
+.progress-fill {
+  width: 100%;
+  background: linear-gradient(to bottom, #4ecdc4, #dd1b16);
+  border-radius: 99px;
+  transition: height 0.15s ease-out;
+}
+
+.progress-dots {
+  position: relative;
+  z-index: 2;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.progress-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-dot-btn {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(26, 26, 46, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dot-icon {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.progress-dot-btn:hover {
+  transform: scale(1.2);
+  border-color: #4ecdc4;
+  background: rgba(78, 205, 196, 0.25);
+  box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+}
+
+.progress-dot-btn.active {
+  transform: scale(1.25);
+  background: linear-gradient(135deg, #4ecdc4, #358f88);
+  border-color: #ffffff;
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.8);
+}
+
+.progress-dot-btn.active .dot-icon {
+  transform: scale(1.1);
+}
+
+/* Tooltip lateral al hacer hover */
+.dot-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(6px);
+  background: rgba(11, 15, 25, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.progress-dot-btn:hover .dot-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+@media (max-width: 768px) {
+  :host {
+    right: 12px;
+  }
+  .progress-dot-btn {
+    width: 28px;
+    height: 28px;
+  }
+  .dot-tooltip {
+    display: none;
+  }
+}
+
+.space-mode-nav-shortcut {
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 5;
+}
+
+.theme-nav-shortcut {
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 5;
+}
+
+.theme-nav-toggle-btn {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+.theme-nav-toggle-btn.is-light {
+  background: linear-gradient(135deg, #f59e0b, #38bdf8) !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+}
+
+.theme-nav-toggle-btn:hover {
+  transform: scale(1.18) !important;
+  border-color: #38bdf8 !important;
+}
+
+.space-shortcut-btn {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.4), rgba(56, 189, 248, 0.2)) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.space-shortcut-btn:hover {
+  background: #0284c7 !important;
+  transform: scale(1.15) !important;
+}
+
+/* Light Theme Adaptations for Side Progress Nav */
+:host-context(body.theme-light) .section-progress-nav {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(2, 132, 199, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+:host-context(body.theme-light) .progress-track {
+  background: rgba(15, 23, 42, 0.1);
+}
+
+:host-context(body.theme-light) .progress-dot-btn {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.2);
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+:host-context(body.theme-light) .progress-dot-btn:hover {
+  border-color: #0284c7;
+  background: rgba(2, 132, 199, 0.15);
+}
+
+:host-context(body.theme-light) .progress-dot-btn.active {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(2, 132, 199, 0.5);
+}
+
+:host-context(body.theme-light) .dot-tooltip {
+  background: #ffffff;
+  border-color: rgba(2, 132, 199, 0.3);
+  color: #0f172a;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+}
+

@@ -1,0 +1,42 @@
+/* ==========================================================================
+   OrbitalBackgroundComponent - Rotating SVG Orbital Paths & Planet Depth Styles
+   ========================================================================== */
+
+:host {
+  display: block;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.orbital-background-root {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.orbital-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  transition: transform 0.15s cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+
+/* Revolving continuous orbit group animation */
+.revolving-orbit-group {
+  transform-origin: 0 0;
+  animation: revolveOrbit 120s linear infinite;
+  will-change: transform;
+}
+
+@keyframes revolveOrbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

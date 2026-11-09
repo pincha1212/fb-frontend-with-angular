@@ -1,26 +1,50 @@
 <main class="background">
+  <!-- Fondo estrellado animado mediante CSS global -->
+  <div class="global-starfield-container" aria-hidden="true">
+    <div class="starfield-layer-1"></div>
+    <div class="starfield-layer-2"></div>
+    <div class="shooting-star-streak"></div>
+    <div class="shooting-star-streak-2"></div>
+  </div>
+
+  <!-- Fondo dinámico interactivo con animación reactiva al scroll -->
+  <app-animated-background></app-animated-background>
+
+  <!-- Rutas orbitales planetarias SVG en rotación lenta con escalado de profundidad -->
+  <app-orbital-background></app-orbital-background>
+
+  <!-- Nubes de nebulosas orgánicas SVG semi-transparentes en flotación lenta multicapa -->
+  <app-nebula-clouds></app-nebula-clouds>
+
+  <!-- Modal Inmersivo: Modo Escenario 3D Nave Espacial & Estación Orbital -->
+  @if (isSpaceModeActive()) {
+    <div class="space-fullscreen-overlay" role="dialog" aria-modal="true" aria-label="Simulador 3D Nave Espacial">
+      <app-space-playground 
+        (closePlayground)="closeSpaceMode()"
+        (navigateToSection)="onNavigateFromSpace($event)">
+      </app-space-playground>
+    </div>
+  }
+
   <div class="main-content" role="main">
     <!-- Hero Section -->
-    <header class="spaced-centered presentation" appScrollAnimation>
-      <h1 class="title" aria-label="Federico Barzola - Desarrollador Web">
-        <div class="name"><span class="glitch-letter">F</span>EDERICO</div>
-        <div>BARZOLA</div>
-      </h1>
-      <h2 class="subtitle">Desarrollador web <br> Front-end</h2>
+    <header id="hero" class="presentation" appScrollAnimation animationType="fade-in">
+      <div class="hero-content">
+        <h1 class="title" aria-label="Federico Barzola - Desarrollador Web">
+          <div class="name"><span class="glitch-letter">F</span>EDERICO</div>
+          <div>BARZOLA</div>
+        </h1>
+        <h2 class="subtitle">Desarrollador web <br> Front-end</h2>
+
+        <div class="hero-actions">
+          <button type="button" class="hero-play-btn" (click)="openSpaceMode()">
+            <span class="play-icon">▶</span>
+            <span class="play-text">Jugar</span>
+          </button>
+        </div>
+      </div>
     </header>
-    <section class="right-aligned" appScrollAnimation aria-label="Habilidades">
-      <app-habilidades></app-habilidades>
-    </section>
-    <section class="left-aligned" appScrollAnimation aria-label="Proyectos">
-      <app-proyectos></app-proyectos>
-    </section>
-    <section class="left-aligned" appScrollAnimation aria-label="Experiencia">
-      <app-experiencia></app-experiencia>
-    </section>
-    <section class="contact-section spaced-centered contact-container" appScrollAnimation aria-label="Contacto">
-      <app-contacto class="contact-wrapper"></app-contacto>
-    </section>
+
     <app-scroll-indicator></app-scroll-indicator>
   </div>
 </main>
-  

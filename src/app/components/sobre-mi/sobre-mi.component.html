@@ -1,0 +1,43 @@
+<section class="sobre-mi-container card-base">
+  <h2>Sobre Mí</h2>
+  
+  <div class="sobre-mi-grid">
+    <div class="bio-column">
+      <p class="bio-text">
+        Soy <strong>Fede Barzola</strong>, Desarrollador Web Frontend enfocado en <strong>JavaScript</strong>, aplicaciones interactivas, videojuegos web y soluciones digitales basadas en geotecnologías.
+      </p>
+      <p class="bio-text">
+        Cuento con un nivel alto (cercano al avanzado) en HTML5, CSS3 y JS, combinado con experiencia práctica en la creación de videojuegos web con sistemas de física e inteligencia artificial en Canvas 2D, así como desarrollo de <strong>geovisores interactivos</strong> vinculados a Sistemas de Información Geográfica (SIG).
+      </p>
+
+      <div class="hitos-row">
+        <div *ngFor="let hito of hitos" class="hito-card">
+          <span class="hito-number">{{ hito.numero }}</span>
+          <span class="hito-label">{{ hito.label }}</span>
+        </div>
+      </div>
+
+      <div class="competencias-wrapper mt-4">
+        <h4 class="competencias-title">Competencias Personales</h4>
+        <div class="competencias-tags">
+          <span *ngFor="let comp of competencias" class="comp-tag">✓ {{ comp }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="estudios-column">
+      <h3>📚 Formación Académica</h3>
+      <div class="timeline-container">
+        <div *ngFor="let estudio of estudios" class="estudio-item">
+          <div class="estudio-dot"></div>
+          <div class="estudio-content">
+            <span class="estudio-periodo">{{ estudio.periodo }}</span>
+            <h4 class="estudio-titulo">{{ estudio.titulo }}</h4>
+            <span class="estudio-institucion">{{ estudio.institucion }}</span>
+            <p class="estudio-desc">{{ estudio.descripcion }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

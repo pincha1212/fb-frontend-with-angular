@@ -16,6 +16,43 @@
   color: #fff;
 }
 
+.contact-info-pills {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.info-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.5rem 1.2rem;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+  backdrop-filter: blur(8px);
+}
+
+.pill-icon {
+  font-size: 1.1rem;
+}
+
+.phone-link {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.phone-link:hover {
+  color: #7dd3fc;
+  text-decoration: underline;
+}
+
 /* Redes sociales */
 .redes-sociales {
   display: flex;

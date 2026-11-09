@@ -1,0 +1,45 @@
+/* ==========================================================================
+   NebulaCloudsComponent - Semi-transparent Floating SVG Nebula Clouds Styles
+   ========================================================================== */
+
+:host {
+  display: block;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.nebula-clouds-root {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.nebula-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  mix-blend-mode: screen;
+  transition: transform 0.2s cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+
+.floating-nebula-group {
+  transform-origin: center center;
+  animation: nebulaDrift 70s infinite alternate ease-in-out;
+  will-change: transform;
+}
+
+@keyframes nebulaDrift {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate(45px, -30px) scale(1.08) rotate(4deg);
+  }
+  100% {
+    transform: translate(-35px, 35px) scale(0.95) rotate(-3deg);
+  }
+}

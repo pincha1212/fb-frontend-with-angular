@@ -1,33 +1,49 @@
-<article class="proyectos-container">
-  <h2>Demos y Prototipos</h2>
-  <div class="proyectos-grid">
-    <article class="proyecto-card card-base" *ngFor="let proyecto of proyectos">
-      <div class="proyecto-imagen">
-        <img [src]="proyecto.imagen" [alt]="proyecto.titulo" [title]="proyecto.titulo" loading="lazy">
+<article class="proyectos-container card-base">
+  <h2>Proyectos Destacados</h2>
+
+  <div class="proyectos-grid" appResponsiveLayout>
+    <article class="proyecto-card" *ngFor="let proyecto of proyectos" [class.destacado-card]="proyecto.destacado">
+      <div class="proyecto-imagen-wrapper">
+        <span *ngIf="proyecto.destacado" class="destacado-badge">⭐ Destacado</span>
+        <img [src]="proyecto.imagen" [alt]="proyecto.titulo" [title]="proyecto.titulo" referrerpolicy="no-referrer" (error)="handleImageFallback($event, proyecto)" loading="lazy">
       </div>
+
       <div class="proyecto-info">
-        <h3>{{ proyecto.titulo }}</h3>
-        <p>{{ proyecto.descripcion }}</p>
+        <h3 class="proyecto-titulo">{{ proyecto.titulo }}</h3>
+        <span *ngIf="proyecto.subtitulo" class="proyecto-subtitulo">{{ proyecto.subtitulo }}</span>
+        <p class="proyecto-desc">{{ proyecto.descripcion }}</p>
+
         <div class="tecnologias">
           <span *ngFor="let tech of proyecto.tecnologias" [style.background-color]="getTechColor(tech)"
             [style.color]="tech === 'JavaScript' || tech === 'API' ? '#000' : '#fff'">
             {{ tech }}
           </span>
         </div>
-        <a [href]="proyecto.link" target="_blank" rel="noopener" class="proyecto-link">
-          <i class="fas fa-code-branch"></i> Ver Proyecto
+
+        <div class="proyecto-actions">
+          <a *ngIf="proyecto.demoUrl" [href]="proyecto.demoUrl" target="_blank" rel="noopener" class="btn-action btn-demo">
+            <span>🌐 Ver Demo / Web</span>
+          </a>
+          <a *ngIf="proyecto.githubUrl" [href]="proyecto.githubUrl" target="_blank" rel="noopener" class="btn-action btn-github">
+            <span>💻 GitHub Code</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Tarjeta Especial: Explorar más proyectos -->
+    <article class="proyecto-card mas-proyectos-card">
+      <div class="mas-proyectos-content">
+        <div class="mas-icon-wrapper">
+          <span class="mas-icon">📂</span>
+        </div>
+        <h3>Más Proyectos & Experimentos</h3>
+        <p>Explora repositorios adicionales, geovisores y prototipos en GitHub.</p>
+        <a href="https://github.com/pincha1212" target="_blank" rel="noopener" class="mas-proyectos-btn">
+          <span>Ver Repositorios en GitHub</span>
+          <span class="arrow-icon">→</span>
         </a>
       </div>
     </article>
-    <div class="proyecto-card mas-proyectos-card">
-      <div class="mas-proyectos-content">
-        <i class="fas fa-folder-plus"></i>
-        <h3>Más Proyectos</h3>
-        <a href="https://pincha1212.github.io/proyect-finder/" class="mas-proyectos-btn">
-          <span>Ver más</span>
-          <i class="fas fa-arrow-right"></i>
-        </a>
-      </div>
-    </div>
   </div>
 </article>

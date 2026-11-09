@@ -1,0 +1,482 @@
+/* ==========================================================================
+   SpaceStationComponent - Parallax Floating Orbital Stations Styles
+   ========================================================================== */
+
+:host {
+  display: block;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.parallax-space-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  max-height: 75vh;
+  background: radial-gradient(circle at 50% 40%, #0a0f1d 0%, #050711 85%);
+  overflow: auto;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================================================
+   Parallax Multi-Layer System
+   ========================================================================== */
+.parallax-layer {
+  position: absolute;
+  inset: -60px; /* Bleed margins to prevent edge clipping during parallax shifts */
+  pointer-events: none;
+  transition: transform 0.1s cubic-bezier(0.1, 0.8, 0.3, 1);
+  will-change: transform;
+}
+
+/* Layer 0: Far Background (Nebula & Space Grid) */
+.layer-far {
+  z-index: 1;
+}
+
+.nebula-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+}
+
+.nebula-cyan {
+  width: 450px;
+  height: 450px;
+  background-color: #00f0ff;
+  top: 10%;
+  left: 15%;
+}
+
+.nebula-purple {
+  width: 500px;
+  height: 500px;
+  background-color: #bd00ff;
+  bottom: 10%;
+  right: 15%;
+}
+
+.nebula-gold {
+  width: 380px;
+  height: 380px;
+  background-color: #ffaa00;
+  top: 40%;
+  left: 50%;
+}
+
+.space-grid-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Layer 1: Mid Background (SVG Constellations & Orbits) */
+.layer-mid {
+  z-index: 2;
+}
+
+.orbital-constellation-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Layer 2: Interactive Floating Stations */
+.layer-interactive {
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.floating-station-card {
+  position: absolute;
+  cursor: pointer;
+  transform-origin: center center;
+  transition: transform 0.15s ease-out;
+  outline: none;
+}
+
+.holo-light-pillar {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 180px;
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.floating-station-card.is-hovered .holo-light-pillar {
+  opacity: 0.85;
+}
+
+/* Station Pod Structure */
+.station-pod {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: rgba(11, 15, 25, 0.92);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  padding: 12px 18px;
+  border-radius: 18px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.floating-station-card.is-hovered .station-pod {
+  transform: scale(1.08) translateY(-6px);
+  background-color: rgba(15, 23, 42, 0.98);
+}
+
+.station-beacon-pulse {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: beaconPulse 1.2s infinite alternate;
+}
+
+@keyframes beaconPulse {
+  from { opacity: 0.4; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1.4); }
+}
+
+.station-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid #38bdf8;
+  background-color: rgba(15, 23, 42, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.station-label-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.station-code-tag {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.station-name {
+  margin: 2px 0 0 0;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.station-category {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.energy-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 22px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  animation: spinRing 12s linear infinite;
+}
+
+.floating-station-card.is-hovered .energy-ring {
+  opacity: 0.7;
+}
+
+@keyframes spinRing {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dock-action-badge {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: #050711;
+  white-space: nowrap;
+  letter-spacing: 0.06em;
+  opacity: 0;
+  transition: all 0.25s ease;
+}
+
+.floating-station-card.is-hovered .dock-action-badge {
+  opacity: 1;
+  bottom: -34px;
+}
+
+/* Layer 3: Foreground Parallax Debris */
+.layer-foreground {
+  z-index: 15;
+}
+
+.floating-debris {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.particle-1 { width: 4px; height: 4px; top: 15%; left: 30%; }
+.particle-2 { width: 6px; height: 6px; top: 75%; left: 80%; }
+.particle-3 { width: 5px; height: 5px; top: 50%; left: 10%; }
+
+/* ==========================================================================
+   Telemetry HUD Panel
+   ========================================================================== */
+.hud-telemetry-panel {
+  position: absolute;
+  bottom: 70px;
+  left: 24px;
+  width: min(340px, calc(100vw - 48px));
+  background-color: rgba(11, 15, 25, 0.94);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+  z-index: 25;
+  animation: hudFadeIn 0.2s ease-out;
+}
+
+@keyframes hudFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hud-panel-header {
+  margin-bottom: 8px;
+}
+
+.hud-tag {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.hud-title {
+  margin: 2px 0 0 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.hud-description {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #cbd5e1;
+  margin: 0 0 12px 0;
+}
+
+.hud-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.hud-metric-item {
+  background-color: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.58rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.metric-value {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #38bdf8;
+  margin-top: 2px;
+}
+
+.hud-tags-list {
+  display: flex;
+  gap: 6px;
+}
+
+.hud-tag-pill {
+  font-size: 0.62rem;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Bottom Control Bar */
+.parallax-hud-bottom-bar {
+  position: absolute;
+  bottom: 16px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.hud-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(11, 15, 25, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  pointer-events: auto;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #00ff88;
+  box-shadow: 0 0 8px #00ff88;
+}
+
+.launch-3d-btn {
+  background-color: rgba(56, 189, 248, 0.2);
+  border: 1.5px solid #38bdf8;
+  color: #38bdf8;
+  padding: 7px 16px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+}
+
+.launch-3d-btn:hover {
+  background-color: #0284c7;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Responsive Adaptation
+   ========================================================================== */
+@media (max-width: 800px) {
+  .parallax-space-wrapper {
+    height: 520px;
+    min-height: 480px;
+  }
+
+  .station-pod {
+    padding: 8px 12px;
+  }
+
+  .station-name {
+    font-size: 0.88rem;
+  }
+
+  .station-category {
+    display: none;
+  }
+
+  .hud-telemetry-panel {
+    bottom: 60px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
+  .parallax-hud-bottom-bar {
+    left: 12px;
+    right: 12px;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+}
+
+/* Compact Drawer Adaptation when inside Cockpit Galactic Map */
+:host-context(.galactic-map-drawer) .parallax-space-wrapper {
+  height: 100% !important;
+  min-height: 380px !important;
+  max-height: none !important;
+  border-radius: 12px;
+}
+
+:host-context(.galactic-map-drawer) .station-pod {
+  padding: 6px 10px;
+  border-radius: 10px;
+  gap: 6px;
+}
+
+:host-context(.galactic-map-drawer) .station-icon-wrap {
+  width: 32px;
+  height: 32px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+}
+
+:host-context(.galactic-map-drawer) .station-name {
+  font-size: 0.8rem;
+}
+
+:host-context(.galactic-map-drawer) .station-category {
+  font-size: 0.58rem;
+}
+
+:host-context(.galactic-map-drawer) .dock-action-badge {
+  display: none;
+}
+
+:host-context(.galactic-map-drawer) .parallax-hud-bottom-bar {
+  padding: 6px 10px;
+  bottom: 8px;
+  left: 10px;
+  right: 10px;
+}
+
+:host-context(.galactic-map-drawer) .launch-3d-btn {
+  padding: 4px 10px;
+  font-size: 0.65rem;
+}
+
+:host-context(.galactic-map-drawer) .hud-status-badge {
+  font-size: 0.58rem;
+  padding: 3px 8px;
+}

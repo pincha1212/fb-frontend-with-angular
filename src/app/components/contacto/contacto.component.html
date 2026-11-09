@@ -1,13 +1,24 @@
 <address class="contacto-container">
-  <h2>ESCRÍBEME...</h2>
+  <h2>Contacto</h2>
+
+  <div class="contact-info-pills mb-4">
+    <div class="info-pill">
+      <span class="pill-icon">📍</span>
+      <span>{{ ubicacion }}</span>
+    </div>
+    <div class="info-pill">
+      <span class="pill-icon">📱</span>
+      <a [href]="'tel:' + telefono" class="phone-link">{{ telefono }}</a>
+    </div>
+  </div>
 
   <!-- Redes sociales -->
   <div class="redes-sociales">
     <a href="https://github.com/pincha1212" target="_blank" rel="noopener" aria-label="GitHub" class="icon github">
-      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="GitHub">
+      <img src="/assets/icons/github.png" alt="GitHub" referrerpolicy="no-referrer">
     </a>
     <a href="https://www.linkedin.com/in/federico-barzola-7138b3216/" target="_blank" rel="noopener" aria-label="LinkedIn" class="icon linkedin">
-      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn">
+      <img src="/assets/icons/linkedin.png" alt="LinkedIn" referrerpolicy="no-referrer">
     </a>
   </div>
 
@@ -25,40 +36,99 @@
     </div>
   </div>
 
-  <!-- Botón toggle y formulario -->
+  <!-- Botón toggle y formulario con validación básica -->
   <div class="text-center mt-4">
     <button class="btn btn-primary mb-3" (click)="toggleForm()">
-      {{ mostrarFormulario ? '✕ Cerrar formulario' : '✉️ O llena este formulario' }}
+      {{ mostrarFormulario ? '✕ Ocultar Formulario' : '✉️ Abrir Formulario de Contacto Directo' }}
     </button>
 
     <form *ngIf="mostrarFormulario" 
-          class="container mt-3" 
-          style="max-width: 500px;"
+          class="contact-card-form container mt-3 p-4 rounded-4 text-start" 
+          style="max-width: 520px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(56, 189, 248, 0.3);"
           #contactForm="ngForm"
-          (ngSubmit)="enviarFormulario(contactForm)">
+          (ngSubmit)="enviarFormulario(contactForm)"
+          novalidate>
+
       <div class="mb-3">
-        <label class="form-label">Nombre</label>
-        <input type="text" name="name" class="form-control" required ngModel>
+        <label class="form-label font-semibold text-slate-200">Nombre completo <span class="text-rose-400">*</span></label>
+        <input type="text" name="name" class="form-control" required minlength="2" #nameInput="ngModel" ngModel placeholder="Ej. Juan Pérez">
+        <div *ngIf="nameInput.invalid && (nameInput.dirty || nameInput.touched)" class="validation-error mt-1">
+          <small class="text-rose-400">⚠️ Por favor ingresa tu nombre (mínimo 2 caracteres).</small>
+        </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Correo electrónico</label>
-        <input type="email" name="_replyto" class="form-control" required ngModel>
+        <label class="form-label font-semibold text-slate-200">Correo electrónico <span class="text-rose-400">*</span></label>
+        <input type="email" name="_replyto" class="form-control" required email pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" #emailInput="ngModel" ngModel placeholder="nombre@ejemplo.com">
+        <div *ngIf="emailInput.invalid && (emailInput.dirty || emailInput.touched)" class="validation-error mt-1">
+          <small class="text-rose-400">⚠️ Por favor ingresa un correo electrónico válido (ej. usuario&#64;dominio.com).</small>
+        </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Mensaje</label>
-        <textarea name="message" class="form-control" rows="4" required ngModel></textarea>
+        <label class="form-label font-semibold text-slate-200">Mensaje <span class="text-rose-400">*</span></label>
+        <textarea name="message" class="form-control" rows="4" required minlength="10" #msgInput="ngModel" ngModel placeholder="Escribe aquí tu consulta o mensaje..."></textarea>
+        <div *ngIf="msgInput.invalid && (msgInput.dirty || msgInput.touched)" class="validation-error mt-1">
+          <small class="text-rose-400">⚠️ El mensaje debe contener al menos 10 caracteres.</small>
+        </div>
       </div>
 
-      <button type="submit" class="btn btn-success" [disabled]="enviando || !contactForm.valid">
-        {{ enviando ? 'Enviando...' : 'Enviar mensaje' }}
-      </button>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+        <button type="submit" class="btn btn-success" [disabled]="enviando || contactForm.invalid">
+          {{ enviando ? '⏳ Enviando...' : '🚀 Enviar Mensaje a Fede' }}
+        </button>
+
+        <a [href]="'mailto:' + correo + '?subject=Contacto%20Portfolio%20Fede%20Barzola'" class="mailto-link small text-sky-400 text-decoration-none">
+          ✉️ O enviar vía Mail direct
+        </a>
+      </div>
 
       <!-- Mensaje de estado dentro del formulario -->
-      <div *ngIf="mensajeEstado && mostrarFormulario" class="estado-mensaje mt-3" [class.exito]="mensajeExito" [class.error]="!mensajeExito">
+      <div *ngIf="mensajeEstado && mostrarFormulario" class="estado-mensaje mt-3 w-100 text-center" [class.exito]="mensajeExito" [class.error]="!mensajeExito">
         {{ mensajeEstado }}
       </div>
     </form>
   </div>
+
+  <!-- Auditoría de versiones del sistema -->
+  <footer class="version-audit-footer mt-5 pt-3 border-top border-secondary-subtle">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 text-muted small">
+      <div>
+        <span>Federico Barzola &copy; 2026</span>
+        <span class="mx-2">&bull;</span>
+        <span class="badge text-bg-dark border border-secondary">v{{ versionInfo.currentVersion }}</span>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-info" (click)="toggleAuditoria()">
+        🔍 {{ mostrarAuditoria ? 'Ocultar auditoría' : 'Auditoría de versiones (v' + versionInfo.currentVersion + ')' }}
+      </button>
+    </div>
+
+    <!-- Panel desplegable de auditoría -->
+    <div *ngIf="mostrarAuditoria" class="audit-panel mt-3 text-start p-3 rounded bg-dark border border-info">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="text-info m-0">📋 Registro de Auditoría de Versiones</h5>
+        <span class="badge text-bg-info text-dark">Versión Activa: {{ versionInfo.currentVersion }}</span>
+      </div>
+      <p class="text-secondary small mb-3">
+        Control de cambios, estabilidad de activos multimedia y auditoría de funciones del aplicativo.
+      </p>
+      
+      <div class="timeline">
+        <div *ngFor="let item of versionInfo.changelog" class="mb-3 pb-2 border-bottom border-secondary">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <strong class="text-light">v{{ item.version }}</strong>
+            <span class="text-muted small">({{ item.date }})</span>
+            <span class="text-info fw-semibold">— {{ item.title }}</span>
+          </div>
+          <p class="text-white-50 small my-1">{{ item.description }}</p>
+          <ul class="list-unstyled small text-light ps-3 mb-0">
+            <li *ngFor="let audit of item.auditTrail" class="mb-1">
+              <span class="text-info font-monospace">[{{ audit.component }}]</span> 
+              <strong>{{ audit.action }}:</strong> {{ audit.detail }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
 </address>

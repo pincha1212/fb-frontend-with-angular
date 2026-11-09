@@ -1,0 +1,105 @@
+<div class="orbital-background-root" aria-hidden="true">
+  <svg 
+    class="orbital-svg" 
+    viewBox="0 0 1200 800" 
+    preserveAspectRatio="xMidYMid slice"
+    [style.transform]="'translate3d(' + parallaxX() + 'px, ' + parallaxY() + 'px, 0)'">
+    
+    <defs>
+      <!-- Planet Gradients -->
+      <radialGradient id="aegisGrad" cx="35%" cy="35%" r="65%">
+        <stop offset="0%" stop-color="#7dd3fc" />
+        <stop offset="40%" stop-color="#0284c7" />
+        <stop offset="85%" stop-color="#0f172a" />
+      </radialGradient>
+
+      <radialGradient id="phobosGrad" cx="35%" cy="35%" r="65%">
+        <stop offset="0%" stop-color="#e9d5ff" />
+        <stop offset="40%" stop-color="#a855f7" />
+        <stop offset="85%" stop-color="#1e1b4b" />
+      </radialGradient>
+
+      <radialGradient id="outpostGrad" cx="35%" cy="35%" r="65%">
+        <stop offset="0%" stop-color="#6ee7b7" />
+        <stop offset="40%" stop-color="#059669" />
+        <stop offset="85%" stop-color="#022c22" />
+      </radialGradient>
+
+      <!-- Orbit Line Gradient -->
+      <linearGradient id="orbitLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.35" />
+        <stop offset="50%" stop-color="#bd00ff" stop-opacity="0.15" />
+        <stop offset="100%" stop-color="#00ff88" stop-opacity="0.35" />
+      </linearGradient>
+
+      <!-- Distance Blur Filters for Depth Scale -->
+      <filter id="farBlur" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="2.5" />
+      </filter>
+
+      <filter id="midBlur" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="1.0" />
+      </filter>
+    </defs>
+
+    <!-- Concentric Rotating Orbital Ellipse Paths -->
+    <g transform="translate(600, 400)">
+      @for (b of bodies; track b.id; let idx = $index) {
+        <g [attr.transform]="'rotate(' + b.orbitTiltDeg + ')'">
+          <!-- Orbital Track Ellipse Path -->
+          <ellipse 
+            cx="0" 
+            cy="0" 
+            [attr.rx]="b.orbitRadiusX" 
+            [attr.ry]="b.orbitRadiusY" 
+            fill="none" 
+            stroke="url(#orbitLineGrad)" 
+            stroke-width="1" 
+            stroke-dasharray="4 6" 
+            [attr.opacity]="b.opacity * 0.5" />
+
+          <!-- Revolving Planet & Satellite Group -->
+          <g class="revolving-orbit-group" [style.animation-duration.s]="b.orbitSpeedSec">
+            <!-- Planet / Body Anchor Point -->
+            <g 
+              [attr.transform]="'translate(' + b.orbitRadiusX + ', 0) scale(' + b.depthScale + ')'"
+              [attr.opacity]="b.opacity"
+              [attr.filter]="b.blurPx > 1 ? 'url(#farBlur)' : (b.blurPx > 0 ? 'url(#midBlur)' : null)">
+              
+              <!-- Planetary Ring (if enabled) -->
+              @if (b.hasRing) {
+                <ellipse 
+                  cx="0" 
+                  cy="0" 
+                  [attr.rx]="b.sizePx * 1.5" 
+                  [attr.ry]="b.sizePx * 0.4" 
+                  fill="none" 
+                  stroke="#38bdf8" 
+                  stroke-width="2" 
+                  opacity="0.7" 
+                  transform="rotate(-20)" />
+              }
+
+              <!-- Planet Sphere -->
+              <circle 
+                cx="0" 
+                cy="0" 
+                [attr.r]="b.sizePx / 2" 
+                [attr.fill]="idx === 0 ? 'url(#aegisGrad)' : (idx === 1 ? 'url(#phobosGrad)' : 'url(#outpostGrad)')" />
+
+              <!-- Planet Atmosphere Halo Glow -->
+              <circle 
+                cx="0" 
+                cy="0" 
+                [attr.r]="b.sizePx / 2 + 3" 
+                fill="none" 
+                stroke="#00f0ff" 
+                stroke-width="0.8" 
+                opacity="0.5" />
+            </g>
+          </g>
+        </g>
+      }
+    </g>
+  </svg>
+</div>

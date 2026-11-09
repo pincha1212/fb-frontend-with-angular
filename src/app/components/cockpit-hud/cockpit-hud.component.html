@@ -1,0 +1,224 @@
+<div class="cockpit-hud-root" [class.is-collapsed]="!isExpanded()" [class.is-cinema]="isCinemaMode()" role="region" aria-label="Panel de Instrumentos de Cabina HUD">
+  <!-- BARRAS CINEMATOGRÁFICAS MODO CINE -->
+  <div class="cinema-letterbox-top" [class.active]="isCinemaMode()" aria-hidden="true"></div>
+  <div class="cinema-letterbox-bottom" [class.active]="isCinemaMode()" aria-hidden="true"></div>
+
+  <!-- CINEMATIC COMMAND DOCK WHEN MODO CINE IS ACTIVE -->
+  @if (isCinemaMode()) {
+    <div class="cinema-command-dock" role="region" aria-label="Controles de Modo Cine">
+      <div class="cinema-dock-left">
+        <span class="cinema-rec-dot"></span>
+        <span class="cinema-title">🎬 MODO CINE</span>
+      </div>
+
+      <div class="cinema-dock-cameras">
+        <button type="button" class="cam-pill" [class.active]="currentCameraMode() === 'chase'" (click)="setCamera('chase')">Tercera Persona</button>
+        <button type="button" class="cam-pill" [class.active]="currentCameraMode() === 'cockpit'" (click)="setCamera('cockpit')">Cabina</button>
+        <button type="button" class="cam-pill" [class.active]="currentCameraMode() === 'top'" (click)="setCamera('top')">Radar</button>
+        <button type="button" class="cam-pill" [class.active]="currentCameraMode() === 'cinematic'" (click)="setCamera('cinematic')">Cinemática</button>
+      </div>
+
+      <div class="cinema-dock-actions">
+        <button type="button" class="cinema-action-pill" (click)="onToggleTurbo()" title="Activar Turbo Boost">
+          <span>⚡ Turbo</span>
+        </button>
+        <button type="button" class="cinema-exit-pill" (click)="toggleCinemaMode()" title="Salir del Modo Cine (Presiona C)">
+          <span>✕ Salir [C]</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- TOP RETICLE & HEADS-UP TARGETING CROSSHAIR -->
+  <div class="cockpit-reticle-overlay" aria-hidden="true">
+    <div class="hud-crosshair-center">
+      <div class="reticle-ring"></div>
+      <div class="reticle-dot"></div>
+      <div class="reticle-bracket left"></div>
+      <div class="reticle-bracket right"></div>
+    </div>
+    <div class="horizon-pitch-ladder">
+      <span class="pitch-tag">{{ pitchDegrees() > 0 ? '+' : '' }}{{ pitchDegrees() }}°</span>
+      <div class="pitch-line" [style.transform]="'rotate(' + pitchDegrees() + 'deg)'"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM SEMI-TRANSPARENT COCKPIT DASHBOARD CONSOLE -->
+  <div class="cockpit-dashboard-root">
+    <!-- PANEL TOP EDGE CONTROLLER & MODO CINE BOTÓN -->
+    <div class="console-edge-bar">
+      <button 
+        type="button" 
+        class="hud-collapse-btn" 
+        (click)="togglePanel()"
+        [attr.aria-expanded]="isExpanded()"
+        title="Alternar Consola de Instrumentos">
+        <span>{{ isExpanded() ? '▼ OCULTAR HUD DE CABINA' : '▲ MOSTRAR CONSOLA DE CABINA' }}</span>
+      </button>
+    </div>
+
+    <div class="dashboard-console-grid">
+      <!-- LEFT INSTRUMENT CLUSTER: SHIELD & REACTOR TELEMETRY -->
+      <div class="hud-cluster cluster-left">
+        <div class="hud-badge-tag">SISTEMAS DEFENSIVOS</div>
+        
+        <!-- Shield Health Bar -->
+        <div class="gauge-container">
+          <div class="gauge-label-row">
+            <span class="gauge-title">🛡️ ESCUDOS MATRIZ</span>
+            <span class="gauge-val" [class.shield-low]="shieldIntegrity() < 30">{{ shieldIntegrity() }}%</span>
+          </div>
+          <div class="gauge-bar-track">
+            <div class="gauge-bar-fill shield-fill" [style.width.%]="shieldIntegrity()"></div>
+          </div>
+        </div>
+
+        <!-- Reactor Core Energy Meter -->
+        <div class="gauge-container">
+          <div class="gauge-label-row">
+            <span class="gauge-title">⚡ REACTOR NÚCLEO</span>
+            <span class="gauge-val power-val">{{ reactorPower() }}%</span>
+          </div>
+          <div class="gauge-bar-track">
+            <div class="gauge-bar-fill power-fill" [style.width.%]="reactorPower()"></div>
+          </div>
+        </div>
+
+        <!-- Auxiliary Telemetry Status -->
+        <div class="telemetry-mini-grid">
+          <div class="telemetry-box">
+            <span class="box-label">FREC. ARMONIOSA</span>
+            <span class="box-val">432.8 MHz</span>
+          </div>
+          <div class="telemetry-box">
+            <span class="box-label">CASCO MATRIZ</span>
+            <span class="box-val status-ok">ÓPTIMO</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER INSTRUMENT CLUSTER: SPEEDOMETER & NAV COMPASS -->
+      <div class="hud-cluster cluster-center">
+        <div class="current-sector-banner">
+          <span class="sector-dot"></span>
+          <span class="sector-title">{{ currentStationName }}</span>
+        </div>
+
+        <!-- Speedometer Tachometer Dial -->
+        <div class="speedometer-display">
+          <div class="speed-number-wrap">
+            <span class="speed-value" [class.is-turbo]="isTurboActive">{{ speedKmh }}</span>
+            <span class="speed-unit">KM/H</span>
+          </div>
+          <div class="speed-progress-arc">
+            <div class="speed-arc-fill" [style.width.%]="(speedKmh / maxSpeedKmh) * 100"></div>
+          </div>
+        </div>
+
+        <!-- Compass Heading Bar -->
+        <div class="compass-bar-wrap">
+          <span class="compass-label">BRÚJULA GALÁCTICA</span>
+          <div class="compass-tape">
+            <span class="compass-degree">{{ headingDegrees() }}° HQ</span>
+          </div>
+        </div>
+
+        <!-- Turbo Boost Action Button -->
+        <button 
+          type="button" 
+          class="turbo-hud-btn" 
+          [class.active]="isTurboActive"
+          (click)="onToggleTurbo()">
+          <span>⚡ {{ isTurboActive ? 'TURBO HIPER-IMPULSO ACTIVO' : 'ACTIVAR TURBO BOOST' }}</span>
+        </button>
+      </div>
+
+      <!-- RIGHT INSTRUMENT CLUSTER: GALACTIC RADAR & MAP DRAWER TOGGLE -->
+      <div class="hud-cluster cluster-right">
+        <div class="hud-cluster-header-row">
+          <div class="hud-badge-tag">RADAR DE ESTACIONES</div>
+          <button 
+            type="button" 
+            class="map-drawer-toggle-btn" 
+            [class.active]="isMapDrawerOpen()"
+            (click)="toggleMapDrawer()">
+            <span>🗺️ MAPA GALÁCTICO</span>
+          </button>
+        </div>
+
+        <!-- Circular Mini Radar Scanner -->
+        <div class="radar-scope-wrap">
+          <div class="radar-sweep-line"></div>
+          <div class="radar-ring r-inner"></div>
+          <div class="radar-ring r-outer"></div>
+          <div class="radar-crosshair"></div>
+
+          <!-- Ship Center Indicator -->
+          <div class="radar-ship-center">▲</div>
+
+          <!-- Station Radar Blips -->
+          @for (blip of radarBlips; track blip.label) {
+            <div 
+              class="radar-blip-dot" 
+              [style.left.%]="blip.x"
+              [style.top.%]="blip.y"
+              [style.background-color]="blip.color"
+              [title]="'Estación: ' + blip.label">
+            </div>
+          }
+        </div>
+
+        <!-- HUD Mode Selectors -->
+        <div class="hud-mode-pills">
+          <button 
+            type="button" 
+            class="mode-pill" 
+            [class.active]="hudMode() === 'navigation' && !isCinemaMode()"
+            (click)="setHUDMode('navigation')">
+            NAV
+          </button>
+          <button 
+            type="button" 
+            class="mode-pill" 
+            [class.active]="hudMode() === 'combat' && !isCinemaMode()"
+            (click)="setHUDMode('combat')">
+            TAC
+          </button>
+          <button 
+            type="button" 
+            class="mode-pill" 
+            [class.active]="hudMode() === 'stealth' && !isCinemaMode()"
+            (click)="setHUDMode('stealth')">
+            ECO
+          </button>
+          <button 
+            type="button" 
+            class="mode-pill cinema-pill" 
+            [class.active]="isCinemaMode()"
+            (click)="toggleCinemaMode()"
+            title="Alternar Modo Cine Panorámico (tecla C)">
+            🎬 CINE
+          </button>
+        </div>
+
+        <!-- GALACTIC MAP DRAWER (Deploys from Radar) -->
+        @if (isMapDrawerOpen()) {
+          <div class="galactic-map-drawer">
+            <div class="drawer-header">
+              <div class="drawer-title-box">
+                <span class="drawer-icon">🗺️</span>
+                <span class="drawer-title">MAPA GALÁCTICO PARALLAX</span>
+              </div>
+              <button type="button" class="drawer-close-btn" (click)="toggleMapDrawer()">✕</button>
+            </div>
+            <div class="drawer-map-content-wrap">
+              <app-space-station 
+                (selectSection)="onSelectStationFromParallax($event)">
+              </app-space-station>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

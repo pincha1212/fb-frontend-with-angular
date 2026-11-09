@@ -1,9 +1,32 @@
-<section class="experiencia-container">
-    <span class="badge">Disponible para proyectos</span>
-    <h2>🚀 Lo que puedo hacer por ti</h2>
-    <p>
-        Desarrollo interfaces modernas con <strong>Angular</strong>, consumo de APIs REST, 
-        y maquetación responsive que funciona en cualquier dispositivo. 
-        Transformo diseños en experiencias rápidas y accesibles.
-    </p>
+<section class="experiencia-container card-base">
+  <div class="top-header">
+    <span class="badge">🚀 Experiencia y Objetivos</span>
+  </div>
+  <h2>Experiencia Complementaria & Formación</h2>
+
+  <div class="exp-grid">
+    <div class="exp-cards">
+      <div *ngFor="let exp of experiencias" class="exp-card">
+        <div class="exp-header">
+          <h3 class="exp-puesto">{{ exp.puesto }}</h3>
+          <span class="exp-empresa">{{ exp.empresa }}</span>
+        </div>
+        <ul class="exp-puntos">
+          <li *ngFor="let p of exp.puntos">{{ p }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="objetivo-box">
+      <h3>🎯 Objetivo Profesional</h3>
+      <p class="objetivo-text">{{ objetivo }}</p>
+      
+      <div class="idiomas-card mt-3">
+        <span class="idioma-label">🗣️ Idiomas</span>
+        <div class="idioma-val">
+          <strong>Inglés:</strong> Formación académica inicial y conocimientos técnicos aplicados al desarrollo web.
+        </div>
+      </div>
+    </div>
+  </div>
 </section>

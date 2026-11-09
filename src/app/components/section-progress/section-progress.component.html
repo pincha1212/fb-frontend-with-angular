@@ -1,0 +1,50 @@
+<nav class="section-progress-nav" aria-label="Progreso de secciones del portfolio">
+  <!-- Botón de acceso directo a Nave Espacial 3D -->
+  <div class="space-mode-nav-shortcut">
+    <button 
+      type="button" 
+      class="progress-dot-btn space-shortcut-btn"
+      (click)="openSpaceMode()"
+      aria-label="Abrir Simulador 3D Nave Espacial">
+      <span class="dot-icon">🛸</span>
+      <span class="dot-tooltip">Nave Espacial 3D</span>
+    </button>
+  </div>
+
+  <!-- Botón Conmutador de Tema Claro / Oscuro (Toggles theme-dark y theme-light en body) -->
+  <div class="theme-nav-shortcut">
+    <button 
+      type="button" 
+      role="switch"
+      class="progress-dot-btn theme-nav-toggle-btn"
+      [class.is-light]="currentTheme() === 'light'"
+      [attr.aria-checked]="currentTheme() === 'light'"
+      (click)="toggleTheme()"
+      [attr.aria-label]="currentTheme() === 'light' ? 'Cambiar a modo oscuro (theme-dark)' : 'Cambiar a modo claro (theme-light)'">
+      <span class="dot-icon">{{ currentTheme() === 'light' ? '☀️' : '🌙' }}</span>
+      <span class="dot-tooltip">{{ currentTheme() === 'light' ? 'Modo Claro' : 'Modo Oscuro' }}</span>
+    </button>
+  </div>
+
+  <!-- Barra de progreso vertical general -->
+  <div class="progress-track">
+    <div class="progress-fill" [style.height.%]="scrollProgress()"></div>
+  </div>
+
+  <!-- Puntos de navegación por sección -->
+  <ul class="progress-dots">
+    @for (sec of sections; track sec.id) {
+      <li class="progress-item">
+        <button 
+          type="button"
+          class="progress-dot-btn"
+          [class.active]="activeSection() === sec.id"
+          (click)="scrollToSection(sec.id)"
+          [attr.aria-label]="sec.label">
+          <span class="dot-icon">{{ sec.icon }}</span>
+          <span class="dot-tooltip">{{ sec.label }}</span>
+        </button>
+      </li>
+    }
+  </ul>
+</nav>

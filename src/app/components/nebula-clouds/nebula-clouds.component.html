@@ -1,0 +1,64 @@
+<div class="nebula-clouds-root" aria-hidden="true">
+  <svg 
+    class="nebula-svg" 
+    viewBox="0 0 1400 900" 
+    preserveAspectRatio="xMidYMid slice"
+    [style.transform]="'translate3d(' + parallaxX() + 'px, ' + parallaxY() + 'px, 0)'">
+    
+    <defs>
+      <!-- Cosmic Color Gradients -->
+      <radialGradient id="nebulaCyanGrad" cx="40%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.8" />
+        <stop offset="45%" stop-color="#0284c7" stop-opacity="0.5" />
+        <stop offset="85%" stop-color="#0369a1" stop-opacity="0.1" />
+        <stop offset="100%" stop-color="#050711" stop-opacity="0" />
+      </radialGradient>
+
+      <radialGradient id="nebulaVioletGrad" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stop-color="#e0e7ff" stop-opacity="0.75" />
+        <stop offset="35%" stop-color="#bd00ff" stop-opacity="0.6" />
+        <stop offset="75%" stop-color="#7e22ce" stop-opacity="0.2" />
+        <stop offset="100%" stop-color="#050711" stop-opacity="0" />
+      </radialGradient>
+
+      <radialGradient id="nebulaGoldGrad" cx="35%" cy="45%" r="65%">
+        <stop offset="0%" stop-color="#fef08a" stop-opacity="0.7" />
+        <stop offset="40%" stop-color="#f59e0b" stop-opacity="0.45" />
+        <stop offset="80%" stop-color="#b45309" stop-opacity="0.15" />
+        <stop offset="100%" stop-color="#050711" stop-opacity="0" />
+      </radialGradient>
+
+      <radialGradient id="nebulaIndigoGrad" cx="45%" cy="35%" r="60%">
+        <stop offset="0%" stop-color="#818cf8" stop-opacity="0.75" />
+        <stop offset="50%" stop-color="#4f46e5" stop-opacity="0.45" />
+        <stop offset="85%" stop-color="#1e1b4b" stop-opacity="0.1" />
+        <stop offset="100%" stop-color="#050711" stop-opacity="0" />
+      </radialGradient>
+
+      <!-- Organic Fractal Turbulence Filter for Realistic Cosmic Cloud Smoke -->
+      <filter id="organicNebulaNoise" x="-50%" y="-50%" width="200%" height="200%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="4" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="65" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+        <feGaussianBlur in="displaced" stdDeviation="40" />
+      </filter>
+    </defs>
+
+    <!-- Floating Organic SVG Nebula Clouds -->
+    @for (nc of clouds; track nc.id) {
+      <g 
+        class="floating-nebula-group" 
+        [style.animation-duration.s]="nc.driftSpeedSec"
+        [style.z-index]="nc.zIndex">
+        <ellipse 
+          [attr.cx]="nc.cxPct * 14" 
+          [attr.cy]="nc.cyPct * 9" 
+          [attr.rx]="nc.rxPx" 
+          [attr.ry]="nc.ryPx" 
+          [attr.fill]="'url(#' + nc.colorGradId + ')'" 
+          [attr.opacity]="nc.opacity" 
+          filter="url(#organicNebulaNoise)" 
+          [attr.transform]="'scale(' + nc.scaleFactor + ')'" />
+      </g>
+    }
+  </svg>
+</div>

@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --host 0.0.0.0 --port 3000 --disable-host-check",
-    "dev": "ng serve --host 0.0.0.0 --port 3000 --disable-host-check",
+    "start": "ng serve --disable-host-check",
+    "dev": "ng serve --disable-host-check",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -20,7 +20,9 @@
     "@angular/platform-browser": "^19.0.0",
     "@angular/platform-browser-dynamic": "^19.0.0",
     "@angular/router": "^19.0.0",
+    "@types/three": "^0.187.0",
     "rxjs": "~7.8.0",
+    "three": "^0.187.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },

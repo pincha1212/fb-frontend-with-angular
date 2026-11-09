@@ -1,0 +1,910 @@
+/* ==========================================================================
+   CockpitHUDComponent - Sci-Fi Spacecraft Instrument Panel Styles
+   ========================================================================== */
+
+:host {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.cockpit-hud-root {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cockpit-hud-root.is-collapsed .cockpit-dashboard-root {
+  transform: translateY(calc(100% - 32px));
+}
+
+/* ==========================================================================
+   Top Reticle & Targeting HUD Overlays
+   ========================================================================== */
+.cockpit-reticle-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 260px;
+  height: 260px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.hud-crosshair-center {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reticle-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 1px dashed rgba(56, 189, 248, 0.4);
+  animation: rotateReticle 20s linear infinite;
+}
+
+@keyframes rotateReticle {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.reticle-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #00f0ff;
+  box-shadow: 0 0 10px #00f0ff;
+}
+
+.reticle-bracket {
+  position: absolute;
+  width: 20px;
+  height: 40px;
+  border: 2px solid rgba(56, 189, 248, 0.6);
+}
+
+.reticle-bracket.left {
+  left: 20px;
+  border-right: none;
+}
+
+.reticle-bracket.right {
+  right: 20px;
+  border-left: none;
+}
+
+.horizon-pitch-ladder {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.pitch-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+}
+
+.pitch-line {
+  width: 80px;
+  height: 2px;
+  background-color: rgba(56, 189, 248, 0.5);
+}
+
+/* ==========================================================================
+   Bottom Cockpit Dashboard Console
+   ========================================================================== */
+.cockpit-dashboard-root {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: auto;
+  background: linear-gradient(180deg, rgba(5, 7, 17, 0.4) 0%, rgba(11, 15, 25, 0.96) 20%);
+  border-top: 1.5px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+  padding: 8px 24px 14px 24px;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.console-edge-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: -32px;
+  margin-bottom: 8px;
+  pointer-events: auto;
+}
+
+.hud-collapse-btn {
+  background-color: rgba(11, 15, 25, 0.95);
+  color: #94a3b8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-bottom: none;
+  padding: 5px 18px;
+  border-radius: 10px 10px 0 0;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.hud-collapse-btn:hover {
+  color: #38bdf8;
+  border-color: #38bdf8;
+  background-color: #0f172a;
+}
+
+.hud-cinema-btn {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.4), rgba(6, 182, 212, 0.35));
+  border: 1px solid rgba(168, 85, 247, 0.6);
+  border-bottom: none;
+  color: #f1f5f9;
+  padding: 5px 16px;
+  border-radius: 10px 10px 0 0;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -2px 10px rgba(124, 58, 237, 0.3);
+}
+
+.hud-cinema-btn:hover {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.8), rgba(6, 182, 212, 0.7));
+  color: #ffffff;
+  border-color: #c084fc;
+  box-shadow: 0 -4px 16px rgba(168, 85, 247, 0.6);
+  transform: translateY(-2px);
+}
+
+.cinema-btn-icon {
+  font-size: 0.75rem;
+}
+
+.dashboard-console-grid {
+  width: 100%;
+  max-width: 1180px;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.hud-cluster {
+  background-color: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 12px 16px;
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.hud-badge-tag {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Left Cluster: Shield & Power Gauges
+   ========================================================================== */
+.gauge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gauge-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gauge-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.gauge-val {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #00f0ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.shield-low {
+  color: #ef4444 !important;
+  animation: blinkRed 0.6s infinite alternate;
+}
+
+@keyframes blinkRed {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
+.gauge-bar-track {
+  width: 100%;
+  height: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gauge-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.shield-fill {
+  background: linear-gradient(90deg, #0284c7, #00f0ff);
+  box-shadow: 0 0 8px #00f0ff;
+}
+
+.power-fill {
+  background: linear-gradient(90deg, #7e22ce, #bd00ff);
+  box-shadow: 0 0 8px #bd00ff;
+}
+
+.power-val {
+  color: #bd00ff;
+}
+
+.telemetry-mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.telemetry-box {
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.box-label {
+  font-size: 0.55rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.box-val {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #cbd5e1;
+}
+
+.status-ok {
+  color: #00ff88 !important;
+}
+
+/* ==========================================================================
+   Center Cluster: Speedometer & Compass
+   ========================================================================== */
+.cluster-center {
+  align-items: center;
+  border-color: rgba(56, 189, 248, 0.35);
+  background-color: rgba(11, 15, 25, 0.85);
+}
+
+.current-sector-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 3px 12px;
+  border-radius: 9999px;
+}
+
+.sector-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #00f0ff;
+  box-shadow: 0 0 6px #00f0ff;
+}
+
+.sector-title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+}
+
+.speedometer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.speed-number-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.speed-value {
+  font-size: 2.2rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: #38bdf8;
+  text-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+  line-height: 1;
+}
+
+.speed-value.is-turbo {
+  color: #f59e0b;
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.8);
+}
+
+.speed-unit {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.speed-progress-arc {
+  width: 180px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.speed-arc-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00f0ff, #f59e0b);
+  transition: width 0.1s ease;
+}
+
+.compass-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.compass-label {
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.08em;
+}
+
+.compass-degree {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.turbo-hud-btn {
+  background-color: rgba(245, 158, 11, 0.15);
+  border: 1px solid #f59e0b;
+  color: #fbbf24;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.turbo-hud-btn:hover {
+  background-color: #f59e0b;
+  color: #050711;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.6);
+}
+
+.turbo-hud-btn.active {
+  background-color: #f59e0b;
+  color: #050711;
+}
+
+/* ==========================================================================
+   Right Cluster: Radar Scope & HUD Modes
+   ========================================================================== */
+.radar-scope-wrap {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background-color: rgba(5, 7, 17, 0.9);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  align-self: center;
+  overflow: hidden;
+}
+
+.radar-sweep-line {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(56, 189, 248, 0.35) 0deg, transparent 60deg);
+  animation: sweepRadar 3s linear infinite;
+}
+
+@keyframes sweepRadar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.radar-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px stroke rgba(255, 255, 255, 0.15);
+}
+
+.r-inner { width: 35px; height: 35px; border: 1px dashed rgba(56, 189, 248, 0.3); }
+.r-outer { width: 70px; height: 70px; border: 1px solid rgba(56, 189, 248, 0.2); }
+
+.radar-crosshair {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.15) 1px, transparent 1px);
+  background-position: center;
+}
+
+.radar-ship-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.65rem;
+  color: #00f0ff;
+  text-shadow: 0 0 6px #00f0ff;
+}
+
+.radar-blip-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 6px currentColor;
+}
+
+.hud-mode-pills {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.mode-pill {
+  background-color: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mode-pill:hover {
+  color: #ffffff;
+}
+
+.mode-pill.active {
+  background-color: #0284c7;
+  color: #ffffff;
+  border-color: #38bdf8;
+}
+
+/* ==========================================================================
+   Responsive Adaptation
+   ========================================================================== */
+@media (max-width: 900px) {
+  .dashboard-console-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .cluster-left,
+  .cluster-right {
+    display: none; /* Keep center speedometer compact on mobile viewports */
+  }
+
+  .cockpit-reticle-overlay {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+/* ==========================================================================
+   Galactic Map Drawer & Toggle
+   ========================================================================== */
+.hud-cluster-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.map-drawer-toggle-btn {
+  background-color: rgba(56, 189, 248, 0.18);
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.map-drawer-toggle-btn:hover,
+.map-drawer-toggle-btn.active {
+  background-color: #38bdf8;
+  color: #050711;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+.cluster-right {
+  position: relative;
+}
+
+.galactic-map-drawer {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  width: min(580px, 94vw);
+  height: 480px;
+  background-color: rgba(11, 15, 25, 0.98);
+  border: 1.5px solid rgba(56, 189, 248, 0.6);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(56, 189, 248, 0.25);
+  z-index: 100;
+  backdrop-filter: blur(16px);
+  transform-origin: bottom right;
+  animation: radarDrawerDeploy 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-map-content-wrap {
+  flex: 1;
+  overflow: hidden;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-map-content-wrap app-space-station {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes radarDrawerDeploy {
+  from { opacity: 0; transform: scale(0.85) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.drawer-title-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.drawer-icon {
+  font-size: 1rem;
+}
+
+.drawer-title {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.08em;
+}
+
+.drawer-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.drawer-stations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.drawer-station-item {
+  background-color: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.drawer-station-item:hover {
+  background-color: #1e293b;
+  border-color: #38bdf8;
+  transform: translateX(2px);
+}
+
+.d-station-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #38bdf8;
+  background-color: rgba(11, 15, 25, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.d-station-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.d-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.d-sub {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.d-warp-action {
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: #00f0ff;
+  background-color: rgba(0, 240, 255, 0.15);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Modo Cine Panorámico en HUD de Cabina
+   ========================================================================== */
+.mode-pill.cinema-pill {
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #c084fc;
+}
+
+.mode-pill.cinema-pill:hover {
+  background-color: rgba(168, 85, 247, 0.25);
+  color: #ffffff;
+}
+
+.mode-pill.cinema-pill.active {
+  background: linear-gradient(135deg, #7c3aed, #06b6d4);
+  border-color: #c084fc;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+}
+
+/* Barras Cinematográficas Panorámicas (Letterbox) */
+.cinema-letterbox-top,
+.cinema-letterbox-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 9vh;
+  min-height: 60px;
+  background-color: #000000;
+  z-index: 95;
+  pointer-events: none;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cinema-letterbox-top {
+  top: 0;
+  transform: translateY(-100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cinema-letterbox-bottom {
+  bottom: 0;
+  transform: translateY(100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cinema-letterbox-top.active {
+  transform: translateY(0);
+}
+
+.cinema-letterbox-bottom.active {
+  transform: translateY(0);
+}
+
+/* Cinematic Command Dock */
+.cinema-command-dock {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(11, 15, 25, 0.94);
+  border: 1px solid rgba(168, 85, 247, 0.6);
+  border-radius: 9999px;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  pointer-events: auto;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(168, 85, 247, 0.35);
+  animation: cinemaDockFade 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cinemaDockFade {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.cinema-dock-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cinema-dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cinema-action-pill {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  color: #fbbf24;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cinema-action-pill:hover {
+  background: #f59e0b;
+  color: #050711;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+}
+
+.cinema-exit-pill {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  color: #fca5a5;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cinema-exit-pill:hover {
+  background: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+}
+
+.cinema-rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: pulseRecDot 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseRecDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(0.8); }
+}
+
+.cinema-title {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #f8fafc;
+}
+
+.cinema-shortcut-hint {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #c084fc;
+  letter-spacing: 0.04em;
+}
+
+/* Ocultamiento y Desvanecimiento de Instrumentos durante Modo Cine */
+.cockpit-hud-root.is-cinema .cockpit-dashboard-root {
+  transform: translateY(110%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.cockpit-hud-root.is-cinema .cockpit-reticle-overlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}

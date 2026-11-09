@@ -1,6 +1,5 @@
 * {
     margin: 0;
-    cursor: url('https://i.ibb.co/jZf7jff7/cursor-espada.png'), auto; /* Default cursor */
 }
 
 /* Ocultar scrollbar para todos los elementos */
@@ -24,15 +23,39 @@ html, body {
 
 /* Cursor para enlaces, imágenes y botones con animación */
 a, img, button {
-  cursor: url('https://i.ibb.co/CsYqwwyX/cursor-pico.png') 16 16, pointer;
+  cursor: pointer;
 }
 
 
 
+/* Variables de Color Globales (Modo Oscuro Permanente) */
+:root, [data-theme="dark"], body {
+  --bg-main: #0a0e1a;
+  --bg-card: rgba(15, 23, 42, 0.82);
+  --bg-card-inner: rgba(30, 41, 59, 0.65);
+  --bg-card-hover: rgba(30, 41, 59, 0.85);
+  --border-card: rgba(255, 255, 255, 0.12);
+  --border-card-hover: rgba(56, 189, 248, 0.4);
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --accent-cyan: #38bdf8;
+  --accent-emerald: #34d399;
+  --accent-orange: #ff7b00;
+  --shadow-card: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Aplicación global de variables de color */
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
 /* Estilos comunes para títulos de sección */
 h2 {
   font-size: 2.5rem;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 20px;
   font-family: Arial, sans-serif;
   text-transform: uppercase;
@@ -42,11 +65,14 @@ h2 {
 
 /* Estilos comunes para cards */
 .card-base {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: transform 0.3s ease;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-card);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  color: var(--text-primary);
+  transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
 }
 
 /* Animación de vibración para el cursor de espada */
@@ -67,5 +93,115 @@ h2 {
 @media (max-width: 768px) {
   h2 {
     font-size: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Global Animated CSS Starfield & Shooting Star Overlay
+   ========================================================================== */
+.global-starfield-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* Layer 1: Distant Twinkling Micro Stars */
+.starfield-layer-1 {
+  position: absolute;
+  inset: -120px;
+  background-image: 
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1.5px 1.5px at 28% 48%, rgba(56, 189, 248, 0.85), transparent),
+    radial-gradient(1px 1px at 42% 72%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(2px 2px at 62% 22%, rgba(192, 132, 252, 0.85), transparent),
+    radial-gradient(1.5px 1.5px at 78% 88%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1px 1px at 88% 38%, rgba(56, 189, 248, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 18% 82%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(2px 2px at 38% 12%, rgba(56, 189, 248, 0.9), transparent),
+    radial-gradient(1px 1px at 58% 52%, rgba(255, 255, 255, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 82% 62%, rgba(245, 158, 11, 0.85), transparent),
+    radial-gradient(1px 1px at 96% 92%, rgba(255, 255, 255, 0.9), transparent);
+  background-size: 550px 550px;
+  animation: starfieldDrift1 80s linear infinite, starfieldTwinkle 4s ease-in-out infinite alternate;
+  opacity: 0.85;
+}
+
+/* Layer 2: Medium Glowing Cyan & Lilac Nebular Stars */
+.starfield-layer-2 {
+  position: absolute;
+  inset: -120px;
+  background-image: 
+    radial-gradient(2.5px 2.5px at 22% 32%, rgba(56, 189, 248, 0.95), transparent),
+    radial-gradient(3px 3px at 52% 82%, rgba(168, 85, 247, 0.9), transparent),
+    radial-gradient(2.5px 2.5px at 82% 18%, rgba(255, 255, 255, 1), transparent),
+    radial-gradient(2px 2px at 32% 68%, rgba(52, 211, 153, 0.85), transparent),
+    radial-gradient(3px 3px at 72% 48%, rgba(56, 189, 248, 0.95), transparent);
+  background-size: 750px 750px;
+  animation: starfieldDrift2 120s linear infinite, starfieldTwinkle 5s ease-in-out infinite alternate-reverse;
+  opacity: 0.75;
+}
+
+/* Shooting Star Streaks */
+.shooting-star-streak {
+  position: absolute;
+  top: 15%;
+  left: 35%;
+  width: 140px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 1), rgba(56, 189, 248, 0.4), transparent);
+  border-radius: 999px;
+  transform: rotate(-35deg);
+  opacity: 0;
+  animation: shootingStar 11s ease-in-out infinite;
+}
+
+.shooting-star-streak-2 {
+  position: absolute;
+  top: 55%;
+  left: 70%;
+  width: 180px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(168, 85, 247, 1), rgba(168, 85, 247, 0.3), transparent);
+  border-radius: 999px;
+  transform: rotate(-40deg);
+  opacity: 0;
+  animation: shootingStar 16s 6s ease-in-out infinite;
+}
+
+@keyframes starfieldDrift1 {
+  from { transform: translateY(0px) translateX(0px); }
+  to { transform: translateY(-550px) translateX(-150px); }
+}
+
+@keyframes starfieldDrift2 {
+  from { transform: translateY(0px) translateX(0px); }
+  to { transform: translateY(-750px) translateX(180px); }
+}
+
+@keyframes starfieldTwinkle {
+  0% { opacity: 0.45; }
+  50% { opacity: 0.95; }
+  100% { opacity: 0.6; }
+}
+
+@keyframes shootingStar {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-35deg) scaleX(0.2);
+  }
+  3% {
+    opacity: 1;
+    transform: translate(-140px, 140px) rotate(-35deg) scaleX(1);
+  }
+  6% {
+    opacity: 0;
+    transform: translate(-300px, 300px) rotate(-35deg) scaleX(0.1);
+  }
+  100% {
+    opacity: 0;
   }
 }
