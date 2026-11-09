@@ -194,11 +194,11 @@
 
         <div class="station-modal-body">
           @switch (modalId) {
-              @case ('sobre-mi') { <span>Perfil · Federico Barzola</span> }
+            @case ('sobre-mi') { <app-sobre-mi></app-sobre-mi> }
             @case ('habilidades') { <app-habilidades></app-habilidades> }
-              @case ('proyectos') { <span>Proyectos</span> }
-              @case ('experiencia') { <span>Trayectoria</span> }
-              @case ('contacto') { <span>Contacto</span> }
+            @case ('proyectos') { <app-proyectos></app-proyectos> }
+            @case ('experiencia') { <app-experiencia></app-experiencia> }
+            @case ('contacto') { <app-contacto class="contact-wrapper"></app-contacto> }
           }
         </div>
       </div>

@@ -6,10 +6,10 @@
     <div class="cinema-command-dock" role="region" aria-label="Controles de vista amplia">
       <div class="cinema-dock-left"><span class="cinema-rec-dot"></span><span class="cinema-title">VISTA AMPLIA</span></div>
       <div class="cinema-dock-cameras">
-        <button type="button" class="cam-pill" [class.active]="currentCameraMode === 'chase'" (click)="setCamera('chase')">Seguimiento</button>
-        <button type="button" class="cam-pill" [class.active]="currentCameraMode === 'cockpit'" (click)="setCamera('cockpit')">Cabina</button>
-        <button type="button" class="cam-pill" [class.active]="currentCameraMode === 'top'" (click)="setCamera('top')">Órbita</button>
-        <button type="button" class="cam-pill" [class.active]="currentCameraMode === 'cinematic'" (click)="setCamera('cinematic')">Cinemática</button>
+        <button type="button" class="cam-pill" (click)="setCamera('chase')">Seguimiento</button>
+        <button type="button" class="cam-pill" (click)="setCamera('cockpit')">Cabina</button>
+        <button type="button" class="cam-pill" (click)="setCamera('top')">Órbita</button>
+        <button type="button" class="cam-pill active" (click)="setCamera('cinematic')">Cinemática</button>
       </div>
       <div class="cinema-dock-actions">
         <button type="button" class="cinema-action-pill" (click)="fireWeapons.emit()" title="Disparar a los hostiles"><span>Disparar [F]</span></button>
