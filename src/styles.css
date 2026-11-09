@@ -199,9 +199,10 @@ img { max-width: 100%; }
 .portfolio-shell app-experiencia .objetivo-box { height: fit-content; padding: 1rem; }
 .portfolio-shell app-experiencia .objetivo-box h3 { margin: 0 0 .65rem; }
 .portfolio-shell app-experiencia .objetivo-text { margin: 0 0 .9rem; font-size: .78rem; }
-.portfolio-shell app-experiencia .idiomas-card { margin-top: .9rem !important; padding: .75rem; border-left: 2px solid #66d4e6; }
-.portfolio-shell app-experiencia .idioma-label { display: block; margin-bottom: .3rem; color: #74d9eb; font: 600 .62rem Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
-.portfolio-shell app-experiencia .idioma-val { color: #aebbb4; font-size: .7rem; line-height: 1.5; }
+.portfolio-shell app-experiencia .idiomas-card { display: inline-flex; align-items: center; gap: .55rem; margin-top: .2rem; padding: .38rem .55rem; border-color: rgba(174,194,202,.17); border-left: 2px solid #66d4e6; }
+.portfolio-shell app-experiencia .idioma-code { display: grid; place-items: center; width: 24px; height: 22px; border: 1px solid rgba(116,217,235,.3); color: #74d9eb; font: 600 .58rem/1 Consolas, monospace; }
+.portfolio-shell app-experiencia .idioma-name { color: #e0e9f3; font-size: .72rem; font-weight: 600; }
+.portfolio-shell app-experiencia .idioma-val { padding-left: .55rem; border-left: 1px solid rgba(174,194,202,.18); color: #aebbb4; font-size: .67rem; line-height: 1.25; }
 
 .portfolio-shell app-contacto .contacto-container { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: .85rem; font-style: normal; text-align: left; }
 .portfolio-shell app-contacto .contact-info-pills { grid-column: 1; display: flex; flex-wrap: wrap; gap: .5rem; }
@@ -262,3 +263,4 @@ img { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
