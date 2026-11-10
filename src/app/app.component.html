@@ -75,7 +75,7 @@
   }
 
   <header class="mission-header" [attr.inert]="isSpaceModeActive() ? '' : null">
-    <a class="brand-lockup" href="#inicio" aria-label="Federico Barzola, inicio">
+    <a class="brand-lockup" href="#inicio" (click)="scrollToSection('inicio', $event)" aria-label="Federico Barzola, inicio">
       <span class="brand-mark" aria-hidden="true">FB</span>
       <span class="brand-copy">
         <strong>{{ portfolioService.profile().nombre }}</strong>
@@ -84,11 +84,11 @@
     </a>
 
     <nav class="main-nav" aria-label="Navegación principal">
-      <a href="#sobre-mi">Perfil</a>
-      <a href="#habilidades">Tecnologías</a>
-      <a href="#proyectos">Proyectos</a>
-      <a href="#experiencia">Trayectoria</a>
-      <a href="#contacto">Contacto</a>
+      <a href="#sobre-mi" [class.active]="activeSectionIndex() === 1" (click)="scrollToSection('sobre-mi', $event)">Perfil</a>
+      <a href="#habilidades" [class.active]="activeSectionIndex() === 2" (click)="scrollToSection('habilidades', $event)">Tecnologías</a>
+      <a href="#proyectos" [class.active]="activeSectionIndex() === 3" (click)="scrollToSection('proyectos', $event)">Proyectos</a>
+      <a href="#experiencia" [class.active]="activeSectionIndex() === 4" (click)="scrollToSection('experiencia', $event)">Trayectoria</a>
+      <a href="#contacto" [class.active]="activeSectionIndex() === 5" (click)="scrollToSection('contacto', $event)">Contacto</a>
     </nav>
 
     <button type="button" class="header-flight-button" (click)="openSpaceMode()" aria-label="Abrir la experiencia de vuelo espacial en 3D">
@@ -97,7 +97,7 @@
     </button>
   </header>
 
-  <div id="contenido" class="page-content" [attr.inert]="isSpaceModeActive() ? '' : null">
+  <div id="contenido" class="page-content" (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" [attr.inert]="isSpaceModeActive() ? '' : null">
     <section id="inicio" class="hero-section" aria-labelledby="hero-title">
       <div class="hero-copy">
         <h1 id="hero-title">{{ portfolioService.profile().tituloHero || 'Soy Federico.' }}<br><span>{{ portfolioService.profile().bajadaHero || 'Desarrollo web y cartografía.' }}</span></h1>
@@ -106,7 +106,7 @@
         </p>
 
         <div class="hero-actions">
-          <a class="button-primary" href="#proyectos">Ver proyectos <span aria-hidden="true">↘</span></a>
+          <a class="button-primary" href="#proyectos" (click)="scrollToSection('proyectos', $event)">Ver proyectos <span aria-hidden="true">↘</span></a>
           <a class="button-secondary" [href]="portfolioService.contacto().github" target="_blank" rel="noopener noreferrer">Mi GitHub <span aria-hidden="true">↗</span></a>
         </div>
 
@@ -150,7 +150,7 @@
         <p class="visual-caption"><span>01 / 05</span> VISTA DESDE ÓRBITA TERRESTRE</p>
       </div>
 
-      <a class="scroll-cue" href="#sobre-mi"><span></span> Desplazarse para explorar</a>
+      <a class="scroll-cue" href="#sobre-mi" (click)="scrollToSection('sobre-mi', $event)"><span></span> Desplazarse para explorar →</a>
     </section>
 
     <section id="sobre-mi" class="portfolio-section" aria-labelledby="profile-heading">
@@ -180,7 +180,37 @@
 
     <footer class="site-footer">
       <p>Mendoza, Argentina · Portafolio de Federico Barzola.</p>
-      <a href="#inicio">Volver arriba ↑</a>
+      <a href="#inicio" (click)="scrollToSection('inicio', $event)">Volver a Inicio ↑</a>
     </footer>
+  </div>
+
+  <!-- Bottom Floating Horizontal Navigation Dock -->
+  <div class="horizontal-nav-dock" [attr.inert]="isSpaceModeActive() ? '' : null">
+    <button type="button" class="dock-btn prev-btn" [disabled]="activeSectionIndex() === 0" (click)="prevSection()" title="Sección anterior (Deslizar Arriba / Izquierda)">
+      <span aria-hidden="true">←</span>
+      <span class="dock-btn-label">Anterior</span>
+    </button>
+
+    <div class="dock-indicators">
+      @for (secId of sections; track secId; let i = $index) {
+        <button type="button"
+                class="indicator-dot"
+                [class.active]="activeSectionIndex() === i"
+                (click)="scrollToSection(secId)"
+                [attr.aria-label]="'Ir a ' + sectionNames[secId]">
+          <span class="dot-fill"></span>
+        </button>
+      }
+    </div>
+
+    <div class="dock-current-name">
+      <span class="dock-hint">↕ Desliza arriba/abajo para navegar ↔</span>
+      <strong>{{ sectionNames[sections[activeSectionIndex()]] }}</strong>
+    </div>
+
+    <button type="button" class="dock-btn next-btn" [disabled]="activeSectionIndex() === sections.length - 1" (click)="nextSection()" title="Siguiente sección (Deslizar Abajo / Derecha)">
+      <span class="dock-btn-label">Siguiente</span>
+      <span aria-hidden="true">→</span>
+    </button>
   </div>
 </main>
