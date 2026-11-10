@@ -103,42 +103,7 @@ export class AppComponent {
   @HostListener('wheel', ['$event'])
   onWheelScroll(event: WheelEvent): void {
     if (this.isSpaceModeActive() || this.portfolioService.isEditorOpen()) return;
-
-    const container = document.getElementById('contenido');
-    if (!container) return;
-
-    // Check if user is scrolling inside an internally scrollable element (like a card text)
-    let target = event.target as HTMLElement | null;
-    let internalScrollable: HTMLElement | null = null;
-    
-    while (target && target !== container) {
-      const style = window.getComputedStyle(target);
-      const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && target.scrollHeight > target.clientHeight;
-      if (isScrollable) {
-        internalScrollable = target;
-        break;
-      }
-      target = target.parentElement;
-    }
-
-    if (internalScrollable) {
-      const delta = event.deltaY;
-      const atTop = internalScrollable.scrollTop <= 0 && delta < 0;
-      const atBottom = internalScrollable.scrollTop + internalScrollable.clientHeight >= internalScrollable.scrollHeight - 2 && delta > 0;
-      if (!atTop && !atBottom) {
-        // Allow internal scrolling inside the card
-        return;
-      }
-    }
-
-    // Convert vertical wheel scroll to horizontal section movement
-    // Scroll Down (deltaY > 0) -> move RIGHT
-    // Scroll Up (deltaY < 0) -> move LEFT
-    if (Math.abs(event.deltaY) > 5) {
-      event.preventDefault();
-      container.scrollLeft += event.deltaY * 1.25;
-      this.updateActiveSectionOnScroll(container);
-    }
+    // Allow default vertical scrolling
   }
 
   onTouchStart(event: TouchEvent): void {
@@ -149,30 +114,16 @@ export class AppComponent {
   }
 
   onTouchMove(event: TouchEvent): void {
-    if (this.isSpaceModeActive() || this.portfolioService.isEditorOpen() || event.touches.length === 0) return;
-
-    const container = document.getElementById('contenido');
-    if (!container) return;
-
-    const currentY = event.touches[0].clientY;
-    const diffY = this.touchStartY - currentY; // Positive when swiping up (scrolling down)
-    const diffX = this.touchStartX - event.touches[0].clientX;
-
-    // If vertical swipe is more prominent than horizontal swipe
-    if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 8) {
-      container.scrollLeft += diffY * 1.3;
-      this.touchStartY = currentY;
-      this.updateActiveSectionOnScroll(container);
-    }
+    // Allow default vertical scrolling
   }
 
   private updateActiveSectionOnScroll(container: HTMLElement): void {
-    const scrollPos = container.scrollLeft + container.clientWidth / 2;
+    const scrollPos = container.scrollTop + container.clientHeight / 2;
     const sectionEls = Array.from(container.children).filter(child => child.tagName === 'SECTION');
     
     for (let i = 0; i < sectionEls.length; i++) {
       const el = sectionEls[i] as HTMLElement;
-      if (scrollPos >= el.offsetLeft && scrollPos <= el.offsetLeft + el.offsetWidth) {
+      if (scrollPos >= el.offsetTop && scrollPos <= el.offsetTop + el.offsetHeight) {
         if (this.activeSectionIndex() !== i) {
           this.activeSectionIndex.set(i);
         }

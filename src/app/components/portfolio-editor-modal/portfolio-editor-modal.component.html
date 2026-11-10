@@ -303,6 +303,10 @@
 
     <!-- Footer / Action Bar -->
     <footer class="editor-footer">
+      <div *ngIf="saveSuccessToast()" class="save-toast-banner">
+        <span class="toast-icon">✓</span>
+        <span>¡Cambios guardados con éxito en la nube y localmente!</span>
+      </div>
       <button type="button" class="btn-secondary" (click)="resetDefaults()">Restablecer Todo</button>
       <div class="footer-right">
         <button type="button" class="btn-cancel" (click)="close()">Cancelar</button>

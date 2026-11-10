@@ -376,6 +376,38 @@
   cursor: not-allowed;
 }
 
+.save-toast-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid #34d399;
+  border-radius: 6px;
+  color: #6ee7b7;
+  font-size: 0.82rem;
+  font-weight: 600;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.save-toast-banner .toast-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 650px) {
   .form-grid {
     grid-template-columns: 1fr;

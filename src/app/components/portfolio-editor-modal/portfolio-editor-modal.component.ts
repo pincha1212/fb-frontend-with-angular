@@ -162,11 +162,17 @@ export class PortfolioEditorModalComponent implements OnInit {
     this.editableData.contacto.redes.splice(index, 1);
   }
 
+  saveSuccessToast = signal(false);
+
   // --- ACCIONES GENERALES ---
   async save(): Promise<void> {
     this.isSaving.set(true);
     await this.portfolioService.savePortfolio(this.editableData);
     this.isSaving.set(false);
+    this.saveSuccessToast.set(true);
+    setTimeout(() => {
+      this.saveSuccessToast.set(false);
+    }, 3500);
   }
 
   resetDefaults(): void {

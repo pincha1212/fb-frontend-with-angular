@@ -105,11 +105,6 @@
           {{ portfolioService.profile().resumen }}
         </p>
 
-        <div class="hero-actions">
-          <a class="button-primary" href="#proyectos" (click)="scrollToSection('proyectos', $event)">Ver proyectos <span aria-hidden="true">↘</span></a>
-          <a class="button-secondary" [href]="portfolioService.contacto().github" target="_blank" rel="noopener noreferrer">Mi GitHub <span aria-hidden="true">↗</span></a>
-        </div>
-
         <div class="hero-footnote">
           <span class="location-mark" aria-hidden="true">⌖</span>
           <span>{{ portfolioService.contacto().ubicacion }}</span>
@@ -150,7 +145,7 @@
         <p class="visual-caption"><span>01 / 05</span> VISTA DESDE ÓRBITA TERRESTRE</p>
       </div>
 
-      <a class="scroll-cue" href="#sobre-mi" (click)="scrollToSection('sobre-mi', $event)"><span></span> Desplazarse para explorar →</a>
+
     </section>
 
     <section id="sobre-mi" class="portfolio-section" aria-labelledby="profile-heading">
@@ -184,33 +179,4 @@
     </footer>
   </div>
 
-  <!-- Bottom Floating Horizontal Navigation Dock -->
-  <div class="horizontal-nav-dock" [attr.inert]="isSpaceModeActive() ? '' : null">
-    <button type="button" class="dock-btn prev-btn" [disabled]="activeSectionIndex() === 0" (click)="prevSection()" title="Sección anterior (Deslizar Arriba / Izquierda)">
-      <span aria-hidden="true">←</span>
-      <span class="dock-btn-label">Anterior</span>
-    </button>
-
-    <div class="dock-indicators">
-      @for (secId of sections; track secId; let i = $index) {
-        <button type="button"
-                class="indicator-dot"
-                [class.active]="activeSectionIndex() === i"
-                (click)="scrollToSection(secId)"
-                [attr.aria-label]="'Ir a ' + sectionNames[secId]">
-          <span class="dot-fill"></span>
-        </button>
-      }
-    </div>
-
-    <div class="dock-current-name">
-      <span class="dock-hint">↕ Desliza arriba/abajo para navegar ↔</span>
-      <strong>{{ sectionNames[sections[activeSectionIndex()]] }}</strong>
-    </div>
-
-    <button type="button" class="dock-btn next-btn" [disabled]="activeSectionIndex() === sections.length - 1" (click)="nextSection()" title="Siguiente sección (Deslizar Abajo / Derecha)">
-      <span class="dock-btn-label">Siguiente</span>
-      <span aria-hidden="true">→</span>
-    </button>
-  </div>
 </main>

@@ -290,15 +290,25 @@ export class PortfolioDataService {
       try {
         await getDocFromServer(doc(this.db, 'test', 'connection'));
       } catch (err) {
-        // Safe check
+        // Connection ping
       }
 
       const docRef = doc(this.db, 'portfolio', 'main');
       const snap = await getDoc(docRef);
+      const localData = this.portfolioData();
+      const localTime = localData.updatedAt ? new Date(localData.updatedAt).getTime() : 0;
 
       if (snap.exists()) {
         const cloudData = snap.data() as FullPortfolioData;
-        if (cloudData && cloudData.profile) {
+        const cloudTime = cloudData?.updatedAt ? new Date(cloudData.updatedAt).getTime() : 0;
+
+        if (localTime > cloudTime && localTime > 0) {
+          // Local changes are newer than cloud - push local state to cloud
+          await setDoc(docRef, localData);
+          this.cloudStatus.set('synced');
+          this.statusMessage.set('Cambios locales sincronizados con la nube');
+        } else if (cloudData && cloudData.profile) {
+          // Cloud data is newer or equal - update state and local cache
           const merged: FullPortfolioData = {
             ...DEFAULT_PORTFOLIO,
             ...cloudData,
@@ -318,9 +328,10 @@ export class PortfolioDataService {
           this.statusMessage.set('Sincronizado con la nube');
         }
       } else {
-        // Document doesn't exist yet: Seed Firestore with default initial portfolio
-        await setDoc(docRef, DEFAULT_PORTFOLIO);
-        this.saveToLocalStorage(DEFAULT_PORTFOLIO);
+        // Document doesn't exist in cloud yet: Seed Firestore with localData or DEFAULT_PORTFOLIO
+        const dataToSeed = localData && localData.profile ? localData : DEFAULT_PORTFOLIO;
+        await setDoc(docRef, dataToSeed);
+        this.saveToLocalStorage(dataToSeed);
         this.cloudStatus.set('synced');
         this.statusMessage.set('Base de datos inicializada en la nube');
       }
