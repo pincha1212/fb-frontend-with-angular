@@ -45,12 +45,16 @@ export interface ExperienciaItem {
   tecnologias: string[];
 }
 
+export interface IdiomaItem {
+  nombre: string;
+  nivel: string;
+  codigo: string;
+}
+
 export interface TrayectoriaExtra {
   tituloSeccion: string;
   objetivoProfesional: string;
-  idiomaNombre: string;
-  idiomaNivel: string;
-  idiomaCodigo: string;
+  idiomas: IdiomaItem[];
 }
 
 export interface RedSocial {
@@ -204,9 +208,9 @@ const DEFAULT_PORTFOLIO: FullPortfolioData = {
   trayectoriaExtra: {
     tituloSeccion: 'Experiencia Complementaria & Formación',
     objetivoProfesional: 'Desarrollarme profesionalmente en el ámbito tecnológico, especialmente en desarrollo front-end, aplicaciones web y soluciones geoespaciales. Aspiro a crecer en equipos de trabajo, aportar soluciones claras y avanzar hacia posiciones de coordinación.',
-    idiomaNombre: 'Inglés',
-    idiomaNivel: 'Uso técnico',
-    idiomaCodigo: 'EN'
+    idiomas: [
+      { nombre: 'Inglés', nivel: 'Uso técnico', codigo: 'EN' }
+    ]
   },
   contacto: {
     email: 'fedebarzola7@gmail.com',
@@ -271,7 +275,13 @@ export class PortfolioDataService {
                   ? parsed.contacto.redes
                   : DEFAULT_PORTFOLIO.contacto.redes
               },
-              trayectoriaExtra: { ...DEFAULT_PORTFOLIO.trayectoriaExtra, ...(parsed.trayectoriaExtra || {}) }
+              trayectoriaExtra: { 
+                ...DEFAULT_PORTFOLIO.trayectoriaExtra, 
+                ...(parsed.trayectoriaExtra || {}),
+                idiomas: (parsed.trayectoriaExtra && Array.isArray(parsed.trayectoriaExtra.idiomas))
+                  ? parsed.trayectoriaExtra.idiomas
+                  : DEFAULT_PORTFOLIO.trayectoriaExtra.idiomas
+              }
             });
           }
         }
@@ -320,7 +330,13 @@ export class PortfolioDataService {
                 ? cloudData.contacto.redes
                 : DEFAULT_PORTFOLIO.contacto.redes
             },
-            trayectoriaExtra: { ...DEFAULT_PORTFOLIO.trayectoriaExtra, ...(cloudData.trayectoriaExtra || {}) }
+            trayectoriaExtra: { 
+              ...DEFAULT_PORTFOLIO.trayectoriaExtra, 
+              ...(cloudData.trayectoriaExtra || {}),
+              idiomas: (cloudData.trayectoriaExtra && Array.isArray(cloudData.trayectoriaExtra.idiomas))
+                ? cloudData.trayectoriaExtra.idiomas
+                : DEFAULT_PORTFOLIO.trayectoriaExtra.idiomas
+            }
           };
           this.portfolioData.set(merged);
           this.saveToLocalStorage(merged);

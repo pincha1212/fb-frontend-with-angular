@@ -145,6 +145,18 @@ export class PortfolioEditorModalComponent implements OnInit {
     this.editableData.experiencia[index].tecnologias = techs;
   }
 
+  addIdioma(): void {
+    this.editableData.trayectoriaExtra.idiomas.push({
+      nombre: 'Nuevo Idioma',
+      nivel: 'Nivel',
+      codigo: 'XX'
+    });
+  }
+
+  removeIdioma(index: number): void {
+    this.editableData.trayectoriaExtra.idiomas.splice(index, 1);
+  }
+
   // --- 05. CONTACTO & REDES SOCIALES ---
   addRedSocial(): void {
     if (!this.editableData.contacto.redes) {

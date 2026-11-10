@@ -21,10 +21,10 @@
       <h3>Objetivo profesional</h3>
       <p class="objetivo-text">{{ extraData.objetivoProfesional }}</p>
       
-      <div class="idiomas-card" aria-label="Nivel de Idioma" *ngIf="extraData.idiomaNombre">
-        <span class="idioma-code" aria-hidden="true">{{ extraData.idiomaCodigo || 'EN' }}</span>
-        <strong class="idioma-name">{{ extraData.idiomaNombre }}</strong>
-        <span class="idioma-val">{{ extraData.idiomaNivel }}</span>
+      <div class="idiomas-card" aria-label="Nivel de Idioma" *ngFor="let idioma of extraData.idiomas">
+        <span class="idioma-code" aria-hidden="true">{{ idioma.codigo || 'EN' }}</span>
+        <strong class="idioma-name">{{ idioma.nombre }}</strong>
+        <span class="idioma-val">{{ idioma.nivel }}</span>
       </div>
     </div>
   </div>

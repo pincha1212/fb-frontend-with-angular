@@ -204,18 +204,28 @@
             <label>Objetivo Profesional</label>
             <textarea [(ngModel)]="editableData.trayectoriaExtra.objetivoProfesional" rows="3" class="input-control"></textarea>
           </div>
-          <div class="form-group">
-            <label>Idioma Nombre</label>
-            <input type="text" [(ngModel)]="editableData.trayectoriaExtra.idiomaNombre" class="input-control">
+        <div class="section-header">
+          <h5>Idiomas</h5>
+          <button type="button" class="btn-sm btn-add" (click)="addIdioma()">+ Agregar Idioma</button>
+        </div>
+        <div *ngFor="let idioma of editableData.trayectoriaExtra.idiomas; let i = index" class="nested-card">
+          <div class="form-grid compact">
+            <div class="form-group">
+              <label>Idioma</label>
+              <input type="text" [(ngModel)]="idioma.nombre" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Nivel</label>
+              <input type="text" [(ngModel)]="idioma.nivel" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Código</label>
+              <input type="text" [(ngModel)]="idioma.codigo" class="input-control">
+            </div>
           </div>
-          <div class="form-group">
-            <label>Idioma Nivel</label>
-            <input type="text" [(ngModel)]="editableData.trayectoriaExtra.idiomaNivel" class="input-control">
-          </div>
-          <div class="form-group">
-            <label>Idioma Código</label>
-            <input type="text" [(ngModel)]="editableData.trayectoriaExtra.idiomaCodigo" class="input-control">
-          </div>
+          <button type="button" class="btn-sm btn-danger mt-2" (click)="removeIdioma(i)">Eliminar Idioma</button>
+        </div>
+
         </div>
 
         <div class="section-header">
