@@ -1,10 +1,11 @@
 :host { display: block; pointer-events: none; user-select: none; }
 
 .cockpit-hud-root {
-  --console-edge: rgba(182, 198, 190, .2);
-  --console-ink: #dce2da;
-  --console-soft: #87969a;
-  --console-amber: #d7b77f;
+  --console-edge: rgba(0, 245, 212, .28);
+  --console-ink: #d1fae5;
+  --console-soft: #5eead4;
+  --console-amber: #00f5d4;
+  --console-violet: #a855f7;
   position: fixed;
   inset: 0;
   z-index: 80;
@@ -19,9 +20,9 @@
   position: relative;
   width: 100%;
   padding: 12px clamp(12px, 3vw, 40px) max(14px, env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(196, 203, 190, .24);
-  background: linear-gradient(180deg, rgba(23, 32, 34, .96), rgba(7, 13, 16, .985) 24%);
-  box-shadow: 0 -16px 40px rgba(0, 0, 0, .42), inset 0 1px rgba(255,255,255,.04);
+  border-top: 1px solid rgba(0, 245, 212, .32);
+  background: linear-gradient(180deg, rgba(8, 23, 27, .96), rgba(4, 11, 15, .985) 24%);
+  box-shadow: 0 -16px 40px rgba(0, 245, 212, .08), inset 0 1px rgba(0, 245, 212, .18);
   pointer-events: auto;
   transition: transform .28s ease;
 }
@@ -31,13 +32,13 @@
   left: 9%;
   right: 9%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(210,190,150,.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 245, 212, .6), rgba(168, 85, 247, .4), transparent);
   content: "";
 }
 .cockpit-hud-root.is-collapsed .cockpit-dashboard-root { transform: translateY(calc(100% - 31px)); }
 .console-edge-bar { display: flex; justify-content: center; margin-top: -37px; margin-bottom: 8px; pointer-events: auto; }
-.hud-collapse-btn { min-height: 29px; padding: 5px 14px; border: 1px solid rgba(182,198,190,.28); border-bottom: 0; border-radius: 2px 2px 0 0; background: linear-gradient(#202b2d,#111b20); color: #c3c9bf; font: 600 .57rem Consolas,monospace; letter-spacing: .09em; cursor: pointer; }
-.hud-collapse-btn:hover { border-color: var(--console-amber); color: #f0d8a7; }
+.hud-collapse-btn { min-height: 29px; padding: 5px 14px; border: 1px solid rgba(0, 245, 212, .35); border-bottom: 0; border-radius: 4px 4px 0 0; background: linear-gradient(#0a2227,#061317); color: #a7f3d0; font: 600 .57rem Consolas,monospace; letter-spacing: .12em; cursor: pointer; box-shadow: 0 0 12px rgba(0, 245, 212, .15); }
+.hud-collapse-btn:hover { border-color: #00f5d4; color: #ffffff; box-shadow: 0 0 18px rgba(0, 245, 212, .4); }
 
 .dashboard-console-grid { display: grid; width: min(1420px, 100%); grid-template-columns: minmax(190px,.92fr) minmax(260px,1.13fr) minmax(220px,.95fr); align-items: stretch; gap: clamp(7px,1.1vw,14px); margin: 0 auto; }
 .hud-cluster { position: relative; display: flex; min-width: 0; flex-direction: column; gap: 9px; padding: 12px; border: 1px solid rgba(180,196,192,.16); border-radius: 2px; background: linear-gradient(145deg,rgba(13,21,23,.96),rgba(8,14,17,.95)); box-shadow: inset 0 1px rgba(255,255,255,.025); }

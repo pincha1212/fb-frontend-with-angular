@@ -34,6 +34,20 @@ export interface StationData {
   ctaLabel: string;
 }
 
+export interface StationWaypoint {
+  id: string;
+  station: StationData;
+  name: string;
+  icon: string;
+  color: string;
+  distanceKm: number;
+  screenX: number;
+  screenY: number;
+  isOnScreen: boolean;
+  arrowAngleDeg: number;
+  isDocked: boolean;
+}
+
 interface AlienFighter {
   group: THREE.Group;
   velocity: THREE.Vector3;
@@ -96,6 +110,72 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   customGlbLoaded = signal(false);
   customGlbName = signal('');
   radarBlips = signal<any[]>([]);
+  invertY = signal(false);
+  stationWaypoints = signal<StationWaypoint[]>([]);
+  showWaypoints = signal(true);
+  gameMode = signal<'free' | 'combat'>('free');
+  enemiesDestroyed = signal(0);
+
+  toggleWaypoints(): void {
+    this.showWaypoints.update(v => !v);
+  }
+
+  toggleGameMode(): void {
+    if (this.gameMode() === 'free') {
+      this.gameMode.set('combat');
+      this.showWaypoints.set(false); // Las balizas desaparecen en modo juego
+      this.hullIntegrity.set(100);
+      this.clearAlienFighters();
+      this.spawnCombatEnemies(3);
+      this.setCombatMessage('🎮 MODO COMBATE ACTIVADO · NAVE INMORTAL · ENEMIGOS ATACANDO', 4000);
+      this.playChime([523, 659, 784, 1046]);
+    } else {
+      this.gameMode.set('free');
+      this.showWaypoints.set(true); // Las balizas reaparecen en modo libre
+      this.clearAlienFighters();
+      this.setCombatMessage('🕊️ MODO NAVEGACIÓN LIBRE ACTIVADO', 3000);
+      this.playChime([659, 523]);
+    }
+  }
+
+  private clearAlienFighters(): void {
+    for (const fighter of this.alienFighters) {
+      this.scene.remove(fighter.group);
+      fighter.group.traverse(object => {
+        const mesh = object as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        mesh.geometry.dispose();
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        materials.forEach(material => material.dispose());
+      });
+    }
+    this.alienFighters = [];
+    this.activeHostiles.set(0);
+  }
+
+  private spawnCombatEnemies(count: number): void {
+    for (let index = 0; index < count; index++) {
+      const phase = Math.random() * Math.PI * 2;
+      const ship = this.buildAlienFighter();
+      const orbitRadius = 25 + Math.random() * 15;
+      ship.position.set(
+        this.shipPosition.x + Math.cos(phase) * orbitRadius,
+        this.shipPosition.y + (Math.random() - 0.5) * 10,
+        this.shipPosition.z + Math.sin(phase) * orbitRadius
+      );
+      ship.lookAt(this.shipPosition);
+      this.scene.add(ship);
+      this.alienFighters.push({
+        group: ship,
+        velocity: new THREE.Vector3(),
+        phase,
+        orbitRadius,
+        fireCooldown: 0.8 + Math.random() * 1.2,
+        integrity: 3
+      });
+    }
+    this.activeHostiles.set(this.alienFighters.length);
+  }
 
   // Station definitions across deep space sectors
   readonly stations: StationData[] = [
@@ -180,6 +260,9 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   private shipGroup = new THREE.Group();
   private shipThrusterLeft!: THREE.Mesh;
   private shipThrusterRight!: THREE.Mesh;
+  private shipPropulsionRing?: THREE.Mesh;
+  private shipBioCoreMat?: THREE.MeshStandardMaterial;
+  private alienMonoliths: THREE.Group[] = [];
   private shipPosition = new THREE.Vector3(0, 0, 10);
   private shipVelocity = new THREE.Vector3(0, 0, 0);
   private shipRotationY = Math.PI; // Face forward
@@ -216,7 +299,14 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   };
 
   // Interactive scene entities
-  private stationMeshes: { group: THREE.Group; data: StationData; beacon: THREE.Mesh; satelliteRig: THREE.Group }[] = [];
+  private stationMeshes: {
+    group: THREE.Group;
+    data: StationData;
+    beacon: THREE.Mesh;
+    satelliteRig: THREE.Group;
+    haloRing?: THREE.Mesh;
+    beaconBeam?: THREE.Mesh;
+  }[] = [];
   private thrusterParticles: { pos: THREE.Vector3; vel: THREE.Vector3; life: number; maxLife: number }[] = [];
   private thrusterParticlesGeometry!: THREE.BufferGeometry;
   private thrusterParticlesMesh!: THREE.Points;
@@ -380,6 +470,9 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // 7. Low intensity engine exhaust.
     this.buildThrusterParticles();
+
+    // 8. Ancient Alien Monoliths floating in deep orbit
+    this.buildAlienMonoliths();
   }
 
   private buildStarfield(): void {
@@ -468,6 +561,48 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       mesh.receiveShadow = !this.isSoftwareGl;
       this.scene.add(mesh);
     }
+  }
+
+  private buildAlienMonoliths(): void {
+    const monolithMat = new THREE.MeshStandardMaterial({
+      color: 0x061217,
+      roughness: 0.16,
+      metalness: 0.94,
+      emissive: 0x021d22,
+      emissiveIntensity: 0.45
+    });
+    const runeMat = new THREE.MeshStandardMaterial({
+      color: 0x00f5d4,
+      emissive: 0x00f5d4,
+      emissiveIntensity: 1.6,
+      roughness: 0.1
+    });
+
+    const positions = [
+      { x: -65, y: 32, z: -110, s: 2.2 },
+      { x: 80, y: -26, z: -80, s: 2.6 },
+      { x: -110, y: -16, z: 45, s: 3.0 },
+      { x: 65, y: 36, z: 65, s: 2.4 }
+    ];
+
+    positions.forEach(p => {
+      const group = new THREE.Group();
+      group.position.set(p.x, p.y, p.z);
+
+      const obelisk = new THREE.Mesh(new THREE.BoxGeometry(1.4 * p.s, 8.4 * p.s, 1.4 * p.s), monolithMat);
+      obelisk.castShadow = !this.isSoftwareGl;
+      group.add(obelisk);
+
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(2.2 * p.s, 0.08 * p.s, 8, 28), runeMat);
+      ring.rotation.x = Math.PI / 3;
+      group.add(ring);
+
+      const runeSlot = new THREE.Mesh(new THREE.BoxGeometry(0.18 * p.s, 6.0 * p.s, 1.5 * p.s), runeMat);
+      group.add(runeSlot);
+
+      this.scene.add(group);
+      this.alienMonoliths.push(group);
+    });
   }
 
   private buildCelestialBodies(): void {
@@ -653,124 +788,199 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       labelSprite.position.set(0, 12.2, 0);
       group.add(labelSprite);
 
+      // 3D Luminous Ion Light Beam projecting through the station into space
+      const beamGeo = new THREE.CylinderGeometry(0.35, 0.7, 160, 8);
+      const beamMat = new THREE.MeshBasicMaterial({
+        color: st.color,
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
+      const beaconBeam = new THREE.Mesh(beamGeo, beamMat);
+      beaconBeam.position.set(0, 0, 0);
+      group.add(beaconBeam);
+
+      // Large Pulsing Holographic Beacon Ring around the station
+      const haloRingGeo = new THREE.TorusGeometry(15, 0.22, 8, 48);
+      const haloRingMat = new THREE.MeshBasicMaterial({
+        color: st.color,
+        transparent: true,
+        opacity: 0.45,
+        depthWrite: false
+      });
+      const haloRing = new THREE.Mesh(haloRingGeo, haloRingMat);
+      haloRing.rotation.x = Math.PI / 2;
+      group.add(haloRing);
+
       this.scene.add(group);
-      this.stationMeshes.push({ group, data: st, beacon, satelliteRig });
+      this.stationMeshes.push({ group, data: st, beacon, satelliteRig, haloRing, beaconBeam });
     });
   }
 
   // ==========================================
-  // Procedural 3D Spaceship Model (Composite THREE.Group)
+  // Procedural 3D Alien Spaceship Model (Biomechanical Chitin Vessel)
   // ==========================================
   private buildSpaceship(): void {
     this.shipGroup = new THREE.Group();
     this.shipGroup.position.copy(this.shipPosition);
 
-    const hullMat = new THREE.MeshStandardMaterial({ color: 0x59666b, roughness: 0.64, metalness: 0.46 });
-    const edgeMat = new THREE.MeshStandardMaterial({ color: 0xaeb9ba, roughness: 0.5, metalness: 0.62 });
-    const panelMat = new THREE.MeshStandardMaterial({ color: 0x162b39, roughness: 0.54, metalness: 0.28 });
-    const cellMat = new THREE.MeshStandardMaterial({ color: 0x29495a, roughness: 0.44, metalness: 0.32 });
-    const hull = new THREE.Mesh(new THREE.BoxGeometry(1.45, 1.08, 5.7), hullMat);
-    hull.position.z = -0.2;
-    hull.castShadow = !this.isSoftwareGl;
-    hull.receiveShadow = !this.isSoftwareGl;
-    this.shipGroup.add(hull);
+    // Exotic Biomechanical Materials
+    const alienChitinMat = new THREE.MeshStandardMaterial({
+      color: 0x07151a,
+      roughness: 0.22,
+      metalness: 0.92,
+      emissive: 0x02161c,
+      emissiveIntensity: 0.45
+    });
+    const alienPlatingMat = new THREE.MeshStandardMaterial({
+      color: 0x112d34,
+      roughness: 0.35,
+      metalness: 0.82
+    });
+    const alienGlowMat = new THREE.MeshStandardMaterial({
+      color: 0x00f5d4,
+      emissive: 0x00f5d4,
+      emissiveIntensity: 1.25,
+      roughness: 0.15,
+      metalness: 0.2
+    });
+    const alienCoreMat = new THREE.MeshStandardMaterial({
+      color: 0x8b5cf6,
+      emissive: 0x7c3aed,
+      emissiveIntensity: 1.45,
+      roughness: 0.1,
+      metalness: 0.3
+    });
+    this.shipBioCoreMat = alienCoreMat;
 
-    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.78, 2.4, 12), edgeMat);
+    const eyeMat = new THREE.MeshStandardMaterial({
+      color: 0x10b981,
+      emissive: 0x059669,
+      emissiveIntensity: 1.6,
+      roughness: 0.1
+    });
+
+    // 1. Central Aerodynamic Bio-Thorax (Sculpted organic fusiform body)
+    const thoraxGeo = new THREE.SphereGeometry(1.25, 24, 18);
+    const thorax = new THREE.Mesh(thoraxGeo, alienChitinMat);
+    thorax.scale.set(1.45, 0.58, 2.7);
+    thorax.position.set(0, 0, 0.4);
+    thorax.castShadow = !this.isSoftwareGl;
+    thorax.receiveShadow = !this.isSoftwareGl;
+    this.shipGroup.add(thorax);
+
+    // 2. Cephalic Mandible / Predatory Nose
+    const noseGeo = new THREE.ConeGeometry(0.82, 3.8, 16);
+    const nose = new THREE.Mesh(noseGeo, alienPlatingMat);
     nose.rotation.x = Math.PI / 2;
-    nose.position.set(0, 0, 3.65);
-    nose.scale.set(0.9, 1, 0.86);
+    nose.scale.set(1.15, 1, 0.4);
+    nose.position.set(0, 0.08, 3.9);
+    nose.castShadow = !this.isSoftwareGl;
     this.shipGroup.add(nose);
 
-    const aftModule = new THREE.Mesh(new THREE.BoxGeometry(1.86, 1.26, 1.52), hullMat);
-    aftModule.position.set(0, -0.04, -2.45);
-    aftModule.castShadow = !this.isSoftwareGl;
-    this.shipGroup.add(aftModule);
+    // 3. Segmented Dorsal Bio-Crest (Vertebral fins with glowing fissures)
+    for (let i = 0; i < 5; i++) {
+      const zPos = 2.4 - i * 0.95;
+      const finHeight = 0.55 + Math.sin(i * 0.6) * 0.35;
+      const fin = new THREE.Mesh(new THREE.ConeGeometry(0.18, finHeight, 6), alienPlatingMat);
+      fin.rotation.x = -0.32;
+      fin.position.set(0, 0.45 + finHeight * 0.45, zPos);
+      this.shipGroup.add(fin);
 
-    const canopy = new THREE.Mesh(
-      new THREE.SphereGeometry(0.84, 24, 16),
-      new THREE.MeshPhysicalMaterial({
-        color: 0x7e99a1,
-        emissive: 0x17272f,
-        emissiveIntensity: 0.04,
-        roughness: 0.24,
-        metalness: 0.26,
-        transmission: this.isSoftwareGl ? 0 : 0.16,
-        transparent: true,
-        opacity: 0.84
-      })
-    );
-    canopy.position.set(0, 0.56, 1.42);
-    canopy.scale.set(0.86, 0.63, 1.28);
-    this.shipGroup.add(canopy);
+      // Bioluminescent seam along the spine
+      const glowNode = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), alienGlowMat);
+      glowNode.position.set(0, 0.42, zPos);
+      this.shipGroup.add(glowNode);
+    }
 
-    const wingBeam = new THREE.Mesh(new THREE.BoxGeometry(12.6, 0.16, 0.22), edgeMat);
-    wingBeam.position.set(0, -0.1, -0.42);
-    this.shipGroup.add(wingBeam);
+    // 4. Exposed Bio-Plasma Core (Visible in central cavity)
+    const coreMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.62, 2), alienCoreMat);
+    coreMesh.position.set(0, 0.28, -0.2);
+    this.shipGroup.add(coreMesh);
 
-    const panelFrameGeo = new THREE.BoxGeometry(4.15, 0.12, 2.85);
-    const panelCellGeo = new THREE.BoxGeometry(0.93, 0.055, 1.27);
+    // Rib-like skeletal cages enclosing the core
+    for (let r = 0; r < 4; r++) {
+      const ribZ = 0.4 - r * 0.45;
+      const rib = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.06, 6, 16, Math.PI), alienChitinMat);
+      rib.rotation.x = Math.PI / 2;
+      rib.position.set(0, 0.22, ribZ);
+      this.shipGroup.add(rib);
+    }
+
+    // 5. Forward-Swept Alien Scythe Wings (Predatory curved mantis blades)
     for (const side of [-1, 1]) {
-      const wing = new THREE.Group();
-      wing.position.set(side * 5.05, -0.02, -0.55);
-      const frame = new THREE.Mesh(panelFrameGeo, edgeMat);
-      wing.add(frame);
-      for (let column = 0; column < 4; column++) {
-        for (let row = 0; row < 2; row++) {
-          const cell = new THREE.Mesh(panelCellGeo, (column + row) % 2 === 0 ? panelMat : cellMat);
-          cell.position.set((column - 1.5) * 1.01, 0.09, (row - 0.5) * 1.37);
-          wing.add(cell);
-        }
-      }
-      const hinge = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.35, 8), edgeMat);
-      hinge.rotation.z = Math.PI / 2;
-      hinge.position.set(-side * 3.1, 0, 0);
-      wing.add(hinge);
-      this.shipGroup.add(wing);
+      // Main wing blade
+      const wingShape = new THREE.Shape();
+      wingShape.moveTo(0, 0);
+      wingShape.lineTo(side * 2.8, -0.6);
+      wingShape.lineTo(side * 5.4, -0.2);
+      wingShape.lineTo(side * 6.2, 1.8);  // Hooks forward
+      wingShape.lineTo(side * 5.8, 2.6);  // Scythe tip
+      wingShape.lineTo(side * 4.6, 1.1);
+      wingShape.lineTo(side * 2.2, 0.8);
+      wingShape.closePath();
 
-      const servicePod = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.6, 1.65), hullMat);
-      servicePod.position.set(side * 1.4, -0.3, -1.55);
-      this.shipGroup.add(servicePod);
+      const extrudeSettings = { depth: 0.12, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.04, bevelThickness: 0.04 };
+      const wingGeo = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
+      const wingMesh = new THREE.Mesh(wingGeo, alienChitinMat);
+      wingMesh.rotation.x = Math.PI / 2;
+      wingMesh.scale.x = 1;
+      wingMesh.position.set(0, -0.06, 0.2);
+      wingMesh.castShadow = !this.isSoftwareGl;
+      this.shipGroup.add(wingMesh);
 
-      const engine = new THREE.Mesh(new THREE.CylinderGeometry(0.37, 0.43, 1.65, 16), hullMat);
-      engine.rotation.x = Math.PI / 2;
-      engine.position.set(side * 0.76, -0.08, -3.28);
-      this.shipGroup.add(engine);
+      // Bioluminescent plasma vein along wing leading edge
+      const veinGeo = new THREE.CylinderGeometry(0.04, 0.04, 5.6, 6);
+      const vein = new THREE.Mesh(veinGeo, alienGlowMat);
+      vein.rotation.z = side * 0.72;
+      vein.rotation.x = 0.25;
+      vein.position.set(side * 3.4, 0.02, 1.1);
+      this.shipGroup.add(vein);
 
+      // Ventral fin stabilizer
+      const ventralFin = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4, 6), alienPlatingMat);
+      ventralFin.rotation.x = 0.45;
+      ventralFin.rotation.z = -side * 0.35;
+      ventralFin.position.set(side * 1.6, -0.52, -1.2);
+      this.shipGroup.add(ventralFin);
+
+      // Alien eye cluster nodes on forward head
+      const eye1 = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), eyeMat);
+      eye1.position.set(side * 0.38, 0.26, 3.1);
+      this.shipGroup.add(eye1);
+
+      const eye2 = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), eyeMat);
+      eye2.position.set(side * 0.55, 0.18, 2.5);
+      this.shipGroup.add(eye2);
+
+      const eye3 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), eyeMat);
+      eye3.position.set(side * 0.24, 0.34, 3.6);
+      this.shipGroup.add(eye3);
+
+      // Biomechanical engine nacelle
+      const engineNacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.48, 2.2, 12), alienPlatingMat);
+      engineNacelle.rotation.x = Math.PI / 2;
+      engineNacelle.position.set(side * 1.25, -0.08, -2.8);
+      this.shipGroup.add(engineNacelle);
+
+      // Radiant Alien Plasma Flame Exhaust
       const exhaust = new THREE.Mesh(
-        new THREE.ConeGeometry(0.28, 0.62, 12),
-        new THREE.MeshBasicMaterial({ color: 0xb7d1dc })
+        new THREE.ConeGeometry(0.32, 1.2, 12),
+        new THREE.MeshBasicMaterial({ color: 0x00ffc8, transparent: true, opacity: 0.9 })
       );
       exhaust.rotation.x = -Math.PI / 2;
-      exhaust.position.set(side * 0.76, -0.08, -4.24);
+      exhaust.position.set(side * 1.25, -0.08, -4.1);
       if (side < 0) this.shipThrusterLeft = exhaust;
       else this.shipThrusterRight = exhaust;
       this.shipGroup.add(exhaust);
-
-      const navigationLight = new THREE.Mesh(
-        new THREE.SphereGeometry(0.12, 10, 8),
-        new THREE.MeshBasicMaterial({ color: side < 0 ? 0xc98265 : 0x91b6a0 })
-      );
-      navigationLight.position.set(side * 7.12, 0.02, -0.48);
-      this.shipGroup.add(navigationLight);
     }
 
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.085, 1.2, 8), edgeMat);
-    mast.position.set(0, 1.17, -1.65);
-    this.shipGroup.add(mast);
-    const dish = new THREE.Mesh(
-      new THREE.SphereGeometry(0.68, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2),
-      new THREE.MeshStandardMaterial({ color: 0x899699, roughness: 0.5, metalness: 0.65, side: THREE.DoubleSide })
-    );
-    dish.position.set(0, 1.82, -1.65);
-    dish.rotation.x = Math.PI;
-    this.shipGroup.add(dish);
-
-    const sensorLens = new THREE.Mesh(
-      new THREE.SphereGeometry(0.19, 14, 10),
-      new THREE.MeshStandardMaterial({ color: 0x849ca5, emissive: 0x253b45, emissiveIntensity: 0.18, roughness: 0.28, metalness: 0.42 })
-    );
-    sensorLens.position.set(0, 0.12, 2.56);
-    this.shipGroup.add(sensorLens);
+    // 6. Floating Graviton Anti-Gravity Propulsion Ring
+    const gravitonRingGeo = new THREE.TorusGeometry(1.68, 0.085, 12, 36);
+    this.shipPropulsionRing = new THREE.Mesh(gravitonRingGeo, alienGlowMat);
+    this.shipPropulsionRing.position.set(0, -0.02, -2.4);
+    this.shipGroup.add(this.shipPropulsionRing);
 
     this.scene.add(this.shipGroup);
 
@@ -784,56 +994,104 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   }
   private buildAlienFighter(): THREE.Group {
     const ship = new THREE.Group();
-    const shell = new THREE.MeshStandardMaterial({ color: 0x343b37, roughness: 0.34, metalness: 0.78, flatShading: true });
-    const wingMat = new THREE.MeshStandardMaterial({ color: 0x4b443d, roughness: 0.4, metalness: 0.7, flatShading: true, side: THREE.DoubleSide });
-    const sensorMat = new THREE.MeshStandardMaterial({ color: 0xa65d43, emissive: 0x9b3828, emissiveIntensity: 0.8, roughness: 0.25, metalness: 0.45 });
-    const engineMat = new THREE.MeshBasicMaterial({ color: 0xe0905d });
 
-    const body = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), shell);
-    body.scale.set(1.15, 0.46, 1.82);
+    // Human Space Shuttle Materials
+    const whiteHullMat = new THREE.MeshStandardMaterial({ color: 0xebf1f5, roughness: 0.3, metalness: 0.5 });
+    const blackTileMat = new THREE.MeshStandardMaterial({ color: 0x1a232e, roughness: 0.8, metalness: 0.2 });
+    const glassCanopyMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.3, roughness: 0.1, transparent: true, opacity: 0.85 });
+    const rocketEngineMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.4, metalness: 0.8 });
+    const rocketFlameMat = new THREE.MeshBasicMaterial({ color: 0xff9900 });
+
+    // 1. Fuselage Body (Aerodynamic Human Shuttle Nose & Cargo Hull)
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.95, 3.8, 14), whiteHullMat);
+    body.rotation.x = Math.PI / 2;
+    body.position.set(0, 0, 0);
     ship.add(body);
 
-    const crown = new THREE.Mesh(new THREE.SphereGeometry(0.52, 10, 7), wingMat);
-    crown.scale.set(0.74, 0.82, 1.0);
-    crown.position.set(0, 0.25, -0.08);
-    ship.add(crown);
+    // Black Thermal Shield Belly Coating
+    const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.76, 0.96, 3.82, 14, 1, false, Math.PI * 0.8, Math.PI * 1.4), blackTileMat);
+    belly.rotation.x = Math.PI / 2;
+    belly.position.set(0, -0.02, 0);
+    ship.add(belly);
 
-    const wingShape = new THREE.Shape();
-    wingShape.moveTo(0, 0.48);
-    wingShape.lineTo(2.55, -0.1);
-    wingShape.lineTo(2.05, -1.06);
-    wingShape.lineTo(0.32, -0.63);
-    wingShape.closePath();
-    const wingGeometry = new THREE.ExtrudeGeometry(wingShape, { depth: 0.16, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 0.04, bevelThickness: 0.04 });
+    // Aerodynamic Nose Cone
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.4, 14), blackTileMat);
+    nose.rotation.x = Math.PI / 2;
+    nose.position.set(0, 0, 2.5);
+    ship.add(nose);
+
+    // Flight Deck Cockpit Windows
+    const cockpit = new THREE.Mesh(new THREE.SphereGeometry(0.68, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2.2), glassCanopyMat);
+    cockpit.position.set(0, 0.22, 1.4);
+    cockpit.scale.set(0.9, 0.6, 1.2);
+    ship.add(cockpit);
+
+    // 2. Human Delta Wings
     for (const side of [-1, 1]) {
-      const wing = new THREE.Mesh(wingGeometry, wingMat);
+      const wingShape = new THREE.Shape();
+      wingShape.moveTo(0, 1.2);
+      wingShape.lineTo(side * 2.8, -1.2);
+      wingShape.lineTo(side * 2.6, -1.8);
+      wingShape.lineTo(0, -1.5);
+      wingShape.closePath();
+
+      const wingGeo = new THREE.ExtrudeGeometry(wingShape, { depth: 0.1, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02 });
+      const wing = new THREE.Mesh(wingGeo, whiteHullMat);
       wing.rotation.x = Math.PI / 2;
-      wing.scale.x = side;
-      wing.position.set(side * 0.7, -0.04, -0.12);
+      wing.position.set(0, -0.1, 0.2);
       ship.add(wing);
 
-      const cannon = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.0, 7), shell);
-      cannon.rotation.x = Math.PI / 2;
-      cannon.position.set(side * 0.57, -0.1, 1.18);
-      ship.add(cannon);
+      // Wing Black Leading Edge Thermal Tiles
+      const leadingEdge = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.4, 6), blackTileMat);
+      leadingEdge.rotation.z = side * 0.95;
+      leadingEdge.rotation.x = 0.22;
+      leadingEdge.position.set(side * 1.4, -0.1, 0.1);
+      ship.add(leadingEdge);
 
-      const engine = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.32, 0.82, 9), shell);
-      engine.rotation.x = Math.PI / 2;
-      engine.position.set(side * 0.67, -0.05, -1.42);
-      ship.add(engine);
-      const exhaust = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.48, 8), engineMat);
-      exhaust.rotation.x = -Math.PI / 2;
-      exhaust.position.set(side * 0.67, -0.05, -2.02);
-      ship.add(exhaust);
+      // Red/Green Wing Navigation Lights
+      const navLight = new THREE.Mesh(
+        new THREE.SphereGeometry(0.08, 8, 6),
+        new THREE.MeshBasicMaterial({ color: side < 0 ? 0xef4444 : 0x22c55e })
+      );
+      navLight.position.set(side * 2.75, -0.05, -1.0);
+      ship.add(navLight);
+
+      // Main Rocket Engine Pods
+      const enginePod = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 1.2, 10), rocketEngineMat);
+      enginePod.rotation.x = Math.PI / 2;
+      enginePod.position.set(side * 0.48, -0.05, -2.1);
+      ship.add(enginePod);
+
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.7, 8), rocketFlameMat);
+      flame.rotation.x = -Math.PI / 2;
+      flame.position.set(side * 0.48, -0.05, -2.85);
+      ship.add(flame);
     }
 
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.21, 10, 8), sensorMat);
-    eye.position.set(0, 0.18, 1.05);
-    ship.add(eye);
-    const dorsalSpine = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.15, 7), shell);
-    dorsalSpine.rotation.x = Math.PI / 2;
-    dorsalSpine.position.set(0, 0.36, -0.7);
-    ship.add(dorsalSpine);
+    // 3. Vertical Tail Stabilizer Fin
+    const tailFinShape = new THREE.Shape();
+    tailFinShape.moveTo(0, 0);
+    tailFinShape.lineTo(0, 1.6);
+    tailFinShape.lineTo(-1.1, 1.4);
+    tailFinShape.lineTo(-1.4, 0);
+    tailFinShape.closePath();
+
+    const tailFinGeo = new THREE.ExtrudeGeometry(tailFinShape, { depth: 0.08, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02 });
+    const tailFin = new THREE.Mesh(tailFinGeo, whiteHullMat);
+    tailFin.position.set(0.04, 0.65, -0.6);
+    ship.add(tailFin);
+
+    // Top Central Engine Nozzle
+    const topEngine = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.38, 1.2, 10), rocketEngineMat);
+    topEngine.rotation.x = Math.PI / 2;
+    topEngine.position.set(0, 0.35, -2.1);
+    ship.add(topEngine);
+
+    const topFlame = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.8, 8), rocketFlameMat);
+    topFlame.rotation.x = -Math.PI / 2;
+    topFlame.position.set(0, 0.35, -2.9);
+    ship.add(topFlame);
+
     ship.traverse(object => {
       if ((object as THREE.Mesh).isMesh) object.castShadow = !this.isSoftwareGl;
     });
@@ -844,30 +1102,15 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     if (this.encounteredStationIds.has(station.id)) return;
     this.encounteredStationIds.add(station.id);
 
-    const count = 2 + Math.floor(Math.random() * 2);
-    for (let index = 0; index < count; index++) {
-      const phase = (index / count) * Math.PI * 2 + Math.random() * 0.45;
-      const ship = this.buildAlienFighter();
-      const orbitRadius = 22 + Math.random() * 8;
-      ship.position.set(
-        this.shipPosition.x + Math.cos(phase) * orbitRadius,
-        this.shipPosition.y + Math.sin(phase * 1.7) * orbitRadius * 0.36,
-        this.shipPosition.z + Math.sin(phase) * orbitRadius
-      );
-      ship.lookAt(this.shipPosition);
-      this.scene.add(ship);
-      this.alienFighters.push({
-        group: ship,
-        velocity: new THREE.Vector3(),
-        phase,
-        orbitRadius,
-        fireCooldown: 1.2 + Math.random() * 1.5,
-        integrity: 4
-      });
+    if (this.gameMode() === 'free') {
+      this.setCombatMessage(`ESTACIÓN ALCANZADA · ${station.name.toUpperCase()}`, 2500);
+      this.playChime([440, 660]);
+      return;
     }
 
-    this.activeHostiles.set(this.alienFighters.length);
-    this.setCombatMessage(`CONTACTO HOSTIL · ${count} NAVES`);
+    const count = 2 + Math.floor(Math.random() * 2);
+    this.spawnCombatEnemies(count);
+    this.setCombatMessage(`TRANSBORDADORES ENEMIGOS DETECTADOS · ${count} EN VUELO`, 3000);
     this.playChime([480, 360]);
   }
 
@@ -878,7 +1121,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   }
 
   firePlayerWeapons(): void {
-    if (this.alienFighters.length === 0 || this.combatCooldown > 0) return;
+    if (this.combatCooldown > 0) return;
     this.combatCooldown = 0.22;
     const cosPitch = Math.cos(this.shipPitch);
     const forward = new THREE.Vector3(
@@ -917,9 +1160,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   private updateCombat(delta: number): void {
     this.combatCooldown = Math.max(0, this.combatCooldown - delta);
     this.hullRegenCooldown = Math.max(0, this.hullRegenCooldown - delta);
-    if (this.hullRegenCooldown === 0 && this.hullIntegrity() < 100) {
-      this.hullIntegrity.update(value => Math.min(100, value + delta * 3.5));
-    }
+    
+    // Player is IMMORTAL: Hull remains at 100%
+    this.hullIntegrity.set(100);
+
     if ((this.keysPressed['f'] || this.touchState.fire) && this.combatCooldown <= 0) this.firePlayerWeapons();
 
     for (const fighter of this.alienFighters) {
@@ -938,7 +1182,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       fighter.fireCooldown -= delta;
       if (fighter.fireCooldown <= 0 && fighter.group.position.distanceTo(this.shipPosition) < 105) {
         this.fireAlienWeapons(fighter);
-        fighter.fireCooldown = 1.55 + Math.random() * 1.25;
+        fighter.fireCooldown = 1.45 + Math.random() * 1.2;
       }
     }
 
@@ -949,23 +1193,18 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       let consumed = bolt.remaining <= 0;
 
       if (!consumed && bolt.side === 'hostile' && bolt.mesh.position.distanceTo(this.shipPosition) < 2.0) {
-        this.hullIntegrity.update(value => Math.max(0, value - 9));
-        this.hullRegenCooldown = 4.5;
+        // Player is IMMORTAL!
+        this.hullIntegrity.set(100);
         this.playThump();
-        this.setCombatMessage(`IMPACTO · CASCO ${Math.round(this.hullIntegrity())}%`, 1900);
-        if (this.hullIntegrity() === 0) {
-          this.shipSpeed = 0;
-          this.hullIntegrity.set(42);
-          this.setCombatMessage('CASCO CRÍTICO · SISTEMA DE RESPALDO ACTIVO', 3200);
-        }
+        this.setCombatMessage(`🛡️ IMPACTO ABSORBIDO (ESCUDO INVENCIBLE · INMORTAL)`, 1400);
         consumed = true;
       } else if (!consumed && bolt.side === 'player') {
-        const hitIndex = this.alienFighters.findIndex(fighter => bolt.mesh.position.distanceTo(fighter.group.position) < 2.2);
+        const hitIndex = this.alienFighters.findIndex(fighter => bolt.mesh.position.distanceTo(fighter.group.position) < 2.4);
         if (hitIndex >= 0) {
           const target = this.alienFighters[hitIndex];
           target.integrity -= 1;
           const hull = target.group.children[0] as THREE.Mesh;
-          if (hull.material instanceof THREE.MeshStandardMaterial) hull.material.emissive.setHex(0x5b251b);
+          if (hull.material instanceof THREE.MeshStandardMaterial) hull.material.emissive.setHex(0xff3300);
           if (target.integrity <= 0) {
             this.scene.remove(target.group);
             target.group.traverse(object => {
@@ -976,9 +1215,15 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
               materials.forEach(material => material.dispose());
             });
             this.alienFighters.splice(hitIndex, 1);
+            this.enemiesDestroyed.update(v => v + 1);
             this.activeHostiles.set(this.alienFighters.length);
-            this.setCombatMessage(this.alienFighters.length === 0 ? 'SECTOR DESPEJADO' : `OBJETIVO NEUTRALIZADO · ${this.alienFighters.length} RESTANTES`, 2600);
-            this.playChime([440, 554, 659]);
+            this.setCombatMessage(`💥 TRANSBORDADOR ENEMIGO DERRIBADO! (DERRIBOS: ${this.enemiesDestroyed()})`, 2500);
+            this.playChime([523, 659, 784, 1046]);
+
+            // Continuous spawn in combat mode to keep action going
+            if (this.gameMode() === 'combat' && this.alienFighters.length < 3) {
+              this.spawnCombatEnemies(1);
+            }
           }
           consumed = true;
         }
@@ -1000,10 +1245,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.thrusterParticlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     const pMat = new THREE.PointsMaterial({
-      color: 0xc39a62,
-      size: 1.2,
+      color: 0x00f5d4,
+      size: 1.8,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.9
     });
 
     this.thrusterParticlesMesh = new THREE.Points(this.thrusterParticlesGeometry, pMat);
@@ -1033,17 +1278,17 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         this.audioCtx.resume();
       }
 
-      // Continuous low-frequency ion drive engine hum
+      // Biomechanical alien sub-harmonic hum
       this.engineOsc = this.audioCtx.createOscillator();
       this.engineGain = this.audioCtx.createGain();
 
-      this.engineOsc.type = 'sawtooth';
-      this.engineOsc.frequency.setValueAtTime(65, this.audioCtx.currentTime);
+      this.engineOsc.type = 'triangle';
+      this.engineOsc.frequency.setValueAtTime(56, this.audioCtx.currentTime);
 
-      // Low pass filter for smooth spaceship engine drone
       const filter = this.audioCtx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(220, this.audioCtx.currentTime);
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(160, this.audioCtx.currentTime);
+      filter.Q.setValueAtTime(2.2, this.audioCtx.currentTime);
 
       this.engineGain.gain.setValueAtTime(0.08, this.audioCtx.currentTime);
 
@@ -1172,15 +1417,22 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     if (document.pointerLockElement !== this.renderer?.domElement) return;
 
     const sensitivity = 0.0021;
-    this.shipRotationY += event.movementX * sensitivity;
+    const yMultiplier = this.invertY() ? -1 : 1;
+    // Mouse horizontal: moving right turns ship right, moving left turns ship left
+    this.shipRotationY -= event.movementX * sensitivity;
+    // Mouse vertical: moving up (negative movementY) pitches nose UP, moving down pitches nose DOWN
     this.shipPitch = THREE.MathUtils.clamp(
-      this.shipPitch - event.movementY * sensitivity,
+      this.shipPitch + yMultiplier * event.movementY * sensitivity,
       -0.92,
       0.92
     );
     this.shipYawRate = 0;
     this.shipPitchRate = 0;
   };
+
+  toggleInvertY(): void {
+    this.invertY.update(v => !v);
+  }
 
   private clearInputState = (): void => {
     this.keysPressed = {};
@@ -1480,6 +1732,19 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     if (this.shipSpeed > 1.5) this.emitThrusterParticle();
 
+    // Animate alien bio-technological components
+    if (this.shipPropulsionRing) {
+      this.shipPropulsionRing.rotation.z += delta * 2.5;
+    }
+    if (this.shipBioCoreMat) {
+      this.shipBioCoreMat.emissiveIntensity = 0.9 + 0.6 * Math.sin(this.elapsedTime * 4.2);
+    }
+    for (let m = 0; m < this.alienMonoliths.length; m++) {
+      const mono = this.alienMonoliths[m];
+      mono.rotation.y += delta * (0.16 + m * 0.05);
+      mono.rotation.x += delta * 0.08;
+    }
+
     this.speedKms.set(Math.round(this.shipSpeed));
     this.headingDegrees.set(((Math.round(THREE.MathUtils.radToDeg(this.shipRotationY)) % 360) + 360) % 360);
     this.pitchDegrees.set(Math.round(THREE.MathUtils.radToDeg(-this.shipPitch)));
@@ -1580,10 +1845,26 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     const elapsed = this.elapsedTime;
     let closestStation: StationData | null = null;
     let minStationDist = 18;
+    const showBeacons = this.showWaypoints() && this.gameMode() === 'free';
 
     this.stationMeshes.forEach(sm => {
       sm.beacon.rotation.y += 1.2 * delta;
       sm.satelliteRig.rotation.y += 0.012 * delta;
+
+      sm.beacon.visible = showBeacons;
+
+      // Animate 3D holographic beacon halo ring & ion beam
+      if (sm.haloRing) {
+        sm.haloRing.visible = showBeacons;
+        sm.haloRing.rotation.z += 0.28 * delta;
+        const pulse = Math.sin(elapsed * 2.4);
+        sm.haloRing.scale.setScalar(1.0 + 0.25 * pulse);
+        (sm.haloRing.material as THREE.MeshBasicMaterial).opacity = 0.35 + 0.2 * pulse;
+      }
+      if (sm.beaconBeam) {
+        sm.beaconBeam.visible = showBeacons;
+        (sm.beaconBeam.material as THREE.MeshBasicMaterial).opacity = 0.28 + 0.12 * Math.sin(elapsed * 3.2);
+      }
 
       const dist = this.shipPosition.distanceTo(sm.group.position);
       if (dist < minStationDist) {
@@ -1598,6 +1879,76 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       }
       this.dockedStation.set(closestStation);
       if (closestStation) this.beginStationEncounter(closestStation);
+    }
+
+    // Compute Screen-Space Visual HUD Waypoints (On-Screen Reticles & Off-Screen Edge Pointers)
+    if (this.camera) {
+      const waypoints: StationWaypoint[] = this.stations.map(st => {
+        const stWorldPos = this._vecB.set(st.position.x, st.position.y + 4.5, st.position.z);
+        const dist = Math.round(this.shipPosition.distanceTo(stWorldPos));
+
+        // Project through camera to NDC [-1, 1]
+        const projected = stWorldPos.clone().project(this.camera);
+
+        const isBehind = projected.z > 1.0;
+        let nx = projected.x;
+        let ny = projected.y;
+
+        if (isBehind) {
+          nx = -nx;
+          ny = -ny;
+          if (nx === 0 && ny === 0) nx = 1;
+        }
+
+        const marginX = 0.88;
+        const marginY = 0.82;
+        const onScreen = !isBehind && Math.abs(nx) <= marginX && Math.abs(ny) <= marginY;
+
+        let screenX: number;
+        let screenY: number;
+        let arrowAngle = 0;
+
+        if (onScreen) {
+          screenX = (nx * 0.5 + 0.5) * 100;
+          screenY = (-ny * 0.5 + 0.5) * 100;
+        } else {
+          // Off-screen: compute directional angle towards edge
+          const screenDirX = nx;
+          const screenDirY = -ny; // Inverted because CSS top is positive downwards
+          const angleRad = Math.atan2(screenDirY, screenDirX);
+          arrowAngle = (angleRad * 180) / Math.PI;
+
+          // Perimeter clamping
+          const maxRx = 45;
+          const maxRy = 42;
+          const cosA = Math.cos(angleRad);
+          const sinA = Math.sin(angleRad);
+
+          const scale = Math.min(
+            Math.abs(maxRx / (Math.abs(cosA) > 0.001 ? cosA : 0.001)),
+            Math.abs(maxRy / (Math.abs(sinA) > 0.001 ? sinA : 0.001))
+          );
+
+          screenX = 50 + cosA * scale;
+          screenY = 50 + sinA * scale;
+        }
+
+        return {
+          id: st.id,
+          station: st,
+          name: st.name,
+          icon: st.icon,
+          color: st.glowHex,
+          distanceKm: dist,
+          screenX: Math.max(3.5, Math.min(96.5, screenX)),
+          screenY: Math.max(7.0, Math.min(91.5, screenY)),
+          isOnScreen: onScreen,
+          arrowAngleDeg: arrowAngle,
+          isDocked: this.dockedStation()?.id === st.id
+        };
+      });
+
+      this.stationWaypoints.set(waypoints);
     }
   }
 

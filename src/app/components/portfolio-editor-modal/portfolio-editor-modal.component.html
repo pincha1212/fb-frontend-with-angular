@@ -1,0 +1,296 @@
+<div class="modal-backdrop" (click)="close()">
+  <div class="editor-window" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <header class="editor-header">
+      <div class="header-title">
+        <span class="status-indicator"></span>
+        <div>
+          <h3>Consola de Edición del Portafolio</h3>
+          <p class="subtitle">Persistencia Local & Cloud (Secciones 01 a 05) · Tecla "7"</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="sync-badge" [class.synced]="portfolioService.cloudStatus() === 'synced'" [class.saving]="portfolioService.cloudStatus() === 'saving'" [class.error]="portfolioService.cloudStatus() === 'error'">
+          {{ portfolioService.statusMessage() }}
+        </span>
+        <button type="button" class="btn-close" (click)="close()" title="Cerrar (7)">✕</button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="editor-tabs" aria-label="Navegación de secciones del editor">
+      <button type="button" class="tab-btn" [class.active]="activeTab() === 'perfil'" (click)="setTab('perfil')">01. Perfil & Hero</button>
+      <button type="button" class="tab-btn" [class.active]="activeTab() === 'habilidades'" (click)="setTab('habilidades')">02. Tecnologías</button>
+      <button type="button" class="tab-btn" [class.active]="activeTab() === 'proyectos'" (click)="setTab('proyectos')">03. Proyectos</button>
+      <button type="button" class="tab-btn" [class.active]="activeTab() === 'experiencia'" (click)="setTab('experiencia')">04. Trayectoria</button>
+      <button type="button" class="tab-btn" [class.active]="activeTab() === 'contacto'" (click)="setTab('contacto')">05. Contacto</button>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="editor-body">
+      <!-- 01. PERFIL & HERO -->
+      <section *ngIf="activeTab() === 'perfil'" class="tab-pane">
+        <h4>Información Personal & Hero</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" [(ngModel)]="editableData.profile.nombre" class="input-control">
+          </div>
+          <div class="form-group">
+            <label>Título Profesional</label>
+            <input type="text" [(ngModel)]="editableData.profile.titulo" class="input-control">
+          </div>
+          <div class="form-group">
+            <label>Subtítulo Hero (Header)</label>
+            <input type="text" [(ngModel)]="editableData.profile.subtituloHero" class="input-control">
+          </div>
+          <div class="form-group">
+            <label>Título Principal Hero (H1)</label>
+            <input type="text" [(ngModel)]="editableData.profile.tituloHero" class="input-control">
+          </div>
+          <div class="form-group full-width">
+            <label>Bajada Principal Hero</label>
+            <input type="text" [(ngModel)]="editableData.profile.bajadaHero" class="input-control">
+          </div>
+          <div class="form-group full-width">
+            <label>Subtítulo Institucional (Sobre Mí)</label>
+            <input type="text" [(ngModel)]="editableData.profile.subtitulo" class="input-control">
+          </div>
+          <div class="form-group full-width">
+            <label>Resumen Principal (Bio 1)</label>
+            <textarea [(ngModel)]="editableData.profile.resumen" rows="3" class="input-control"></textarea>
+          </div>
+          <div class="form-group full-width">
+            <label>Bio Texto 2 (Detalles de estudio e investigación)</label>
+            <textarea [(ngModel)]="editableData.profile.bioTexto2" rows="2" class="input-control"></textarea>
+          </div>
+          <div class="form-group full-width">
+            <label>Competencias ("Cómo trabajo" - separadas por coma)</label>
+            <input type="text" [ngModel]="competenciasInput" (ngModelChange)="updateCompetencias($event)" class="input-control">
+          </div>
+        </div>
+
+        <!-- Hitos List -->
+        <div class="nested-section">
+          <div class="section-header">
+            <h5>Hitos / Tarjetas de Resumen</h5>
+            <button type="button" class="btn-sm btn-add" (click)="addHito()">+ Agregar Hito</button>
+          </div>
+          <div *ngFor="let hito of editableData.profile.hitos; let i = index" class="nested-card">
+            <div class="form-grid compact">
+              <div class="form-group">
+                <label>Número / Destacado</label>
+                <input type="text" [(ngModel)]="hito.numero" class="input-control">
+              </div>
+              <div class="form-group">
+                <label>Etiqueta / Descripción</label>
+                <input type="text" [(ngModel)]="hito.label" class="input-control">
+              </div>
+            </div>
+            <button type="button" class="btn-sm btn-danger mt-2" (click)="removeHito(i)">Eliminar Hito</button>
+          </div>
+        </div>
+
+        <!-- Estudios Timeline List -->
+        <div class="nested-section mt-4">
+          <div class="section-header">
+            <h5>Formación / Estudios</h5>
+            <button type="button" class="btn-sm btn-add" (click)="addEstudio()">+ Agregar Estudio</button>
+          </div>
+          <div *ngFor="let estudio of editableData.profile.estudios; let i = index" class="nested-card">
+            <div class="form-grid compact">
+              <div class="form-group">
+                <label>Período</label>
+                <input type="text" [(ngModel)]="estudio.periodo" class="input-control">
+              </div>
+              <div class="form-group">
+                <label>Título / Carrera</label>
+                <input type="text" [(ngModel)]="estudio.titulo" class="input-control">
+              </div>
+              <div class="form-group full-width">
+                <label>Institución</label>
+                <input type="text" [(ngModel)]="estudio.institucion" class="input-control">
+              </div>
+              <div class="form-group full-width">
+                <label>Descripción</label>
+                <textarea [(ngModel)]="estudio.descripcion" rows="2" class="input-control"></textarea>
+              </div>
+            </div>
+            <button type="button" class="btn-sm btn-danger mt-2" (click)="removeEstudio(i)">Eliminar Estudio</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02. HABILIDADES -->
+      <section *ngIf="activeTab() === 'habilidades'" class="tab-pane">
+        <div class="section-header">
+          <h4>Categorías de Tecnologías & Herramientas</h4>
+          <button type="button" class="btn-sm btn-add" (click)="addHabilidadCat()">+ Nueva Categoría</button>
+        </div>
+
+        <div *ngFor="let cat of editableData.habilidades; let i = index" class="nested-card">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Nombre de la Categoría</label>
+              <input type="text" [(ngModel)]="cat.categoria" class="input-control">
+            </div>
+            <div class="form-group full-width">
+              <label>Tecnologías e Ítems (separados por coma)</label>
+              <input type="text" [ngModel]="habilidadesItemsInputs[i]" (ngModelChange)="updateHabilidadItems(i, $event)" class="input-control">
+            </div>
+          </div>
+          <button type="button" class="btn-sm btn-danger mt-2" (click)="removeHabilidadCat(i)">Eliminar Categoría</button>
+        </div>
+      </section>
+
+      <!-- 03. PROYECTOS -->
+      <section *ngIf="activeTab() === 'proyectos'" class="tab-pane">
+        <div class="section-header">
+          <h4>Catálogo de Proyectos</h4>
+          <button type="button" class="btn-sm btn-add" (click)="addProyecto()">+ Agregar Proyecto</button>
+        </div>
+
+        <div *ngFor="let proj of editableData.proyectos; let i = index" class="nested-card">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Título del Proyecto</label>
+              <input type="text" [(ngModel)]="proj.titulo" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Subtítulo</label>
+              <input type="text" [(ngModel)]="proj.subtitulo" class="input-control">
+            </div>
+            <div class="form-group full-width">
+              <label>Descripción</label>
+              <textarea [(ngModel)]="proj.descripcion" rows="2" class="input-control"></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label>Tecnologías Utilizadas (separadas por coma)</label>
+              <input type="text" [ngModel]="proyectosTechInputs[i]" (ngModelChange)="updateTechArray(i, $event)" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>URL Imagen / Captura</label>
+              <input type="text" [(ngModel)]="proj.imagen" class="input-control" placeholder="assets/images/ejemplo.jpg">
+            </div>
+            <div class="form-group">
+              <label>URL Demo en Vivo</label>
+              <input type="text" [(ngModel)]="proj.demoUrl" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>URL Repositorio GitHub</label>
+              <input type="text" [(ngModel)]="proj.githubUrl" class="input-control">
+            </div>
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="proj.destacado">
+                <span>Marcar como Proyecto Destacado</span>
+              </label>
+            </div>
+          </div>
+          <button type="button" class="btn-sm btn-danger mt-3" (click)="removeProyecto(i)">Eliminar Proyecto</button>
+        </div>
+      </section>
+
+      <!-- 04. TRAYECTORIA -->
+      <section *ngIf="activeTab() === 'experiencia'" class="tab-pane">
+        <h4>Trayectoria Profesional & Formación</h4>
+
+        <div class="form-grid mb-4">
+          <div class="form-group full-width">
+            <label>Título de la Sección</label>
+            <input type="text" [(ngModel)]="editableData.trayectoriaExtra.tituloSeccion" class="input-control">
+          </div>
+          <div class="form-group full-width">
+            <label>Objetivo Profesional</label>
+            <textarea [(ngModel)]="editableData.trayectoriaExtra.objetivoProfesional" rows="3" class="input-control"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Idioma Nombre</label>
+            <input type="text" [(ngModel)]="editableData.trayectoriaExtra.idiomaNombre" class="input-control">
+          </div>
+          <div class="form-group">
+            <label>Idioma Nivel</label>
+            <input type="text" [(ngModel)]="editableData.trayectoriaExtra.idiomaNivel" class="input-control">
+          </div>
+          <div class="form-group">
+            <label>Idioma Código</label>
+            <input type="text" [(ngModel)]="editableData.trayectoriaExtra.idiomaCodigo" class="input-control">
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h5>Lista de Experiencias</h5>
+          <button type="button" class="btn-sm btn-add" (click)="addExperiencia()">+ Agregar Experiencia</button>
+        </div>
+
+        <div *ngFor="let exp of editableData.experiencia; let i = index" class="nested-card">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Rol / Puesto</label>
+              <input type="text" [(ngModel)]="exp.rol" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Empresa / Organización</label>
+              <input type="text" [(ngModel)]="exp.empresa" class="input-control">
+            </div>
+            <div class="form-group full-width">
+              <label>Período / Duración</label>
+              <input type="text" [(ngModel)]="exp.periodo" class="input-control">
+            </div>
+            <div class="form-group full-width">
+              <label>Descripción de Tareas</label>
+              <textarea [(ngModel)]="exp.descripcion" rows="2" class="input-control"></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label>Tecnologías (separadas por coma)</label>
+              <input type="text" [ngModel]="experienciaTechInputs[i]" (ngModelChange)="updateExpTechs(i, $event)" class="input-control">
+            </div>
+          </div>
+          <button type="button" class="btn-sm btn-danger mt-2" (click)="removeExperiencia(i)">Eliminar Experiencia</button>
+        </div>
+      </section>
+
+      <!-- 05. CONTACTO -->
+      <section *ngIf="activeTab() === 'contacto'" class="tab-pane">
+        <h4>Canales de Contacto & Redes</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" [(ngModel)]="editableData.contacto.email" class="input-control">
+          </div>
+          <div class="form-group">
+            <label>Teléfono de Contacto</label>
+            <input type="text" [(ngModel)]="editableData.contacto.telefono" class="input-control">
+          </div>
+          <div class="form-group">
+            <label>Ubicación Geográfica</label>
+            <input type="text" [(ngModel)]="editableData.contacto.ubicacion" class="input-control">
+          </div>
+          <div class="form-group">
+            <label>Perfil de GitHub</label>
+            <input type="text" [(ngModel)]="editableData.contacto.github" class="input-control">
+          </div>
+          <div class="form-group full-width">
+            <label>Perfil de LinkedIn</label>
+            <input type="text" [(ngModel)]="editableData.contacto.linkedin" class="input-control">
+          </div>
+          <div class="form-group full-width">
+            <label>Endpoint Formspree (Envío de Formularios)</label>
+            <input type="text" [(ngModel)]="editableData.contacto.formspreeEndpoint" class="input-control">
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer / Action Bar -->
+    <footer class="editor-footer">
+      <button type="button" class="btn-secondary" (click)="resetDefaults()">Restablecer Todo</button>
+      <div class="footer-right">
+        <button type="button" class="btn-cancel" (click)="close()">Cancelar</button>
+        <button type="button" class="btn-save" (click)="save()" [disabled]="isSaving()">
+          {{ isSaving() ? 'Guardando en la Nube...' : '💾 Guardar Cambios en la Nube y Local' }}
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>

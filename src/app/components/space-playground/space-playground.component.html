@@ -8,8 +8,8 @@
       <div class="hud-badge">
         <span class="hud-badge-icon" aria-hidden="true">⌖</span>
         <div class="hud-badge-info">
-          <span class="hud-badge-title">NAVE DE EXPLORACIÓN · FB-01</span>
-          <span class="hud-badge-sub">Sistema orbital · Federico Barzola</span>
+          <span class="hud-badge-title">NAVE BIOMECÁNICA · XENO-01</span>
+          <span class="hud-badge-sub">Propulsión taquiónica extraterrestre · F. Barzola</span>
         </div>
       </div>
 
@@ -25,9 +25,26 @@
           <span>EMPUJE AUXILIAR ACTIVO</span>
         </div>
       }
+
+      @if (gameMode() === 'combat') {
+        <div class="combat-status-badge">
+          <span class="immortal-shield">🛡️ ESCUDO INMORTAL</span>
+          <span class="kills-count">DERRIBOS: {{ enemiesDestroyed() }}</span>
+        </div>
+      }
     </div>
 
     <div class="hud-top-actions">
+      <!-- Mode Switcher Toggle Button -->
+      <button 
+        type="button" 
+        class="hud-icon-btn mode-switcher-btn" 
+        [class.combat-active]="gameMode() === 'combat'"
+        (click)="toggleGameMode()"
+        title="Alternar entre modo navegación libre y modo combate inmortal">
+        <span>{{ gameMode() === 'free' ? '🎮 ACTIVAR MODO JUEGO' : '🕊️ VOLVER A MODO LIBRE' }}</span>
+      </button>
+
       <!-- Centrar Nave -->
       <button type="button" class="hud-icon-btn" (click)="resetShipPosition()" title="Reposicionar nave">
         <span>⌖ Recentrar</span>
@@ -39,6 +56,16 @@
         <input type="file" accept=".glb,.gltf" class="model-upload-input" aria-label="Seleccionar un modelo de nave GLB o GLTF" (change)="onLoadCustomGlb($event)">
       </label>
 
+      <!-- Invert Y Toggle -->
+      <button 
+        type="button" 
+        class="hud-icon-btn" 
+        [class.active]="invertY()"
+        (click)="toggleInvertY()"
+        title="Alternar inversión vertical del mouse">
+        <span>{{ invertY() ? 'EJE Y · INVERTIDO' : 'EJE Y · DIRECTO' }}</span>
+      </button>
+
       <!-- Audio Toggle -->
       <button 
         type="button" 
@@ -47,6 +74,16 @@
         (click)="toggleSound()"
         title="Alternar sonido del motor">
         <span>{{ soundEnabled() ? 'SONIDO · ACTIVO' : 'SONIDO · MUDO' }}</span>
+      </button>
+
+      <!-- Waypoint Beacons Toggle -->
+      <button 
+        type="button" 
+        class="hud-icon-btn" 
+        [class.active]="showWaypoints()"
+        (click)="toggleWaypoints()"
+        title="Alternar indicadores visuales de estaciones orbitales">
+        <span>{{ showWaypoints() ? 'BALIZAS · VISIBLES' : 'BALIZAS · OCULTAS' }}</span>
       </button>
 
       <!-- Help info modal toggle -->
@@ -73,6 +110,49 @@
     <div class="mouse-pilot-hint" role="status">
       <span class="mouse-hint-dot" aria-hidden="true"></span>
       Clic en el espacio para tomar el mouse · W avanza · Esc libera
+    </div>
+  }
+
+  <!-- VISUAL WAYPOINT INDICATORS FOR LOCATING SPACE STATIONS -->
+  @if (showWaypoints() && !isCinema()) {
+    <div class="station-waypoints-layer" aria-label="Indicadores visuales de estaciones espaciales">
+      @for (wp of stationWaypoints(); track wp.id) {
+        @if (wp.isOnScreen) {
+          <!-- On-screen Target Reticle Beacon -->
+          <div 
+            class="station-waypoint on-screen"
+            [class.is-docked]="wp.isDocked"
+            [style.left.%]="wp.screenX"
+            [style.top.%]="wp.screenY"
+            (click)="teleportToStation(wp.station)"
+            [title]="'Estación orbital: ' + wp.name + ' (' + wp.distanceKm + ' KM) · Clic para navegar'">
+            <div class="waypoint-reticle" [style.border-color]="wp.color" [style.box-shadow]="'0 0 14px ' + wp.color">
+              <span class="waypoint-diamond"></span>
+              <span class="waypoint-number" [style.color]="wp.color">{{ wp.icon }}</span>
+            </div>
+            <div class="waypoint-badge" [style.border-color]="wp.color">
+              <span class="badge-title" [style.color]="wp.color">{{ wp.name }}</span>
+              <span class="badge-dist">{{ wp.distanceKm }} KM</span>
+            </div>
+          </div>
+        } @else {
+          <!-- Off-screen Edge Direction Pointer Arrow -->
+          <div 
+            class="station-waypoint off-screen"
+            [style.left.%]="wp.screenX"
+            [style.top.%]="wp.screenY"
+            (click)="teleportToStation(wp.station)"
+            [title]="'Girar rumbo hacia ' + wp.name + ' (' + wp.distanceKm + ' KM)'">
+            <div class="edge-pointer" [style.border-color]="wp.color">
+              <span class="pointer-arrow" [style.transform]="'rotate(' + wp.arrowAngleDeg + 'deg)'" [style.color]="wp.color">➤</span>
+              <div class="pointer-info">
+                <span class="pointer-name" [style.color]="wp.color">{{ wp.name }}</span>
+                <span class="pointer-dist">{{ wp.distanceKm }} KM</span>
+              </div>
+            </div>
+          </div>
+        }
+      }
     </div>
   }
 
@@ -143,7 +223,7 @@
           </div>
           <div class="control-row">
             <span class="key-badge">MOUSE</span>
-            <span>Orientar la nave y la cámara; con W, el vuelo sigue esa dirección</span>
+            <span>Mover arriba/abajo orienta el morro (eje vertical natural); izquierda/derecha gira el rumbo</span>
           </div>
           <div class="control-row">
             <span class="key-badge">A / D</span>

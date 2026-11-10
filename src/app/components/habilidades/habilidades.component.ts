@@ -1,16 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-
-export interface Habilidad {
-  nombre: string;
-  sigla: string;
-  aplicacion: string;
-}
-
-export interface CategoriaHabilidad {
-  titulo: string;
-  habilidades: Habilidad[];
-}
+import { Component, inject } from '@angular/core';
+import { PortfolioDataService } from '../../services/portfolio-data.service';
 
 @Component({
   imports: [CommonModule],
@@ -20,35 +10,9 @@ export interface CategoriaHabilidad {
   styleUrls: ['./habilidades.component.css'],
 })
 export class HabilidadesComponent {
-  readonly categorias: CategoriaHabilidad[] = [
-    {
-      titulo: 'Interfaces web',
-      habilidades: [
-        { nombre: 'HTML5', sigla: 'H', aplicacion: 'Estructura y contenido' },
-        { nombre: 'CSS3', sigla: 'C', aplicacion: 'Diseño adaptable y animación' },
-        { nombre: 'JavaScript', sigla: 'JS', aplicacion: 'Interacción y lógica de interfaz' },
-        { nombre: 'React', sigla: 'R', aplicacion: 'Interfaces y aplicaciones web' },
-        { nombre: 'Angular', sigla: 'A', aplicacion: 'Aplicaciones y componentes' },
-        { nombre: 'TypeScript', sigla: 'TS', aplicacion: 'Código tipado para proyectos web' },
-        { nombre: 'Vite', sigla: 'V', aplicacion: 'Desarrollo y compilación web' }
-      ]
-    },
-    {
-      titulo: 'Cartografía y visualización',
-      habilidades: [
-        { nombre: 'Canvas 2D', sigla: '2D', aplicacion: 'Gráficos y visualización interactiva' },
-        { nombre: 'QGIS', sigla: 'Q', aplicacion: 'Cartografía y análisis espacial' },
-        { nombre: 'QField', sigla: 'QF', aplicacion: 'Trabajo con datos en campo' },
-        { nombre: 'Leaflet', sigla: 'L', aplicacion: 'Mapas interactivos en la web' },
-        { nombre: 'Geovisores web', sigla: 'G', aplicacion: 'Exploración de información geográfica' }
-      ]
-    },
-    {
-      titulo: 'Flujo de trabajo',
-      habilidades: [
-        { nombre: 'Git', sigla: 'git', aplicacion: 'Control de versiones' },
-        { nombre: 'GitHub', sigla: 'GH', aplicacion: 'Repositorios y publicación' }
-      ]
-    }
-  ];
+  portfolioService = inject(PortfolioDataService);
+
+  get habilidadesData() {
+    return this.portfolioService.habilidades();
+  }
 }

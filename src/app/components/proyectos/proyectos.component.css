@@ -1,1 +1,169 @@
-:host { display: block; }
+:host {
+  display: block;
+}
+
+.proyectos-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.proyectos-header-row h2 {
+  margin: 0;
+}
+
+.proyectos-counter {
+  font-family: Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #74d9eb;
+  background: rgba(14, 25, 44, 0.85);
+  border: 1px solid rgba(116, 217, 235, 0.3);
+  border-radius: 4px;
+  padding: 0.25rem 0.65rem;
+  letter-spacing: 0.08em;
+}
+
+.counter-curr {
+  color: #a8edfa;
+  font-weight: 700;
+}
+
+.counter-total {
+  color: #7c93a8;
+}
+
+/* Outer Carousel Layout with side navigation buttons */
+.carrusel-outer-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* Side navigation buttons flanking the viewport */
+.carrusel-side-btn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0;
+  background: linear-gradient(145deg, rgba(23, 38, 62, 0.95), rgba(11, 19, 33, 0.95));
+  border: 1px solid rgba(116, 217, 235, 0.38);
+  border-radius: 8px;
+  color: #a6eff8;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(5, 10, 20, 0.6), inset 0 0 12px rgba(116, 217, 235, 0.08);
+  transition: all 0.22s ease-in-out;
+  user-select: none;
+  z-index: 5;
+}
+
+.carrusel-side-btn .arrow-glyph {
+  font-size: 1.15rem;
+  line-height: 1;
+  font-weight: 700;
+  transform: translateY(-1px);
+}
+
+.carrusel-side-btn:hover:not(:disabled) {
+  border-color: rgba(116, 217, 235, 0.85);
+  background: linear-gradient(145deg, rgba(32, 53, 86, 0.98), rgba(16, 28, 48, 0.98));
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(116, 217, 235, 0.4), inset 0 0 16px rgba(116, 217, 235, 0.2);
+  transform: scale(1.06);
+}
+
+.carrusel-side-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.carrusel-side-btn:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+  border-color: rgba(120, 140, 160, 0.2);
+  background: rgba(15, 22, 35, 0.5);
+  color: #5d6f82;
+  box-shadow: none;
+}
+
+/* Viewport with overflow hidden prevents accidental free dragging / sliding */
+.carrusel-viewport {
+  flex: 1 1 auto;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+  border-radius: 6px;
+  touch-action: pan-y; /* Allows vertical scrolling of page without horizontal gesture conflict */
+}
+
+/* Animated Track */
+.carrusel-track {
+  display: flex;
+  gap: 1rem;
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Card sizing inside carousel track */
+.carrusel-track .proyecto-card {
+  flex: 0 0 calc(50% - 0.5rem);
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .carrusel-outer-wrapper {
+    gap: 0.4rem;
+  }
+
+  .carrusel-side-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 6px;
+  }
+
+  .carrusel-side-btn .arrow-glyph {
+    font-size: 0.95rem;
+  }
+
+  .carrusel-track .proyecto-card {
+    flex: 0 0 100%;
+  }
+}
+
+/* Indicators */
+.carrusel-indicators {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 1.25rem;
+}
+
+.carrusel-dot {
+  width: 22px;
+  height: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 2px;
+  background: rgba(116, 217, 235, 0.22);
+  cursor: pointer;
+  transition: all 0.24s ease;
+}
+
+.carrusel-dot:hover {
+  background: rgba(116, 217, 235, 0.55);
+}
+
+.carrusel-dot.active {
+  width: 38px;
+  background: #74d9eb;
+  box-shadow: 0 0 8px rgba(116, 217, 235, 0.7);
+}

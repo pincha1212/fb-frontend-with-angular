@@ -159,6 +159,63 @@
   color: #8fd7eb;
 }
 
+.mode-switcher-btn {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.35)) !important;
+  border-color: #34d399 !important;
+  color: #34d399 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.3);
+}
+
+.mode-switcher-btn:hover {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 18px rgba(52, 211, 153, 0.6);
+}
+
+.mode-switcher-btn.combat-active {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.4)) !important;
+  border-color: #f87171 !important;
+  color: #f87171 !important;
+  box-shadow: 0 0 14px rgba(248, 113, 113, 0.4);
+  animation: pulseCombatBtn 2s infinite ease-in-out;
+}
+
+.mode-switcher-btn.combat-active:hover {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: #ffffff !important;
+}
+
+@keyframes pulseCombatBtn {
+  0%, 100% { border-color: #f87171; box-shadow: 0 0 12px rgba(248, 113, 113, 0.4); }
+  50% { border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
+}
+
+.combat-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #10b981;
+  border-radius: 4px;
+  font-family: Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+
+.immortal-shield {
+  color: #34d399;
+  letter-spacing: 0.05em;
+}
+
+.kills-count {
+  color: #fbbf24;
+  padding-left: 6px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .telemetry-value small {
   font-size: 0.65rem;
   font-weight: 600;
@@ -985,3 +1042,146 @@
   .touch-pitch-controls { flex-direction: column; }
   .pitch-up-btn, .pitch-down-btn { width: 31px; height: 28px; }
 }
+
+/* ==========================================================================
+   Visual Waypoints Layer for Locating Space Stations (On-Screen & Edge Pointers)
+   ========================================================================== */
+.station-waypoints-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+  overflow: hidden;
+}
+
+.station-waypoint {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.16s ease, opacity 0.22s ease;
+  will-change: left, top;
+}
+
+.station-waypoint:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  z-index: 35;
+}
+
+/* On-Screen Waypoint Reticle Beacon */
+.station-waypoint.on-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.waypoint-reticle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid;
+  border-radius: 50%;
+  background: rgba(4, 10, 18, 0.78);
+  backdrop-filter: blur(2px);
+  animation: waypointPulse 3s ease-in-out infinite;
+}
+
+.waypoint-diamond {
+  position: absolute;
+  inset: -6px;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  transform: rotate(45deg);
+  pointer-events: none;
+  animation: diamondRotate 14s linear infinite;
+}
+
+@keyframes diamondRotate {
+  from { transform: rotate(45deg); }
+  to { transform: rotate(405deg); }
+}
+
+@keyframes waypointPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.waypoint-number {
+  font: 700 0.65rem Consolas, monospace;
+  letter-spacing: 0.04em;
+}
+
+.waypoint-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 6px;
+  padding: 3px 8px;
+  background: rgba(3, 8, 15, 0.92);
+  border: 1px solid;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75);
+  white-space: nowrap;
+}
+
+.badge-title {
+  font: 700 0.62rem Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge-dist {
+  font: 600 0.52rem Consolas, monospace;
+  color: #a4bed2;
+}
+
+.station-waypoint.on-screen.is-docked .waypoint-reticle {
+  box-shadow: 0 0 20px #00f5d4 !important;
+  border-color: #00f5d4 !important;
+}
+
+/* Off-Screen Edge Direction Pointer */
+.station-waypoint.off-screen {
+  display: flex;
+  align-items: center;
+}
+
+.edge-pointer {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  background: linear-gradient(135deg, rgba(8, 17, 28, 0.95), rgba(4, 9, 16, 0.96));
+  border: 1px solid;
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
+}
+
+.pointer-arrow {
+  display: inline-block;
+  font-size: 0.95rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 5px currentColor);
+  will-change: transform;
+}
+
+.pointer-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.pointer-name {
+  font: 700 0.58rem Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pointer-dist {
+  font: 600 0.5rem Consolas, monospace;
+  color: #9cb8cb;
+}
+

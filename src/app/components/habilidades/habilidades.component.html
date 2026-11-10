@@ -1,14 +1,13 @@
 <section class="habilidades-container card-base" aria-label="Tecnologías y herramientas">
-  <p class="skills-intro">Herramientas que he usado para construir los proyectos de este portafolio.</p>
+  <p class="skills-intro">Herramientas y tecnologías utilizadas en los proyectos del portafolio.</p>
 
   <div class="skills-catalog">
-    <section class="skill-group" *ngFor="let categoria of categorias">
-      <h3 class="categoria-titulo">{{ categoria.titulo }}</h3>
+    <section class="skill-group" *ngFor="let cat of habilidadesData">
+      <h3 class="categoria-titulo">{{ cat.categoria }}</h3>
       <ul class="skill-list">
-        <li class="skill-row" *ngFor="let habilidad of categoria.habilidades">
-          <span class="skill-monogram" aria-hidden="true">{{ habilidad.sigla }}</span>
-          <span class="skill-name">{{ habilidad.nombre }}</span>
-          <span class="skill-note">{{ habilidad.aplicacion }}</span>
+        <li class="skill-row" *ngFor="let item of cat.items">
+          <span class="skill-monogram" aria-hidden="true">{{ item.substring(0, 2).toUpperCase() }}</span>
+          <span class="skill-name">{{ item }}</span>
         </li>
       </ul>
     </section>

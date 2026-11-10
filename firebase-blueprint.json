@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "PortfolioData": {
+      "title": "PortfolioData",
+      "description": "Portafolio editable de Federico Barzola",
+      "type": "object",
+      "properties": {
+        "profile": {
+          "type": "object",
+          "description": "Información general y sobre mí"
+        },
+        "proyectos": {
+          "type": "array",
+          "description": "Lista de proyectos del portafolio"
+        },
+        "habilidades": {
+          "type": "array",
+          "description": "Lista de habilidades y tecnologías"
+        },
+        "experiencia": {
+          "type": "array",
+          "description": "Lista de trayectoria y experiencia"
+        },
+        "contacto": {
+          "type": "object",
+          "description": "Información de contacto"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Fecha de actualización"
+        }
+      },
+      "required": ["updatedAt"]
+    }
+  },
+  "firestore": {
+    "/portfolio/main": {
+      "schema": "PortfolioData",
+      "description": "Documento principal con la información editable del portafolio"
+    }
+  }
+}

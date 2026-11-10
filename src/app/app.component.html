@@ -1,6 +1,10 @@
 <main class="portfolio-shell">
   <a class="skip-link" href="#contenido" [attr.inert]="isSpaceModeActive() ? '' : null">Saltar al contenido</a>
 
+  @if (portfolioService.isEditorOpen()) {
+    <app-portfolio-editor-modal></app-portfolio-editor-modal>
+  }
+
   <div class="space-backdrop" aria-hidden="true">
     <div class="backdrop-stars"></div>
     <div class="backdrop-singularity"></div>
@@ -21,8 +25,8 @@
     <a class="brand-lockup" href="#inicio" aria-label="Federico Barzola, inicio">
       <span class="brand-mark" aria-hidden="true">FB</span>
       <span class="brand-copy">
-        <strong>Federico Barzola</strong>
-        <span>Desarrollo front-end · Mendoza</span>
+        <strong>{{ portfolioService.profile().nombre }}</strong>
+        <span>{{ portfolioService.profile().subtituloHero || 'Desarrollo front-end · Mendoza' }}</span>
       </span>
     </a>
 
@@ -44,19 +48,19 @@
     <section id="inicio" class="hero-section" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="section-kicker"><span class="kicker-line"></span> PORTAFOLIO PERSONAL · MENDOZA</p>
-        <h1 id="hero-title">Soy Federico.<br><span>Desarrollo web y cartografía.</span></h1>
+        <h1 id="hero-title">{{ portfolioService.profile().tituloHero || 'Soy Federico.' }}<br><span>{{ portfolioService.profile().bajadaHero || 'Desarrollo web y cartografía.' }}</span></h1>
         <p class="hero-description">
-          Soy desarrollador front-end y estudio Geotecnologías en Mendoza. Acá comparto los proyectos web y mapas en los que fui trabajando, además de una experiencia espacial interactiva.
+          {{ portfolioService.profile().resumen }}
         </p>
 
         <div class="hero-actions">
           <a class="button-primary" href="#proyectos">Ver proyectos <span aria-hidden="true">↘</span></a>
-          <a class="button-secondary" href="https://github.com/pincha1212" target="_blank" rel="noopener noreferrer">Mi GitHub <span aria-hidden="true">↗</span></a>
+          <a class="button-secondary" [href]="portfolioService.contacto().github" target="_blank" rel="noopener noreferrer">Mi GitHub <span aria-hidden="true">↗</span></a>
         </div>
 
         <div class="hero-footnote">
           <span class="location-mark" aria-hidden="true">⌖</span>
-          <span>Mendoza, Argentina</span>
+          <span>{{ portfolioService.contacto().ubicacion }}</span>
           <span class="footnote-divider" aria-hidden="true"></span>
           <span>Interfaces web · Geotecnologías · Cartografía</span>
         </div>

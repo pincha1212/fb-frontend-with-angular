@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, signal, computed, HostListener, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ResponsiveLayoutDirective } from '../../responsive-layout.directive';
+import { PortfolioDataService } from '../../services/portfolio-data.service';
 
 export interface Proyecto {
   titulo: string;
@@ -16,57 +16,73 @@ export interface Proyecto {
 @Component({
   selector: 'app-proyectos',
   standalone: true,
-  imports: [CommonModule, ResponsiveLayoutDirective],
+  imports: [CommonModule],
   templateUrl: './proyectos.component.html',
   styleUrls: ['./proyectos.component.css']
 })
-export class ProyectosComponent {
-  proyectos: Proyecto[] = [
-    {
-      titulo: 'GEOVISOR WEB',
-      subtitulo: 'Geovisor de plazas · Gran Mendoza',
-      descripcion: 'Mapa interactivo con vistas de calles, satélite y relieve; capas temáticas, herramientas de dibujo y carga de archivos geográficos.',
-      tecnologias: ['JavaScript', 'Leaflet', 'SIG / QGIS', 'HTML', 'CSS'],
-      imagen: '',
-      githubUrl: 'https://github.com/pincha1212/My-first-geoViewer',
-      destacado: true
-    },
-    {
-      titulo: 'Weather App',
-      subtitulo: 'Pronóstico meteorológico en vivo',
-      descripcion: 'Aplicación del clima que consulta condiciones atmosféricas y pronósticos para distintas ubicaciones mediante la API de OpenWeatherMap.',
-      tecnologias: ['JavaScript', 'API', 'CSS', 'HTML'],
-      imagen: 'assets/images/weather.jpg',
-      demoUrl: 'https://pincha1212.github.io/weather/',
-      githubUrl: 'https://github.com/pincha1212/weather'
-    },
-    {
-      titulo: 'CineApp',
-      subtitulo: 'Catálogo de cine · API TMDB',
-      descripcion: 'Aplicación web para buscar películas en el catálogo de TMDB, con filtros, recomendaciones y acceso a tráilers.',
-      tecnologias: ['JavaScript', 'API', 'CSS', 'HTML'],
-      imagen: 'assets/images/netfliz-clone.jpg',
-      demoUrl: 'https://pincha1212.github.io/FDPelis/',
-      githubUrl: 'https://github.com/pincha1212/FDPelis'
-    },
-    {
-      titulo: 'Calculator Web',
-      subtitulo: 'Herramienta de cálculo web',
-      descripcion: 'Calculadora adaptable para operaciones matemáticas de uso cotidiano.',
-      tecnologias: ['HTML', 'CSS', 'JavaScript'],
-      imagen: 'assets/images/calculator.jpg',
-      demoUrl: 'https://pincha1212.github.io/calculator/',
-      githubUrl: 'https://github.com/pincha1212/calculator'
-    },
-    {
-      titulo: 'Clash of Gods',
-      subtitulo: 'Juego de duelos 2D · React y Canvas',
-      descripcion: 'Proyecto de juego inspirado en Pong, con partidas individuales o para dos personas, selección de personajes y arenas.',
-      tecnologias: ['React', 'TypeScript', 'Canvas 2D', 'Vite'],
-      imagen: '',
-      githubUrl: 'https://github.com/pincha1212/clash-of-gods-pingPong'
+export class ProyectosComponent implements OnInit {
+  portfolioService = inject(PortfolioDataService);
+
+  currentIndex = signal(0);
+  itemsPerPage = signal(2);
+
+  get proyectos(): Proyecto[] {
+    return this.portfolioService.proyectos();
+  }
+
+  get totalItems(): number {
+    return this.proyectos.length + 1;
+  }
+
+  maxIndex = computed(() => Math.max(0, this.totalItems - this.itemsPerPage()));
+
+  trackTransform = computed(() => {
+    const idx = Math.min(this.currentIndex(), this.maxIndex());
+    if (this.itemsPerPage() === 1) {
+      return `translateX(calc(-${idx} * (100% + 1rem)))`;
     }
-  ];
+    return `translateX(calc(-${idx} * (50% + 0.5rem)))`;
+  });
+
+  pageDots = computed(() => {
+    const count = this.maxIndex() + 1;
+    return Array.from({ length: count }, (_, i) => i);
+  });
+
+  ngOnInit(): void {
+    this.updateItemsPerPage();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.updateItemsPerPage();
+  }
+
+  private updateItemsPerPage(): void {
+    if (typeof window !== 'undefined') {
+      const isMobile = window.innerWidth < 768;
+      this.itemsPerPage.set(isMobile ? 1 : 2);
+      if (this.currentIndex() > this.maxIndex()) {
+        this.currentIndex.set(this.maxIndex());
+      }
+    }
+  }
+
+  prev(): void {
+    if (this.currentIndex() > 0) {
+      this.currentIndex.update(i => i - 1);
+    }
+  }
+
+  next(): void {
+    if (this.currentIndex() < this.maxIndex()) {
+      this.currentIndex.update(i => i + 1);
+    }
+  }
+
+  goTo(idx: number): void {
+    this.currentIndex.set(Math.max(0, Math.min(idx, this.maxIndex())));
+  }
 
   handleImageFallback(event: Event, proyecto: Proyecto): void {
     const target = event.target as HTMLImageElement;

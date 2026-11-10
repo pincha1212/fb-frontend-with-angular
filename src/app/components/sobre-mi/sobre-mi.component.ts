@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PortfolioDataService } from '../../services/portfolio-data.service';
 
 @Component({
   selector: 'app-sobre-mi',
@@ -9,32 +10,21 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./sobre-mi.component.css']
 })
 export class SobreMiComponent {
-  estudios = [
-    {
-      titulo: 'Tecnicatura en Geotecnologías',
-      institucion: 'Facultad de Filosofía y Letras — Universidad Nacional de Cuyo (UNCuyo)',
-      periodo: 'Cursando 2º Año (1er Año Finalizado)',
-      descripcion: 'Formación especializada en herramientas de Información Geográfica (SIG), desarrollo de Geovisores mediante tecnologías web, QGIS y QField.'
-    },
-    {
-      titulo: 'Desarrollo web y proyectos personales',
-      institucion: 'Formación continua y práctica independiente',
-      periodo: 'Aprendizaje aplicado',
-      descripcion: 'Práctica independiente en interfaces web, aplicaciones interactivas y visualizaciones con JavaScript y Canvas 2D.'
-    }
-  ];
+  portfolioService = inject(PortfolioDataService);
 
-  competencias = [
-    'Responsabilidad y compromiso',
-    'Trabajo en equipo y colaboración',
-    'Adaptabilidad y versatilidad',
-    'Resolución de problemas',
-    'Aprendizaje continuo'
-  ];
+  get profile() {
+    return this.portfolioService.profile();
+  }
 
-  hitos = [
-    { numero: 'UNCuyo', label: 'Geotecnologías - 2º Año' },
-    { numero: 'Canvas 2D', label: 'Visualización e interacción' },
-    { numero: 'SIG', label: 'Cartografía web' }
-  ];
+  get estudios() {
+    return this.profile.estudios || [];
+  }
+
+  get competencias() {
+    return this.profile.competencias || [];
+  }
+
+  get hitos() {
+    return this.profile.hitos || [];
+  }
 }

@@ -1,52 +1,111 @@
 <article class="proyectos-container card-base">
-  <h2>Archivo de proyectos</h2>
+  <div class="proyectos-header-row">
+    <h2>Archivo de proyectos</h2>
+    <div class="proyectos-counter" aria-live="polite">
+      <span class="counter-curr">{{ currentIndex() + 1 }}</span> / <span class="counter-total">{{ totalItems }}</span>
+    </div>
+  </div>
 
-  <div class="proyectos-grid" appResponsiveLayout>
-    <article class="proyecto-card" *ngFor="let proyecto of proyectos" [class.destacado-card]="proyecto.destacado">
-      <div class="proyecto-imagen-wrapper" [class.sin-captura]="!proyecto.imagen">
-        <span *ngIf="proyecto.destacado" class="destacado-badge">SELECCIÓN · SIG</span>
-        <img *ngIf="proyecto.imagen" [src]="proyecto.imagen" [alt]="'Captura de ' + proyecto.titulo" [title]="proyecto.titulo" referrerpolicy="no-referrer" (error)="handleImageFallback($event, proyecto)" loading="lazy">
-        <div *ngIf="!proyecto.imagen" class="project-cover-note" aria-hidden="true">
-          <span>PROYECTO PERSONAL</span>
-          <strong>{{ proyecto.titulo }}</strong>
-          <i></i>
-        </div>
+  <div class="carrusel-outer-wrapper">
+    <!-- Botón de navegación lateral izquierdo -->
+    <button
+      type="button"
+      class="carrusel-side-btn carrusel-prev-btn"
+      (click)="prev()"
+      [disabled]="currentIndex() === 0"
+      aria-label="Ver proyectos anteriores"
+      title="Anterior">
+      <span aria-hidden="true" class="arrow-glyph">❮</span>
+    </button>
+
+    <!-- Ventana visible que corta el desborde (evita desplazamiento libre) -->
+    <div class="carrusel-viewport">
+      <div class="carrusel-track" [style.transform]="trackTransform()">
+        @for (proyecto of proyectos; track proyecto.titulo) {
+          <article class="proyecto-card" [class.destacado-card]="proyecto.destacado">
+            <div class="proyecto-imagen-wrapper" [class.sin-captura]="!proyecto.imagen">
+              @if (proyecto.destacado) {
+                <span class="destacado-badge">SELECCIÓN · SIG</span>
+              }
+              @if (proyecto.imagen) {
+                <img [src]="proyecto.imagen" [alt]="'Captura de ' + proyecto.titulo" [title]="proyecto.titulo" referrerpolicy="no-referrer" (error)="handleImageFallback($event, proyecto)" loading="lazy">
+              } @else {
+                <div class="project-cover-note" aria-hidden="true">
+                  <span>PROYECTO PERSONAL</span>
+                  <strong>{{ proyecto.titulo }}</strong>
+                  <i></i>
+                </div>
+              }
+            </div>
+
+            <div class="proyecto-info">
+              <h3 class="proyecto-titulo">{{ proyecto.titulo }}</h3>
+              @if (proyecto.subtitulo) {
+                <span class="proyecto-subtitulo">{{ proyecto.subtitulo }}</span>
+              }
+              <p class="proyecto-desc">{{ proyecto.descripcion }}</p>
+
+              <div class="tecnologias" role="list" [attr.aria-label]="'Tecnologías de ' + proyecto.titulo">
+                @for (tech of proyecto.tecnologias; track tech) {
+                  <span role="listitem">{{ tech }}</span>
+                }
+              </div>
+
+              <div class="proyecto-actions">
+                @if (proyecto.demoUrl) {
+                  <a [href]="proyecto.demoUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-demo" [attr.aria-label]="'Abrir demo de ' + proyecto.titulo">
+                    <span>Ver demo <span aria-hidden="true">↗</span></span>
+                  </a>
+                }
+                @if (proyecto.githubUrl) {
+                  <a [href]="proyecto.githubUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-github" [attr.aria-label]="'Ver código de ' + proyecto.titulo + ' en GitHub'">
+                    <span>Código <span aria-hidden="true">↗</span></span>
+                  </a>
+                }
+              </div>
+            </div>
+          </article>
+        }
+
+        <!-- Tarjeta Más Proyectos -->
+        <article class="proyecto-card mas-proyectos-card">
+          <div class="mas-proyectos-content">
+            <div class="mas-icon-wrapper">
+              <span class="mas-icon" aria-hidden="true">GH</span>
+            </div>
+            <h3>Más proyectos</h3>
+            <p>Otros desarrollos y experimentos disponibles en mis repositorios.</p>
+            <a href="https://github.com/pincha1212" target="_blank" rel="noopener noreferrer" class="mas-proyectos-btn">
+              <span>Ver repositorios en GitHub</span>
+              <span class="arrow-icon">→</span>
+            </a>
+          </div>
+        </article>
       </div>
+    </div>
 
-      <div class="proyecto-info">
-        <h3 class="proyecto-titulo">{{ proyecto.titulo }}</h3>
-        <span *ngIf="proyecto.subtitulo" class="proyecto-subtitulo">{{ proyecto.subtitulo }}</span>
-        <p class="proyecto-desc">{{ proyecto.descripcion }}</p>
+    <!-- Botón de navegación lateral derecho -->
+    <button
+      type="button"
+      class="carrusel-side-btn carrusel-next-btn"
+      (click)="next()"
+      [disabled]="currentIndex() >= maxIndex()"
+      aria-label="Ver proyectos siguientes"
+      title="Siguiente">
+      <span aria-hidden="true" class="arrow-glyph">❯</span>
+    </button>
+  </div>
 
-        <div class="tecnologias" role="list" [attr.aria-label]="'Tecnologías de ' + proyecto.titulo">
-          <span *ngFor="let tech of proyecto.tecnologias" role="listitem">
-            {{ tech }}
-          </span>
-        </div>
-
-        <div class="proyecto-actions">
-          <a *ngIf="proyecto.demoUrl" [href]="proyecto.demoUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-demo" [attr.aria-label]="'Abrir demo de ' + proyecto.titulo">
-            <span>Ver demo <span aria-hidden="true">↗</span></span>
-          </a>
-          <a *ngIf="proyecto.githubUrl" [href]="proyecto.githubUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-github" [attr.aria-label]="'Ver código de ' + proyecto.titulo + ' en GitHub'">
-            <span>Código <span aria-hidden="true">↗</span></span>
-          </a>
-        </div>
-      </div>
-    </article>
-
-    <article class="proyecto-card mas-proyectos-card">
-      <div class="mas-proyectos-content">
-        <div class="mas-icon-wrapper">
-          <span class="mas-icon" aria-hidden="true">GH</span>
-        </div>
-        <h3>Más proyectos</h3>
-        <p>Otros desarrollos y experimentos disponibles en mis repositorios.</p>
-        <a href="https://github.com/pincha1212" target="_blank" rel="noopener noreferrer" class="mas-proyectos-btn">
-          <span>Ver repositorios en GitHub</span>
-          <span class="arrow-icon">→</span>
-        </a>
-      </div>
-    </article>
+  <!-- Indicadores de posición de carrusel -->
+  <div class="carrusel-indicators" role="tablist" aria-label="Navegación del carrusel">
+    @for (dot of pageDots(); track dot) {
+      <button
+        type="button"
+        class="carrusel-dot"
+        [class.active]="currentIndex() === dot"
+        (click)="goTo(dot)"
+        [attr.aria-label]="'Ir al grupo ' + (dot + 1)">
+      </button>
+    }
   </div>
 </article>

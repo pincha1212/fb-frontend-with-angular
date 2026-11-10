@@ -41,14 +41,14 @@
 
     <div class="dashboard-console-grid">
       <section class="hud-cluster cluster-left" aria-label="Estado de la nave">
-        <div class="hud-badge-tag">ESTRUCTURA Y CONTACTOS</div>
+        <div class="hud-badge-tag">BIO-ESTRUCTURA QUINÍTICA</div>
         <div class="gauge-container">
-          <div class="gauge-label-row"><span class="gauge-title">INTEGRIDAD DEL CASCO</span><span class="gauge-val" [class.shield-low]="hullIntegrity < 30">{{ hullIntegrity }}%</span></div>
+          <div class="gauge-label-row"><span class="gauge-title">INTEGRIDAD BIO-CORAZA</span><span class="gauge-val" [class.shield-low]="hullIntegrity < 30">{{ hullIntegrity }}%</span></div>
           <div class="gauge-bar-track"><div class="gauge-bar-fill shield-fill" [class.hull-damaged]="hullIntegrity < 55" [style.width.%]="hullIntegrity"></div></div>
         </div>
         <div class="telemetry-mini-grid">
-          <div class="telemetry-box contact-count" [class.contact-alert]="activeHostiles > 0"><span class="box-label">CONTACTOS</span><span class="box-val">{{ activeHostiles === 0 ? 'SIN SEÑAL' : activeHostiles + ' EN RADAR' }}</span></div>
-          <div class="telemetry-box"><span class="box-label">CASCO</span><span class="box-val">{{ hullIntegrity < 35 ? 'REVISAR' : 'OPERATIVO' }}</span></div>
+          <div class="telemetry-box contact-count" [class.contact-alert]="activeHostiles > 0"><span class="box-label">CONTACTOS XENO</span><span class="box-val">{{ activeHostiles === 0 ? 'DESPEJADO' : activeHostiles + ' EN RADAR' }}</span></div>
+          <div class="telemetry-box"><span class="box-label">NODO VITAL</span><span class="box-val">{{ hullIntegrity < 35 ? 'CRÍTICO' : 'RESONANTE' }}</span></div>
         </div>
       </section>
 
@@ -58,10 +58,10 @@
           <div class="speed-number-wrap"><span class="speed-value" [class.is-turbo]="isTurboActive">{{ speedKms }}</span><span class="speed-unit">KM/S</span></div>
           <div class="speed-progress-arc" role="meter" aria-label="Velocidad" [attr.aria-valuenow]="speedKms" [attr.aria-valuemin]="0" [attr.aria-valuemax]="maxSpeedKms"><div class="speed-arc-fill" [style.width.%]="speedPercent"></div></div>
         </div>
-        <div class="compass-bar-wrap"><span class="compass-label">RUMBO · INCLINACIÓN</span><div class="compass-tape"><span class="compass-degree">{{ headingDegrees }}° · {{ pitchDegrees }}°</span></div></div>
+        <div class="compass-bar-wrap"><span class="compass-label">RUMBO PSIÓNICO · ELEVACIÓN</span><div class="compass-tape"><span class="compass-degree">{{ headingDegrees }}° · {{ pitchDegrees }}°</span></div></div>
         <div class="center-control-row">
-          <button type="button" class="turbo-hud-btn" [class.active]="isTurboActive" (click)="onToggleTurbo()">EMPUJE AUXILIAR · ESPACIO</button>
-          <button type="button" class="fire-hud-btn" (click)="fireWeapons.emit()" [disabled]="activeHostiles === 0" [attr.aria-label]="activeHostiles === 0 ? 'No hay contactos para interceptar' : 'Activar defensas ante naves no identificadas'">DEFENSA · F</button>
+          <button type="button" class="turbo-hud-btn" [class.active]="isTurboActive" (click)="onToggleTurbo()">PROPULSIÓN TAQUIÓNICA · ESPACIO</button>
+          <button type="button" class="fire-hud-btn" (click)="fireWeapons.emit()" [disabled]="activeHostiles === 0" [attr.aria-label]="activeHostiles === 0 ? 'No hay contactos para interceptar' : 'Activar defensas ante naves no identificadas'">RAYO DE PLASMA · F</button>
         </div>
       </section>
 

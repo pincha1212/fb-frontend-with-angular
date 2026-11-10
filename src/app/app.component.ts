@@ -1,10 +1,12 @@
-import { Component, HostListener, signal } from '@angular/core';
+import { Component, HostListener, signal, inject } from '@angular/core';
 import { SpacePlaygroundComponent } from './components/space-playground/space-playground.component';
 import { SobreMiComponent } from './components/sobre-mi/sobre-mi.component';
 import { HabilidadesComponent } from './components/habilidades/habilidades.component';
 import { ProyectosComponent } from './components/proyectos/proyectos.component';
 import { ExperienciaComponent } from './components/experiencia/experiencia.component';
 import { ContactoComponent } from './components/contacto/contacto.component';
+import { PortfolioEditorModalComponent } from './components/portfolio-editor-modal/portfolio-editor-modal.component';
+import { PortfolioDataService } from './services/portfolio-data.service';
 
 @Component({
   selector: 'app-root',
@@ -15,12 +17,14 @@ import { ContactoComponent } from './components/contacto/contacto.component';
     HabilidadesComponent,
     ProyectosComponent,
     ExperienciaComponent,
-    ContactoComponent
+    ContactoComponent,
+    PortfolioEditorModalComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
+  portfolioService = inject(PortfolioDataService);
   isSpaceModeActive = signal(false);
   private previousFocus: HTMLElement | null = null;
 

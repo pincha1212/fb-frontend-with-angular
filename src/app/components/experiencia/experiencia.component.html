@@ -2,31 +2,33 @@
   <div class="top-header">
     <span class="badge">TRAYECTORIA · REGISTRO 04</span>
   </div>
-  <h2>Experiencia Complementaria & Formación</h2>
+  <h2>{{ extraData.tituloSeccion || 'Experiencia Complementaria & Formación' }}</h2>
 
   <div class="exp-grid">
     <div class="exp-cards">
-      <div *ngFor="let exp of experiencias" class="exp-card">
+      <div *ngFor="let exp of experienciasList" class="exp-card">
         <div class="exp-header">
-          <h3 class="exp-puesto">{{ exp.puesto }}</h3>
-          <span class="exp-empresa">{{ exp.empresa }}</span>
+          <h3 class="exp-puesto">{{ exp.rol }}</h3>
+          <span class="exp-empresa">{{ exp.empresa }} · {{ exp.periodo }}</span>
         </div>
-        <ul class="exp-puntos">
-          <li *ngFor="let p of exp.puntos">{{ p }}</li>
-        </ul>
+        <p class="exp-desc" style="color: #b6c6d7; font-size: 0.85rem; line-height: 1.6; margin-top: 0.6rem;">
+          {{ exp.descripcion }}
+        </p>
+        <div class="tecnologias" style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem;" *ngIf="exp.tecnologias?.length">
+          <span *ngFor="let t of exp.tecnologias" style="padding: 0.2rem 0.45rem; background: rgba(116, 217, 235, 0.1); border: 1px solid rgba(116, 217, 235, 0.25); border-radius: 3px; color: #a6eff8; font-size: 0.65rem; font-family: monospace;">{{ t }}</span>
+        </div>
       </div>
     </div>
 
     <div class="objetivo-box">
       <h3>Objetivo profesional</h3>
-      <p class="objetivo-text">{{ objetivo }}</p>
+      <p class="objetivo-text">{{ extraData.objetivoProfesional }}</p>
       
-      <div class="idiomas-card" aria-label="Inglés técnico">
-        <span class="idioma-code" aria-hidden="true">EN</span>
-        <strong class="idioma-name">Inglés</strong>
-        <span class="idioma-val">Uso técnico</span>
+      <div class="idiomas-card" aria-label="Nivel de Idioma" *ngIf="extraData.idiomaNombre">
+        <span class="idioma-code" aria-hidden="true">{{ extraData.idiomaCodigo || 'EN' }}</span>
+        <strong class="idioma-name">{{ extraData.idiomaNombre }}</strong>
+        <span class="idioma-val">{{ extraData.idiomaNivel }}</span>
       </div>
     </div>
   </div>
 </section>
-

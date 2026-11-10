@@ -3,26 +3,44 @@ import { Component, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { FormsModule, NgForm } from '@angular/forms';
+import { PortfolioDataService } from '../../services/portfolio-data.service';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule], // Añade FormsModule si usas ngModel
+  imports: [CommonModule, FormsModule],
   selector: 'app-contacto',
   templateUrl: './contacto.component.html',
   styleUrls: ['./contacto.component.css'],
 })
 export class ContactoComponent {
   private http = inject(HttpClient);
-  correo = 'fedebarzola7@gmail.com';
-  telefono = '+54 261 383 6127';
-  ubicacion = 'Mendoza, Argentina';
+  portfolioService = inject(PortfolioDataService);
+
+  get correo(): string {
+    return this.portfolioService.contacto().email || 'fedebarzola7@gmail.com';
+  }
+  get telefono(): string {
+    return this.portfolioService.contacto().telefono || '+54 261 383 6127';
+  }
+  get githubUrl(): string {
+    return this.portfolioService.contacto().github || 'https://github.com/pincha1212';
+  }
+  get linkedinUrl(): string {
+    return this.portfolioService.contacto().linkedin || 'https://www.linkedin.com/in/federico-barzola-7138b3216/';
+  }
+  get ubicacion(): string {
+    return this.portfolioService.contacto().ubicacion || 'Mendoza, Argentina';
+  }
+  get formspreeEndpoint(): string {
+    return this.portfolioService.contacto().formspreeEndpoint || 'https://formspree.io/f/xdkezazb';
+  }
+
   mostrarFormulario = false;
   enviando = false;
-  mensajeEstado = '';       // Texto del mensaje (éxito o error)
-  mensajeExito = false;     // true si es éxito, false si es error
-  copiado = false;          // Para feedback de copiado
+  mensajeEstado = '';
+  mensajeExito = false;
+  copiado = false;
 
-  // ⭐ Método mejorado para copiar (sin alert)
   async copiarCorreo(): Promise<void> {
     if (!navigator.clipboard) {
       this.mensajeEstado = '❌ Tu navegador no soporta copiado automático.';
@@ -49,7 +67,6 @@ export class ContactoComponent {
     this.resetearEstado();
   }
 
-  // ⭐ Método mejorado usando lastValueFrom (moderno)
   async enviarFormulario(form: NgForm): Promise<void> {
     if (form.invalid) return;
 
@@ -65,7 +82,7 @@ export class ContactoComponent {
     try {
       await lastValueFrom(
         this.http.post(
-          'https://formspree.io/f/xdkezazb',
+          this.formspreeEndpoint,
           formData.toString(),
           {
             headers: {
@@ -80,7 +97,7 @@ export class ContactoComponent {
       this.mensajeEstado = '✅ ¡Mensaje enviado! Te responderé pronto.';
       form.resetForm();
       setTimeout(() => {
-        this.toggleForm(); // Oculta el formulario tras 2s
+        this.toggleForm();
         this.resetearEstado();
       }, 2500);
     } catch (error) {

@@ -4,20 +4,20 @@
   <div class="sobre-mi-grid">
     <div class="bio-column">
       <p class="bio-text">
-        Soy <strong>Federico Barzola</strong>, desarrollador front-end de Mendoza. Me interesa crear interfaces que ayuden a explorar información: desde visualizaciones con Canvas hasta aplicaciones de consulta y mapas interactivos.
+        Soy <strong>{{ profile.nombre }}</strong>, {{ profile.titulo }}. {{ profile.resumen }}
       </p>
-      <p class="bio-text">
-        También estudio <strong>Geotecnologías en la Universidad Nacional de Cuyo</strong>. Esa formación me acercó a QGIS, QField y a la representación de datos espaciales en la web.
+      <p class="bio-text" *ngIf="profile.bioTexto2">
+        {{ profile.bioTexto2 }}
       </p>
 
-      <div class="hitos-row">
+      <div class="hitos-row" *ngIf="hitos.length">
         <div *ngFor="let hito of hitos" class="hito-card">
           <span class="hito-number">{{ hito.numero }}</span>
           <span class="hito-label">{{ hito.label }}</span>
         </div>
       </div>
 
-      <div class="competencias-wrapper mt-4">
+      <div class="competencias-wrapper mt-4" *ngIf="competencias.length">
         <h4 class="competencias-title">Cómo trabajo</h4>
         <div class="competencias-tags">
           <span *ngFor="let comp of competencias" class="comp-tag">✓ {{ comp }}</span>
