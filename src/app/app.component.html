@@ -5,6 +5,59 @@
     <app-portfolio-editor-modal></app-portfolio-editor-modal>
   }
 
+  @if (showMobilePcNotice()) {
+    <div class="pc-notice-overlay" (click)="closeMobilePcNotice()" role="dialog" aria-modal="true" aria-label="Aviso de requisito de PC para modo 3D">
+      <div class="pc-notice-card" (click)="$event.stopPropagation()">
+        <div class="pc-notice-header">
+          <div class="pc-notice-title-box">
+            <span class="pc-notice-icon" aria-hidden="true">💻</span>
+            <div>
+              <h3>MODO 3D EXCLUSIVO PARA PC</h3>
+              <p class="subtitle">Simulador de vuelo espacial</p>
+            </div>
+          </div>
+          <button type="button" class="close-pc-notice-btn" (click)="closeMobilePcNotice()" title="Cerrar aviso">✕</button>
+        </div>
+
+        <div class="pc-notice-body">
+          <p class="notice-main-text">
+            Para disfrutar del simulador 3D de vuelo espacial es <strong>necesario acceder desde una PC de escritorio o laptop con teclado y mouse</strong>.
+          </p>
+          <div class="pc-requirements-list">
+            <div class="req-item">
+              <span class="req-icon">⌨️</span>
+              <div>
+                <strong>Teclado W/A/S/D o Flechas</strong>
+                <small>Control de propulsión y 3 ejes de vuelo</small>
+              </div>
+            </div>
+            <div class="req-item">
+              <span class="req-icon">🖱️</span>
+              <div>
+                <strong>Mouse (Pointer Lock)</strong>
+                <small>Navegación libre de cabina y mira de precisión</small>
+              </div>
+            </div>
+            <div class="req-item">
+              <span class="req-icon">🖥️</span>
+              <div>
+                <strong>Pantalla Ancha (1024px+)</strong>
+                <small>Panel de instrumentos HUD y radar orbital</small>
+              </div>
+            </div>
+          </div>
+          <p class="notice-footer-text">
+            El portafolio completo (Perfil, Tecnologías, Proyectos, Trayectoria y Contacto) está 100% optimizado para tu dispositivo móvil o tablet.
+          </p>
+        </div>
+
+        <div class="pc-notice-actions">
+          <button type="button" class="btn-understand" (click)="closeMobilePcNotice()">Entendido</button>
+        </div>
+      </div>
+    </div>
+  }
+
   <div class="space-backdrop" aria-hidden="true">
     <div class="backdrop-stars"></div>
     <div class="backdrop-singularity"></div>
@@ -47,7 +100,6 @@
   <div id="contenido" class="page-content" [attr.inert]="isSpaceModeActive() ? '' : null">
     <section id="inicio" class="hero-section" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="section-kicker"><span class="kicker-line"></span> PORTAFOLIO PERSONAL · MENDOZA</p>
         <h1 id="hero-title">{{ portfolioService.profile().tituloHero || 'Soy Federico.' }}<br><span>{{ portfolioService.profile().bajadaHero || 'Desarrollo web y cartografía.' }}</span></h1>
         <p class="hero-description">
           {{ portfolioService.profile().resumen }}
@@ -127,7 +179,6 @@
     </section>
 
     <footer class="site-footer">
-      <a class="footer-brand" href="#inicio">FB<span> / </span>Federico Barzola</a>
       <p>Mendoza, Argentina · Portafolio de Federico Barzola.</p>
       <a href="#inicio">Volver arriba ↑</a>
     </footer>

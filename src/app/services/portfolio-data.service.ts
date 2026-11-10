@@ -53,6 +53,13 @@ export interface TrayectoriaExtra {
   idiomaCodigo: string;
 }
 
+export interface RedSocial {
+  nombre: string;
+  url: string;
+  iconoUrl?: string;
+  iconoTexto?: string;
+}
+
 export interface ContactoData {
   email: string;
   telefono: string;
@@ -60,6 +67,7 @@ export interface ContactoData {
   linkedin: string;
   ubicacion: string;
   formspreeEndpoint: string;
+  redes: RedSocial[];
 }
 
 export interface FullPortfolioData {
@@ -206,7 +214,11 @@ const DEFAULT_PORTFOLIO: FullPortfolioData = {
     github: 'https://github.com/pincha1212',
     linkedin: 'https://www.linkedin.com/in/federico-barzola-7138b3216/',
     ubicacion: 'Mendoza, Argentina',
-    formspreeEndpoint: 'https://formspree.io/f/xdkezazb'
+    formspreeEndpoint: 'https://formspree.io/f/xdkezazb',
+    redes: [
+      { nombre: 'GitHub', url: 'https://github.com/pincha1212', iconoUrl: 'assets/icons/github.png', iconoTexto: 'GH' },
+      { nombre: 'LinkedIn', url: 'https://www.linkedin.com/in/federico-barzola-7138b3216/', iconoUrl: 'assets/icons/linkedin.png', iconoTexto: 'IN' }
+    ]
   },
   updatedAt: new Date().toISOString()
 };
@@ -252,7 +264,13 @@ export class PortfolioDataService {
               ...DEFAULT_PORTFOLIO,
               ...parsed,
               profile: { ...DEFAULT_PORTFOLIO.profile, ...(parsed.profile || {}) },
-              contacto: { ...DEFAULT_PORTFOLIO.contacto, ...(parsed.contacto || {}) },
+              contacto: {
+                ...DEFAULT_PORTFOLIO.contacto,
+                ...(parsed.contacto || {}),
+                redes: (parsed.contacto && Array.isArray(parsed.contacto.redes) && parsed.contacto.redes.length > 0)
+                  ? parsed.contacto.redes
+                  : DEFAULT_PORTFOLIO.contacto.redes
+              },
               trayectoriaExtra: { ...DEFAULT_PORTFOLIO.trayectoriaExtra, ...(parsed.trayectoriaExtra || {}) }
             });
           }
@@ -285,7 +303,13 @@ export class PortfolioDataService {
             ...DEFAULT_PORTFOLIO,
             ...cloudData,
             profile: { ...DEFAULT_PORTFOLIO.profile, ...(cloudData.profile || {}) },
-            contacto: { ...DEFAULT_PORTFOLIO.contacto, ...(cloudData.contacto || {}) },
+            contacto: {
+              ...DEFAULT_PORTFOLIO.contacto,
+              ...(cloudData.contacto || {}),
+              redes: (cloudData.contacto && Array.isArray(cloudData.contacto.redes) && cloudData.contacto.redes.length > 0)
+                ? cloudData.contacto.redes
+                : DEFAULT_PORTFOLIO.contacto.redes
+            },
             trayectoriaExtra: { ...DEFAULT_PORTFOLIO.trayectoriaExtra, ...(cloudData.trayectoriaExtra || {}) }
           };
           this.portfolioData.set(merged);

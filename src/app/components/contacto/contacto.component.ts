@@ -3,7 +3,7 @@ import { Component, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { FormsModule, NgForm } from '@angular/forms';
-import { PortfolioDataService } from '../../services/portfolio-data.service';
+import { PortfolioDataService, RedSocial } from '../../services/portfolio-data.service';
 
 @Component({
   standalone: true,
@@ -33,6 +33,26 @@ export class ContactoComponent {
   }
   get formspreeEndpoint(): string {
     return this.portfolioService.contacto().formspreeEndpoint || 'https://formspree.io/f/xdkezazb';
+  }
+
+  get redes(): RedSocial[] {
+    const contact = this.portfolioService.contacto();
+    if (contact && Array.isArray(contact.redes) && contact.redes.length > 0) {
+      return contact.redes;
+    }
+    return [
+      { nombre: 'GitHub', url: this.githubUrl, iconoUrl: 'assets/icons/github.png', iconoTexto: 'GH' },
+      { nombre: 'LinkedIn', url: this.linkedinUrl, iconoUrl: 'assets/icons/linkedin.png', iconoTexto: 'IN' }
+    ];
+  }
+
+  handleImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      img.style.display = 'none';
+      const sibling = img.nextElementSibling as HTMLElement;
+      if (sibling) sibling.style.display = 'inline-flex';
+    }
   }
 
   mostrarFormulario = false;

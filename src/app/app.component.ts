@@ -26,12 +26,28 @@ import { PortfolioDataService } from './services/portfolio-data.service';
 export class AppComponent {
   portfolioService = inject(PortfolioDataService);
   isSpaceModeActive = signal(false);
+  showMobilePcNotice = signal(false);
   private previousFocus: HTMLElement | null = null;
 
+  checkDeviceType(): boolean {
+    if (typeof window === 'undefined') return true;
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isNarrow = window.innerWidth < 1024;
+    return !(isTouch || isNarrow);
+  }
+
   openSpaceMode(): void {
+    if (!this.checkDeviceType()) {
+      this.showMobilePcNotice.set(true);
+      return;
+    }
     this.previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.isSpaceModeActive.set(true);
     requestAnimationFrame(() => document.querySelector<HTMLElement>('.space-fullscreen-overlay .hud-close-btn')?.focus());
+  }
+
+  closeMobilePcNotice(): void {
+    this.showMobilePcNotice.set(false);
   }
 
   closeSpaceMode(): void {

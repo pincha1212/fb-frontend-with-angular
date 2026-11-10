@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PortfolioDataService, FullPortfolioData, HitoItem, EstudioItem, HabilidadCat, ExperienciaItem } from '../../services/portfolio-data.service';
+import { PortfolioDataService, FullPortfolioData, HitoItem, EstudioItem, HabilidadCat, ExperienciaItem, RedSocial } from '../../services/portfolio-data.service';
 import { Proyecto } from '../proyectos/proyectos.component';
 
 @Component({
@@ -38,6 +38,7 @@ export class PortfolioEditorModalComponent implements OnInit {
     if (!this.editableData.profile.hitos) this.editableData.profile.hitos = [];
     if (!this.editableData.profile.competencias) this.editableData.profile.competencias = [];
     if (!this.editableData.profile.estudios) this.editableData.profile.estudios = [];
+    if (!this.editableData.contacto.redes) this.editableData.contacto.redes = [];
 
     this.proyectosTechInputs = (this.editableData.proyectos || []).map(p => (p.tecnologias || []).join(', '));
     this.habilidadesItemsInputs = (this.editableData.habilidades || []).map(h => (h.items || []).join(', '));
@@ -144,6 +145,23 @@ export class PortfolioEditorModalComponent implements OnInit {
     this.editableData.experiencia[index].tecnologias = techs;
   }
 
+  // --- 05. CONTACTO & REDES SOCIALES ---
+  addRedSocial(): void {
+    if (!this.editableData.contacto.redes) {
+      this.editableData.contacto.redes = [];
+    }
+    this.editableData.contacto.redes.push({
+      nombre: 'Nueva Red / Enlace',
+      url: 'https://',
+      iconoUrl: '',
+      iconoTexto: 'RS'
+    });
+  }
+
+  removeRedSocial(index: number): void {
+    this.editableData.contacto.redes.splice(index, 1);
+  }
+
   // --- ACCIONES GENERALES ---
   async save(): Promise<void> {
     this.isSaving.set(true);
@@ -152,7 +170,7 @@ export class PortfolioEditorModalComponent implements OnInit {
   }
 
   resetDefaults(): void {
-    if (confirm('¿Restablecer todo el portafolio (Secciones 01 a 05) a los valores originales?')) {
+    if (confirm('¿Restablecer todo el portafolio a los valores originales?')) {
       this.portfolioService.resetToDefaults();
       this.resetFormFromCurrentState();
     }

@@ -12,13 +12,20 @@
     </div>
   </div>
 
-  <!-- Redes sociales -->
+  <!-- Redes sociales personalizables -->
   <div class="redes-sociales">
-    <a [href]="githubUrl" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="icon github">
-      <img src="assets/icons/github.png" alt="" referrerpolicy="no-referrer">
-    </a>
-    <a [href]="linkedinUrl" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="icon linkedin">
-      <img src="assets/icons/linkedin.png" alt="" referrerpolicy="no-referrer">
+    <a *ngFor="let red of redes" 
+       [href]="red.url" 
+       target="_blank" 
+       rel="noopener noreferrer" 
+       [attr.aria-label]="red.nombre" 
+       class="icon social-link-pill" 
+       [title]="red.nombre">
+      <img *ngIf="red.iconoUrl" [src]="red.iconoUrl" [alt]="red.nombre" referrerpolicy="no-referrer" (error)="handleImageError($event)">
+      <span class="social-fallback-badge" [style.display]="red.iconoUrl ? 'none' : 'inline-flex'">
+        {{ red.iconoTexto || red.nombre.substring(0, 2).toUpperCase() }}
+      </span>
+      <span class="social-name-tag">{{ red.nombre }}</span>
     </a>
   </div>
 
@@ -49,7 +56,7 @@
           novalidate>
 
       <div class="mb-3">
-          <label for="contact-name" class="form-label font-semibold text-slate-200">Nombre</label>
+        <label for="contact-name" class="form-label font-semibold text-slate-200">Nombre</label>
         <input id="contact-name" type="text" name="name" class="form-control" required minlength="2" #nameInput="ngModel" ngModel autocomplete="name" placeholder="Tu nombre">
         <div *ngIf="nameInput.invalid && (nameInput.dirty || nameInput.touched)" class="validation-error mt-1">
           <small>Revisá el nombre; debe tener al menos 2 caracteres.</small>

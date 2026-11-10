@@ -1,1 +1,62 @@
-:host { display: block; }
+:host {
+  display: block;
+}
+
+.redes-sociales {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 1.5rem 0;
+}
+
+.social-link-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.95rem;
+  background: rgba(15, 25, 40, 0.85);
+  border: 1px solid rgba(116, 217, 235, 0.3);
+  border-radius: 20px;
+  color: #c7e8f5;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.social-link-pill:hover {
+  background: rgba(25, 45, 70, 0.95);
+  border-color: #74d9eb;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(116, 217, 235, 0.25);
+}
+
+.social-link-pill img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.social-fallback-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: rgba(116, 217, 235, 0.2);
+  border: 1px solid rgba(116, 217, 235, 0.4);
+  border-radius: 50%;
+  color: #74d9eb;
+  font-size: 0.65rem;
+  font-weight: 800;
+  font-family: Consolas, monospace;
+}
+
+.social-name-tag {
+  letter-spacing: 0.02em;
+}

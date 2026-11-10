@@ -252,8 +252,8 @@
 
       <!-- 05. CONTACTO -->
       <section *ngIf="activeTab() === 'contacto'" class="tab-pane">
-        <h4>Canales de Contacto & Redes</h4>
-        <div class="form-grid">
+        <h4>Canales de Contacto Principal</h4>
+        <div class="form-grid mb-4">
           <div class="form-group">
             <label>Correo Electrónico</label>
             <input type="email" [(ngModel)]="editableData.contacto.email" class="input-control">
@@ -267,17 +267,36 @@
             <input type="text" [(ngModel)]="editableData.contacto.ubicacion" class="input-control">
           </div>
           <div class="form-group">
-            <label>Perfil de GitHub</label>
-            <input type="text" [(ngModel)]="editableData.contacto.github" class="input-control">
-          </div>
-          <div class="form-group full-width">
-            <label>Perfil de LinkedIn</label>
-            <input type="text" [(ngModel)]="editableData.contacto.linkedin" class="input-control">
-          </div>
-          <div class="form-group full-width">
             <label>Endpoint Formspree (Envío de Formularios)</label>
             <input type="text" [(ngModel)]="editableData.contacto.formspreeEndpoint" class="input-control">
           </div>
+        </div>
+
+        <div class="section-header mt-4">
+          <h5>Redes Sociales & Enlaces Personalizables</h5>
+          <button type="button" class="btn-sm btn-add" (click)="addRedSocial()">+ Agregar Red / Enlace</button>
+        </div>
+
+        <div *ngFor="let red of editableData.contacto.redes; let i = index" class="nested-card">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre de la Red / Plataforma</label>
+              <input type="text" [(ngModel)]="red.nombre" class="input-control" placeholder="Ej: GitHub, LinkedIn, Instagram, Discord, X">
+            </div>
+            <div class="form-group">
+              <label>URL / Enlace de Perfil</label>
+              <input type="text" [(ngModel)]="red.url" class="input-control" placeholder="https://...">
+            </div>
+            <div class="form-group">
+              <label>Ruta / URL de Ícono Imagen (Opcional)</label>
+              <input type="text" [(ngModel)]="red.iconoUrl" class="input-control" placeholder="assets/icons/github.png o URL de imagen">
+            </div>
+            <div class="form-group">
+              <label>Texto / Monograma Alternativo (Opcional)</label>
+              <input type="text" [(ngModel)]="red.iconoTexto" class="input-control" placeholder="Ej: GH, IN, IG, YT, X">
+            </div>
+          </div>
+          <button type="button" class="btn-sm btn-danger mt-2" (click)="removeRedSocial(i)">Eliminar Red Social</button>
         </div>
       </section>
     </main>
