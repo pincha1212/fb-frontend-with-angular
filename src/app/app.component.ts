@@ -1,4 +1,4 @@
-import { Component, HostListener, signal, inject, ViewChild } from '@angular/core';
+import { Component, HostListener, signal, inject, ViewChild, OnInit } from '@angular/core';
 import { SpacePlaygroundComponent } from './components/space-playground/space-playground.component';
 import { SobreMiComponent } from './components/sobre-mi/sobre-mi.component';
 import { HabilidadesComponent } from './components/habilidades/habilidades.component';
@@ -25,8 +25,17 @@ import { PortfolioDataService } from './services/portfolio-data.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   portfolioService = inject(PortfolioDataService);
+
+  ngOnInit(): void {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('autostart') === '1' || params.get('space') === '1') {
+        this.isSpaceModeActive.set(true);
+      }
+    }
+  }
   isSpaceModeActive = signal(false);
   showMobilePcNotice = signal(false);
   modelSelectionOpen = signal(false);
@@ -153,8 +162,15 @@ export class AppComponent {
     }
   }
 
-  @HostListener('document:keydown.escape')
-  closeSpaceModeWithEscape(): void {
+  @HostListener('document:keydown.escape', ['$event'])
+  closeSpaceModeWithEscape(event?: KeyboardEvent): void {
+    if (event?.defaultPrevented) return;
+    const hasOpenModal = document.querySelector(
+      '.iron-man-hologram-backdrop, .station-modal-overlay, .unified-settings-overlay, .help-modal-overlay'
+    );
+    if (hasOpenModal) {
+      return;
+    }
     this.closeSpaceMode();
   }
 

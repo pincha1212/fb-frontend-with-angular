@@ -99,6 +99,11 @@ export interface Modo3DConfig {
   combatStartMessage?: string;
   gamePausedMessage?: string;
   hostileTargetLockedMessage?: string;
+  deviceIncompatibilityMessage?: string;
+  incompatibilityTitle?: string;
+  incompatibilitySubtitle?: string;
+  incompatibilityRequirements?: { icon: string; title: string; description: string }[];
+  incompatibilityFooter?: string;
   stationsConfig?: Record<string, StationCustomConfig>;
 }
 
@@ -154,17 +159,26 @@ export const DEFAULT_FLEET_SHIPS: NaveModel[] = [
 
 export const DEFAULT_MODO3D_CONFIG: Modo3DConfig = {
   tacticalObjectiveTitle: 'DEFENDER SECTOR ORBITAL',
-  combatActivatedMessage: '🎮 MODO COMBATE ACTIVADO · OLEADA 1 · ESCUDO INMORTAL',
+  combatActivatedMessage: '🎮 MODO COMBATE ACTIVADO · ESCUDO INMORTAL ACTIVO',
   freeModeActivatedMessage: '🕊️ MODO NAVEGACIÓN LIBRE ACTIVADO',
-  shieldImpactMessage: '🛡️ ESCUDO INMORTAL ABSORBE IMPACTO HOSTIL',
+  shieldImpactMessage: '🛡️ IMPACTO ABSORBIDO POR EL ESCUDO',
   enemyDestroyedMessage: '💥 HOSTIL DERRIBADO!',
-  waveClearedMessage: '🚀 ¡OLEADA SUPERADA! NUEVA TANDA DE HOSTILES',
-  boundaryWarningMessage: '🚨 BARRERA DE SEGURIDAD DEL SECTOR · ESCUDO FRONTERIZO',
+  waveClearedMessage: '🚀 ¡OLEADA SUPERADA! NUEVOS CONTACTOS DETECTADOS',
+  boundaryWarningMessage: '🚨 LÍMITE DEL SECTOR · RETORNO AUTOMÁTICO',
   stationEncounterMessage: 'ESTACIÓN ALCANZADA',
-  lowHealthWarningMessage: '⚠️ ADVERTENCIA: INTEGRIDAD DE CASCO CRÍTICA',
-  combatStartMessage: '⚔️ ALERTA DE COMBATE · ENTRANDO EN ZONA HOSTIL',
+  lowHealthWarningMessage: '🛡️ ESCUDO AL 100% · SIN DAÑOS RELEVANTES',
+  combatStartMessage: '⚔️ ALERTA DE COMBATE · INTERCEPTACIÓN RECOMENDADA',
   gamePausedMessage: '⏸️ SIMULADOR EN PAUSA',
   hostileTargetLockedMessage: '🎯 HOSTIL EN MIRA',
+  deviceIncompatibilityMessage: 'Para disfrutar del simulador 3D de vuelo espacial es necesario acceder desde una PC de escritorio o laptop con teclado y mouse.',
+  incompatibilityTitle: 'MODO 3D EXCLUSIVO PARA PC',
+  incompatibilitySubtitle: 'Simulador de vuelo espacial',
+  incompatibilityRequirements: [
+    { icon: '⌨️', title: 'Teclado W/A/S/D o Flechas', description: 'Control de propulsión y 3 ejes de vuelo' },
+    { icon: '🖱️', title: 'Mouse (Pointer Lock)', description: 'Navegación libre de cabina y mira de precisión' },
+    { icon: '🖥️', title: 'Pantalla Ancha (1024px+)', description: 'Panel de instrumentos HUD y radar orbital' }
+  ],
+  incompatibilityFooter: 'El portafolio completo (Perfil, Tecnologías, Proyectos, Trayectoria y Contacto) está 100% optimizado para tu dispositivo móvil o tablet.',
   stationsConfig: {
     'sobre-mi': {
       sectionId: 'sobre-mi',
@@ -395,6 +409,11 @@ export function sanitizeModo3DConfig(config: any): Modo3DConfig {
     combatStartMessage: config.combatStartMessage || defaults.combatStartMessage,
     gamePausedMessage: config.gamePausedMessage || defaults.gamePausedMessage,
     hostileTargetLockedMessage: config.hostileTargetLockedMessage || defaults.hostileTargetLockedMessage,
+    deviceIncompatibilityMessage: config.deviceIncompatibilityMessage || defaults.deviceIncompatibilityMessage,
+    incompatibilityTitle: config.incompatibilityTitle || defaults.incompatibilityTitle,
+    incompatibilitySubtitle: config.incompatibilitySubtitle || defaults.incompatibilitySubtitle,
+    incompatibilityRequirements: Array.isArray(config.incompatibilityRequirements) ? config.incompatibilityRequirements : [...(defaults.incompatibilityRequirements || [])],
+    incompatibilityFooter: config.incompatibilityFooter || defaults.incompatibilityFooter,
     stationsConfig
   };
 }

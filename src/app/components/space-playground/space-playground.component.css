@@ -56,7 +56,7 @@
 /* Tactical Objective Banner */
 .tactical-objective-banner {
   position: absolute;
-  top: 14px;
+  top: 62px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 22;
@@ -94,7 +94,7 @@
 
 .mouse-pilot-hint {
   position: absolute;
-  top: 102px;
+  top: 104px;
   left: 50%;
   z-index: 18;
   display: flex;
@@ -208,6 +208,23 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: #8fd7eb;
+}
+
+.lod-pill {
+  border-color: rgba(0, 245, 212, 0.25);
+  background-color: rgba(6, 21, 26, 0.92);
+  transition: all 0.2s ease;
+}
+
+.lod-pill.lod-active .telemetry-value {
+  color: #00f5d4;
+}
+
+.lod-pill small {
+  font-size: 0.65rem;
+  color: #a7f3d0;
+  margin-left: 2px;
+  font-weight: 600;
 }
 
 .hangar-btn {
@@ -1104,7 +1121,7 @@
 
 .custom-glb-banner {
   position: absolute;
-  top: 80px;
+  top: 144px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 25;
@@ -1715,4 +1732,199 @@
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* LOD System Styles inside Settings Modal */
+.settings-title-sub-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
+.settings-desc-tag {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.lod-controls-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 245, 212, 0.2);
+  margin-top: 6px;
+}
+
+.lod-preset-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.lod-telemetry-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lod-telemetry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lod-telemetry-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #cbd5e1;
+  font-family: monospace;
+}
+
+.lod-savings-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-family: monospace;
+}
+
+.lod-tiers-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.lod-tier-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lod-tier-chip.high {
+  border-left: 3px solid #38bdf8;
+}
+
+.lod-tier-chip.medium {
+  border-left: 3px solid #f59e0b;
+}
+
+.lod-tier-chip.low {
+  border-left: 3px solid #a855f7;
+}
+
+.lod-tier-chip .tier-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.3px;
+}
+
+.lod-tier-chip .tier-val {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e2e8f0;
+  font-family: monospace;
+}
+
+.lod-explainer-text {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Mobile Touch Controls */
+.mobile-touch-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 30px;
+}
+
+.touch-cluster-left, .touch-cluster-right {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.dpad-cross {
+  display: grid;
+  grid-template-columns: repeat(3, 50px);
+  grid-template-rows: repeat(3, 50px);
+  gap: 5px;
+}
+
+.dpad-up { grid-column: 2; }
+.dpad-mid-row { grid-column: 1 / span 3; display: flex; gap: 5px; }
+.dpad-down { grid-column: 2; }
+
+.touch-btn {
+  background: rgba(13, 25, 34, 0.7);
+  border: 1px solid rgba(0, 245, 212, 0.3);
+  color: #00f5d4;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+.fire-touch-btn, .missile-touch-btn, .turbo-touch-btn {
+  width: 120px;
+  height: 50px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+.fire-touch-btn {
+  background: rgba(0, 245, 212, 0.1);
+  border-color: #00f5d4;
+}
+
+.missile-touch-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.turbo-touch-btn {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.touch-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0.95);
+}
+
+.touch-pitch-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.pitch-up-btn, .pitch-down-btn {
+  width: 55px;
+  height: 55px;
+}

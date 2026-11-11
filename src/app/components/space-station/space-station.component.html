@@ -1,43 +1,222 @@
-<section class="orbital-chart" role="region" aria-label="Carta orbital con rutas a las secciones del portafolio">
-  <header class="chart-heading">
-    <div>
-      <p class="chart-eyebrow">CARTA ORBITAL · SECTOR LOCAL</p>
-      <h3>Red de estaciones</h3>
-    </div>
-    <span class="chart-reference">FB / NAV-01</span>
-  </header>
+<div class="iron-man-tactical-chart" role="region" aria-label="Carta estelar táctica holográfica">
+  <!-- Scanline Laser Effect -->
+  <div class="hologram-laser-sweep" aria-hidden="true"></div>
 
-  <div class="chart-canvas">
-    <div class="chart-stars" aria-hidden="true"></div>
-    <div class="orbital-plane plane-one" aria-hidden="true"></div>
-    <div class="orbital-plane plane-two" aria-hidden="true"></div>
-    <div class="orbital-plane plane-three" aria-hidden="true"></div>
-    @for (st of stations; track st.id) {
-      <button
-        type="button"
-        class="orbital-station"
+  <!-- HUD Visor Top Telemetry Bar -->
+  <div class="chart-top-hud">
+    <div class="hud-status-badge">
+      <span class="hud-pulse-ring"></span>
+      <span class="hud-status-text">ARC-REACTOR TELEMETRY · 99.8%</span>
+    </div>
+    <div class="hud-shortcut-hints">
+      <span class="shortcut-tag"><kbd>1-5</kbd> FIJAR NODO</span>
+      <span class="shortcut-tag"><kbd>ENTER</kbd> SALTO</span>
+      <span class="shortcut-tag"><kbd>I</kbd> CONTENIDO</span>
+      <span class="shortcut-tag"><kbd>ESC</kbd> SALIR</span>
+    </div>
+    <div class="hud-network-status">
+      <span class="network-dot"></span>
+      <span class="network-label">RED ORBITAL: 5/5 SINCRONIZADAS</span>
+    </div>
+  </div>
+
+  <!-- Central Holographic Canvas Surface -->
+  <div class="tactical-canvas-surface">
+    <!-- Concentric Range Rings & Grid Background -->
+    <div class="hologram-grid-layer" aria-hidden="true">
+      <div class="hologram-range-ring ring-outer">
+        <span class="range-tag">150 KM</span>
+      </div>
+      <div class="hologram-range-ring ring-mid">
+        <span class="range-tag">100 KM</span>
+      </div>
+      <div class="hologram-range-ring ring-inner">
+        <span class="range-tag">50 KM</span>
+      </div>
+      <div class="hologram-azimuth-crosshair"></div>
+      <div class="azimuth-label az-n">000° // NORTE</div>
+      <div class="azimuth-label az-e">090° // ESTE</div>
+      <div class="azimuth-label az-s">180° // SUR</div>
+      <div class="azimuth-label az-w">270° // OESTE</div>
+    </div>
+
+    <!-- SVG Vector Constellation Network -->
+    <svg class="constellation-vector-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="vectorGradCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#00f5d4" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.8"/>
+        </linearGradient>
+        <linearGradient id="vectorGradGold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#00f5d4" stop-opacity="0.8"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Constellation Web Lines -->
+      <line class="tactical-link-line link-perimeter" x1="20" y1="26" x2="80" y2="26" />
+      <line class="tactical-link-line link-diag" x1="20" y1="26" x2="50" y2="48" />
+      <line class="tactical-link-line link-diag" x1="80" y1="26" x2="50" y2="48" />
+      <line class="tactical-link-line link-diag" x1="50" y1="48" x2="22" y2="74" />
+      <line class="tactical-link-line link-diag" x1="50" y1="48" x2="78" y2="74" />
+      <line class="tactical-link-line link-perimeter" x1="22" y1="74" x2="78" y2="74" />
+
+      <!-- Center to station targeting vectors -->
+      <line class="tactical-core-vector" x1="50" y1="50" x2="20" y2="26" />
+      <line class="tactical-core-vector" x1="50" y1="50" x2="80" y2="26" />
+      <line class="tactical-core-vector" x1="50" y1="50" x2="50" y2="48" />
+      <line class="tactical-core-vector" x1="50" y1="50" x2="22" y2="74" />
+      <line class="tactical-core-vector" x1="50" y1="50" x2="78" y2="74" />
+
+      <!-- Circular Radar Arc at center -->
+      <circle cx="50" cy="50" r="4" class="radar-center-core" />
+      <circle cx="50" cy="50" r="12" class="radar-core-orbit" />
+    </svg>
+
+    <!-- Center Arc Reactor & Player Position Node -->
+    <div class="ship-center-reticle" aria-label="Posición de la nave">
+      <div class="arc-reactor-core">
+        <div class="reactor-tri-ring"></div>
+        <div class="reactor-center-point"></div>
+      </div>
+      <div class="ship-reticle-label">
+        <span class="ship-reticle-icon">▲</span>
+        <span class="ship-reticle-text">TU NAVE · RUMBO ACTUAL</span>
+      </div>
+    </div>
+
+    <!-- 5 Orbital Stations Interactive Nodes -->
+    @for (st of stations; track st.id; let idx = $index) {
+      <div 
+        class="tactical-station-card"
+        [class.is-selected]="selectedStation().id === st.id"
+        [class.is-hovered]="hoveredStation()?.id === st.id"
         [style.left.%]="st.baseX"
         [style.top.%]="st.baseY"
-        [class.is-hovered]="hoveredStation()?.id === st.id"
-        (mouseenter)="onStationHover(st)"
-        (mouseleave)="onStationHover(null)"
-        (focus)="onStationHover(st)"
-        (blur)="onStationHover(null)"
-        (click)="onStationClick(st)"
-        [attr.aria-label]="st.name + ' · ' + st.category + '. Abrir sección.'">
-        <span class="station-silhouette" aria-hidden="true"><span class="station-body"></span><span class="solar-wing wing-left"></span><span class="solar-wing wing-right"></span><span class="station-signal"></span></span>
-        <span class="station-label-block">
-          <span class="station-code-tag">{{ st.code }}</span>
-          <strong class="station-name">{{ st.name }}</strong>
-          <span class="station-category">{{ st.category }}</span>
-        </span>
-        <span class="station-open-mark" aria-hidden="true">↗</span>
-      </button>
+        [style.--theme-color]="st.color"
+        [style.--glow-color]="st.glowHex"
+        (mouseenter)="onHoverStation(st)"
+        (mouseleave)="onHoverStation(null)"
+        (focus)="onHoverStation(st)"
+        (blur)="onHoverStation(null)"
+        (click)="selectStation(st)"
+        tabindex="0"
+        role="button"
+        [attr.aria-label]="st.code + ' ' + st.name + ' - ' + st.category">
+        
+        <!-- Target lock corner brackets -->
+        <div class="target-bracket tb-tl" aria-hidden="true"></div>
+        <div class="target-bracket tb-tr" aria-hidden="true"></div>
+        <div class="target-bracket tb-bl" aria-hidden="true"></div>
+        <div class="target-bracket tb-br" aria-hidden="true"></div>
+
+        <!-- Station beacon indicator -->
+        <div class="station-beacon-wrap">
+          <div class="beacon-circle">
+            <span class="beacon-index">{{ idx + 1 }}</span>
+          </div>
+          <div class="beacon-pulse-anim"></div>
+        </div>
+
+        <!-- Station info block -->
+        <div class="station-meta-block">
+          <div class="station-code-row">
+            <span class="st-code">{{ st.code }}</span>
+            <span class="st-dist">{{ st.distanceKm }}</span>
+          </div>
+          <h4 class="st-name">{{ st.name }}</h4>
+          <span class="st-category">{{ st.category }}</span>
+        </div>
+
+        <!-- Quick Action Buttons On Card -->
+        <div class="station-hover-actions">
+          <button 
+            type="button" 
+            class="card-action-btn btn-warp" 
+            (click)="$event.stopPropagation(); initiateWarp(st)"
+            [title]="'Fijar autopiloto y saltar a ' + st.name">
+            <span>🚀 SALTO</span>
+          </button>
+          <button 
+            type="button" 
+            class="card-action-btn btn-info" 
+            (click)="$event.stopPropagation(); openSection(st)"
+            [title]="'Abrir contenido de ' + st.name">
+            <span>📋 INFO</span>
+          </button>
+        </div>
+      </div>
     }
   </div>
 
-  <footer class="chart-footer">
-    <span><i aria-hidden="true"></i> 05 BALIZAS DE DATOS</span>
-    <span>Seleccioná una estación para abrir su registro</span>
+  <!-- JARVIS Bottom Telemetry & Navigation Dock -->
+  <footer class="jarvis-telemetry-dock">
+    <!-- Active Target Inspector -->
+    <div class="dock-target-inspector">
+      <div class="target-status-row">
+        <span class="target-lock-badge">
+          <span class="lock-icon">⌖</span> TARGET LOCK: {{ activeStation().code }}
+        </span>
+        <span class="target-sector-tag">{{ activeStation().sector }}</span>
+        <span class="target-coords">{{ activeStation().coordinates }}</span>
+      </div>
+
+      <div class="target-info-row">
+        <div class="target-main-data">
+          <h3 class="target-title" [style.color]="activeStation().color">
+            {{ activeStation().name }} <small>({{ activeStation().category }})</small>
+          </h3>
+          <p class="target-desc">{{ activeStation().description }}</p>
+        </div>
+
+        <!-- Interactive Direct CTAs -->
+        <div class="target-cta-buttons">
+          <button 
+            type="button" 
+            class="jarvis-cta-btn cta-warp" 
+            (click)="initiateWarp(activeStation())"
+            [title]="'Iniciar salto a ' + activeStation().name">
+            <span class="cta-icon">🚀</span>
+            <div class="cta-text-wrap">
+              <strong class="cta-primary-text">INICIAR SALTO HIPERESPACIAL</strong>
+              <small class="cta-sub-text">Autopiloto hacia {{ activeStation().name }} · {{ activeStation().distanceKm }}</small>
+            </div>
+            <span class="cta-arrow">➜</span>
+          </button>
+
+          <button 
+            type="button" 
+            class="jarvis-cta-btn cta-inspect" 
+            (click)="openSection(activeStation())"
+            [title]="'Abrir información completa de ' + activeStation().name">
+            <span class="cta-icon">📋</span>
+            <div class="cta-text-wrap">
+              <strong class="cta-primary-text">ABRIR REGISTRO</strong>
+              <small class="cta-sub-text">Ver archivo y detalles de sección</small>
+            </div>
+            <span class="cta-arrow">↗</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Jump Node Switcher -->
+    <div class="dock-nodes-bar" role="navigation" aria-label="Acceso rápido a estaciones">
+      <span class="nodes-bar-label">NODOS ORBITALES:</span>
+      <div class="nodes-pills-list">
+        @for (st of stations; track st.id; let idx = $index) {
+          <button 
+            type="button" 
+            class="node-select-pill"
+            [class.active]="selectedStation().id === st.id"
+            (click)="selectStation(st)"
+            [title]="st.name + ' (' + st.category + ')'">
+            <span class="pill-number">[{{ idx + 1 }}]</span>
+            <span class="pill-name">{{ st.name }}</span>
+            <span class="pill-dot" [style.background-color]="st.color"></span>
+          </button>
+        }
+      </div>
+    </div>
   </footer>
-</section>
+</div>

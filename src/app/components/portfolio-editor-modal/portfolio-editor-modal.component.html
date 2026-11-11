@@ -369,6 +369,41 @@
               <label>Mensaje: Objetivo Hostil Fijado</label>
               <input type="text" [(ngModel)]="editableData.modo3DConfig!.hostileTargetLockedMessage" class="input-control">
             </div>
+            <div class="form-group full-width">
+              <label>Mensaje: Advertencia de Incompatibilidad (Dispositivo móvil)</label>
+              <textarea rows="3" [(ngModel)]="editableData.modo3DConfig!.deviceIncompatibilityMessage" class="input-control"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Título del Aviso de Incompatibilidad</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.incompatibilityTitle" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Subtítulo del Aviso de Incompatibilidad</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.incompatibilitySubtitle" class="input-control">
+            </div>
+            <div class="form-group full-width">
+              <label>Pie de Aviso de Incompatibilidad</label>
+              <textarea rows="2" [(ngModel)]="editableData.modo3DConfig!.incompatibilityFooter" class="input-control"></textarea>
+            </div>
+            <div class="nested-section mt-3">
+              <h5>Requisitos de Dispositivo</h5>
+              <div *ngFor="let req of editableData.modo3DConfig!.incompatibilityRequirements; let i = index" class="nested-card compact">
+                <div class="form-grid compact">
+                  <div class="form-group" style="max-width: 60px;">
+                    <label>Ícono</label>
+                    <input type="text" [(ngModel)]="req.icon" class="input-control">
+                  </div>
+                  <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" [(ngModel)]="req.title" class="input-control">
+                  </div>
+                  <div class="form-group full-width">
+                    <label>Descripción</label>
+                    <input type="text" [(ngModel)]="req.description" class="input-control">
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -5,6 +5,8 @@ import {
   Input,
   Output,
   EventEmitter,
+  OnInit,
+  OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SpaceStationComponent } from '../space-station/space-station.component';
@@ -17,7 +19,7 @@ import { SpaceStationComponent } from '../space-station/space-station.component'
   styleUrls: ['./cockpit-hud.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CockpitHUDComponent {
+export class CockpitHUDComponent implements OnInit, OnDestroy {
   @Input() speedKms = 0;
   @Input() maxSpeedKms = 44;
   @Input() isTurboActive = false;
@@ -30,11 +32,12 @@ export class CockpitHUDComponent {
   @Input() shipTypeTag = 'BIO-ESTRUCTURA QUINÍTICA';
   @Input() hullLabel = 'INTEGRIDAD BIO-CORAZA';
   @Input() activeHostiles = 0;
-  @Input() combatMessage = '';
+  @Input() combatMessages: { id: number; text: string }[] = [];
   @Input() currentCameraMode: 'chase' | 'cockpit' | 'top' | 'cinematic' = 'chase';
 
   @Output() toggleTurbo = new EventEmitter<boolean>();
   @Output() teleportStation = new EventEmitter<any>();
+  @Output() inspectStation = new EventEmitter<string>();
   @Output() cameraModeChange = new EventEmitter<'chase' | 'cockpit' | 'top' | 'cinematic'>();
   @Output() fireWeapons = new EventEmitter<void>();
 
@@ -42,10 +45,37 @@ export class CockpitHUDComponent {
     return this.maxSpeedKms > 0 ? Math.min(100, Math.max(0, (this.speedKms / this.maxSpeedKms) * 100)) : 0;
   }
 
-  isExpanded = signal(true);
+  isExpanded = signal(false);
   isMapDrawerOpen = signal(false);
 
+  private onKeyDown = (e: KeyboardEvent): void => {
+    const target = e.target as HTMLElement | null;
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) {
+      return;
+    }
+    if ((e.key === 'm' || e.key === 'M') && !e.repeat) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggleMapDrawer();
+    } else if (e.key === 'Escape' && this.isMapDrawerOpen()) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      this.isMapDrawerOpen.set(false);
+    }
+  };
 
+  ngOnInit(): void {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', this.onKeyDown, { capture: true });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('keydown', this.onKeyDown, { capture: true });
+    }
+  }
 
   onToggleTurbo(): void {
     this.toggleTurbo.emit(!this.isTurboActive);
@@ -65,6 +95,17 @@ export class CockpitHUDComponent {
 
   onSelectStation(st: any): void {
     this.teleportStation.emit(st);
+    this.isMapDrawerOpen.set(false);
+  }
+
+  onWarpToStation(st: any): void {
+    const found = this.stations.find(s => s.id === st.id || s.sectionId === st.sectionId) || st;
+    this.teleportStation.emit(found);
+    this.isMapDrawerOpen.set(false);
+  }
+
+  onInspectStation(sectionId: string): void {
+    this.inspectStation.emit(sectionId);
     this.isMapDrawerOpen.set(false);
   }
 

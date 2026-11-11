@@ -32,13 +32,23 @@
         </span>
       </div>
 
+      <div class="telemetry-pill lod-pill" [class.lod-active]="lodEnabled()" [title]="'Sistema LOD: ' + (lodEnabled() ? lodProfile().toUpperCase() + ' (-' + lodMetrics().estimatedComplexitySavingsPercent + '%)' : 'DESACTIVADO')">
+        <span class="telemetry-label">SISTEMA LOD</span>
+        <span class="telemetry-value">
+          {{ lodEnabled() ? (lodProfile() === 'performance' ? 'MAX' : lodProfile() === 'ultra' ? 'ULTRA' : 'LOD-ON') : 'OFF' }}
+          @if (lodEnabled()) {
+            <small>-{{ lodMetrics().estimatedComplexitySavingsPercent }}%</small>
+          }
+        </span>
+      </div>
+
       <!-- Prominent Mode Switch Button (Directly accessible at the top) -->
       <button 
         type="button" 
         class="mode-switch-pill-btn"
         [class.combat-active]="gameMode() === 'combat'"
         (click)="toggleGameMode()"
-        [title]="gameMode() === 'combat' ? 'Cambiar a Modo Navegación Libre' : 'Cambiar a Modo Combate Inmortal'">
+        [title]="gameMode() === 'combat' ? 'Cambiar a Modo Navegación Libre' : 'Cambiar a Modo Combate Táctico'">
         <span class="mode-icon">{{ gameMode() === 'combat' ? '🎮' : '🕊️' }}</span>
         <span class="mode-text">{{ gameMode() === 'combat' ? 'COMBATE' : 'LIBRE' }}</span>
       </button>
@@ -51,7 +61,7 @@
 
       @if (gameMode() === 'combat') {
         <div class="combat-status-badge">
-          <span class="immortal-shield">🛡️ INMORTAL</span>
+          <span class="combat-active-tag">⚔️ COMBATE ACTIVO</span>
           <span class="wave-count">OLEADA {{ waveNumber() }}</span>
           <span class="kills-count">DERRIBOS: {{ enemiesDestroyed() }}</span>
         </div>
@@ -116,7 +126,76 @@
             </div>
           </div>
 
+          <!-- 2. SECCIÓN: SISTEMA LOD (NIVEL DE DETALLE Y RENDIMIENTO) -->
+          <div class="settings-section lod-section">
+            <div class="shader-section-top">
+              <div class="settings-title-sub-wrap">
+                <span class="settings-section-title">⚡ SISTEMA LOD (NIVEL DE DETALLE)</span>
+                <span class="settings-desc-tag">Optimización de complejidad y frecuencia de actualización</span>
+              </div>
+              <button 
+                type="button" 
+                class="settings-switch-btn"
+                [class.active]="lodEnabled()"
+                (click)="toggleLod()">
+                {{ lodEnabled() ? '⚡ ACTIVO' : 'OFF' }}
+              </button>
+            </div>
 
+            @if (lodEnabled()) {
+              <div class="lod-controls-box">
+                <span class="sub-label">PERFILES DE OPTIMIZACIÓN</span>
+                <div class="settings-preset-grid lod-preset-grid">
+                  <button 
+                    type="button" 
+                    class="preset-pill" 
+                    [class.active]="lodProfile() === 'performance'" 
+                    (click)="setLodProfile('performance')">
+                    🏎️ Rendimiento
+                  </button>
+                  <button 
+                    type="button" 
+                    class="preset-pill" 
+                    [class.active]="lodProfile() === 'balanced'" 
+                    (click)="setLodProfile('balanced')">
+                    ⚖️ Equilibrado
+                  </button>
+                  <button 
+                    type="button" 
+                    class="preset-pill" 
+                    [class.active]="lodProfile() === 'ultra'" 
+                    (click)="setLodProfile('ultra')">
+                    💎 Ultra Detalle
+                  </button>
+                </div>
+
+                <!-- Real-time LOD Telemetry Card -->
+                <div class="lod-telemetry-card">
+                  <div class="lod-telemetry-header">
+                    <span class="lod-telemetry-title">TELEMETRÍA LOD EN TIEMPO REAL</span>
+                    <span class="lod-savings-badge">Ahorro geométrico: -{{ lodMetrics().estimatedComplexitySavingsPercent }}%</span>
+                  </div>
+                  <div class="lod-tiers-row">
+                    <div class="lod-tier-chip high">
+                      <span class="tier-label">ALTA (0-{{ lodThresholds.medium }} km)</span>
+                      <span class="tier-val">{{ lodMetrics().highCount }} est. (60 Hz)</span>
+                    </div>
+                    <div class="lod-tier-chip medium">
+                      <span class="tier-label">MEDIA ({{ lodThresholds.medium }}-{{ lodThresholds.low }} km)</span>
+                      <span class="tier-val">{{ lodMetrics().mediumCount }} est. (30 Hz)</span>
+                    </div>
+                    <div class="lod-tier-chip low">
+                      <span class="tier-label">BAJA (>{{ lodThresholds.low }} km)</span>
+                      <span class="tier-val">{{ lodMetrics().lowCount }} est. (15 Hz)</span>
+                    </div>
+                  </div>
+                  <p class="lod-explainer-text">
+                    Reduce el poligonaje de estaciones distantes y modula la frecuencia de actualización (60Hz / 30Hz / 15Hz) en monolitos, asteroides y cazas hostiles.
+                  </p>
+                </div>
+              </div>
+            }
+          </div>
 
           <!-- 3. SECCIÓN: MOTOR GLSL GENERATIVO -->
           <div class="settings-section shader-pilot-section">
@@ -373,7 +452,11 @@
           </div>
           <div class="control-row">
             <span class="key-badge">F</span>
-            <span>Activar defensa ante una nave no identificada</span>
+            <span>Activar cañones de plasma</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">G</span>
+            <span>Lanzar misil teledirigido (busca al enemigo más cercano)</span>
           </div>
           <div class="control-row">
             <span class="key-badge">R</span>
@@ -500,10 +583,18 @@
         <button
           type="button"
           class="touch-btn fire-touch-btn"
-          aria-label="Activar defensa ante naves no identificadas"
+          aria-label="Activar cañones"
           [disabled]="activeHostiles() === 0"
           (click)="firePlayerWeapons()">
-          DEFENSA · F
+          PLASMA · F
+        </button>
+        <button
+          type="button"
+          class="touch-btn missile-touch-btn"
+          aria-label="Lanzar misil teledirigido"
+          [disabled]="activeHostiles() === 0"
+          (click)="fireMissile()">
+          MISIL · G
         </button>
       </div>
     </div>
@@ -528,10 +619,11 @@
     [shipTypeTag]="currentShipTypeTag()"
     [hullLabel]="currentHullLabel()"
     [activeHostiles]="activeHostiles()"
-    [combatMessage]="combatMessage()"
+    [combatMessages]="combatMessages()"
     [currentCameraMode]="cameraMode()"
     (toggleTurbo)="setTouchControl('boost', $event)"
     (teleportStation)="teleportToStation($event)"
+    (inspectStation)="openStationModal($event)"
     (fireWeapons)="firePlayerWeapons()"
     (cameraModeChange)="setCameraMode($event)">
   </app-cockpit-hud>

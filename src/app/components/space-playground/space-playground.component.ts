@@ -32,6 +32,18 @@ import {
   PRESET_FRACTAL_GLSL,
   PRESET_PLASMA_GLSL
 } from '../../services/shader-presets';
+import {
+  LodLevel,
+  LodProfile,
+  LodThresholds,
+  LodMetrics,
+  getLodThresholds,
+  determineLodLevel,
+  shouldUpdateEntity,
+  getUpdateDeltaMultiplier,
+  calculateLODMetrics,
+  LOD_PROFILES
+} from '../../services/lod-system';
 
 export interface StationData {
   id: string;
@@ -87,6 +99,13 @@ interface ActiveExplosion {
   maxLife: number;
 }
 
+interface Missile {
+  mesh: THREE.Group;
+  velocity: THREE.Vector3;
+  target: AlienFighter | null;
+  life: number;
+}
+
 export type ShaderPreset = 'synthwave' | 'nebula' | 'wormhole' | 'fractal' | 'plasma';
 
 @Component({
@@ -128,7 +147,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   pitchDegrees = signal(0);
   hullIntegrity = signal(100);
   activeHostiles = signal(0);
-  combatMessage = signal('');
+  combatMessages = signal<{ id: number; text: string }[]>([]);
+  private nextMessageId = 0;
   turboActive = signal(false);
   dockedStation = signal<StationData | null>(null);
   cameraMode = signal<'chase' | 'cockpit' | 'top' | 'cinematic'>('chase');
@@ -153,11 +173,63 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   waveNumber = signal(1);
   private combatReinforcementTimer = 0;
   isSettingsOpen = signal(false);
+  isRespawning = signal(false);
+  private isFirstLoad = true;
+
+  // Level of Detail (LOD) & Update Throttling System state
+  lodEnabled = signal(true);
+  lodProfile = signal<LodProfile>('balanced');
+  lodThresholds: LodThresholds = getLodThresholds('balanced');
+  lodMetrics = signal<LodMetrics>({
+    totalEntities: 5,
+    highCount: 5,
+    mediumCount: 0,
+    lowCount: 0,
+    culledCount: 0,
+    estimatedComplexitySavingsPercent: 0
+  });
+  private frameCounter = 0;
+
+  toggleLod(): void {
+    this.lodEnabled.update(v => !v);
+    this.updateLodThresholdsInScene();
+    this.refreshLodMetrics();
+    const stateText = this.lodEnabled() ? 'ACTIVADO' : 'DESACTIVADO';
+    this.setCombatMessage(`⚡ SISTEMA LOD (NIVEL DE DETALLE) ${stateText}`, 2500);
+  }
+
+  setLodProfile(profile: LodProfile): void {
+    this.lodProfile.set(profile);
+    this.lodThresholds = getLodThresholds(profile);
+    this.updateLodThresholdsInScene();
+    this.refreshLodMetrics();
+    const label = profile === 'performance' ? 'MÁXIMO RENDIMIENTO' : profile === 'ultra' ? 'ULTRA DETALLE' : 'EQUILIBRADO';
+    this.setCombatMessage(`⚙️ PERFIL LOD: ${label}`, 2500);
+  }
+
+  refreshLodMetrics(): void {
+    if (!this.stationMeshes || this.stationMeshes.length === 0) return;
+    const distances = this.stationMeshes.map(sm => this.shipPosition.distanceTo(sm.group.position));
+    const metrics = calculateLODMetrics(distances, this.lodThresholds, this.lodEnabled());
+    this.lodMetrics.set(metrics);
+  }
+
+  private updateLodThresholdsInScene(): void {
+    const enabled = this.lodEnabled();
+    this.stationMeshes.forEach(sm => {
+      if (sm.lod && sm.lod.levels && sm.lod.levels.length >= 3) {
+        sm.lod.levels[0].distance = 0;
+        sm.lod.levels[1].distance = enabled ? this.lodThresholds.medium : Infinity;
+        sm.lod.levels[2].distance = enabled ? this.lodThresholds.low : Infinity;
+      }
+    });
+  }
 
   toggleSettingsMenu(): void {
     this.isSettingsOpen.update(v => !v);
     if (this.isSettingsOpen()) {
       this.releasePointerLock();
+      this.refreshLodMetrics();
     }
   }
 
@@ -377,14 +449,21 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     fire: false
   };
 
-  // Interactive scene entities
+  // Interactive scene entities with Level of Detail (LOD)
   private stationMeshes: {
     group: THREE.Group;
+    lod: THREE.LOD;
     data: StationData;
+    highRig: THREE.Group;
+    mediumRig: THREE.Group;
+    lowRig: THREE.Group;
     beacon: THREE.Mesh;
+    mediumBeacon?: THREE.Mesh;
     satelliteRig: THREE.Group;
     haloRing?: THREE.Mesh;
     beaconBeam?: THREE.Mesh;
+    currentLodLevel: LodLevel;
+    distance: number;
   }[] = [];
   private thrusterParticles: { pos: THREE.Vector3; vel: THREE.Vector3; life: number; maxLife: number }[] = [];
   private thrusterParticlesGeometry!: THREE.BufferGeometry;
@@ -395,10 +474,52 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   private asteroidsList: { mesh: THREE.Mesh; position: THREE.Vector3; radius: number }[] = [];
   private playerCollisionCooldown = 0;
   private cameraShakeIntensity = 0;
+  private lastAppliedUrl = '';
+  private lastAppliedName = '';
+  private lastNotificationTimes = new Map<string, number>();
   private encounteredStationIds = new Set<string>();
   private combatCooldown = 0;
+  private missileCooldown = 0;
   private hullRegenCooldown = 0;
+  private combatMissiles: Missile[] = [];
   private combatMessageTimeout: ReturnType<typeof setTimeout> | null = null;
+  private cockpitOffset = new THREE.Vector3(0, 0.75, 1.6);
+  private updateCockpitOffset(): void {
+    const box = new THREE.Box3().setFromObject(this.shipGroup);
+    const size = box.getSize(new THREE.Vector3());
+    
+    // Heuristic: Place camera slightly above the center and forward.
+    this.cockpitOffset.set(
+      0, 
+      size.y * 0.2 + 0.5, // slightly above center
+      size.z * 0.3 + 1.0  // slightly forward
+    );
+  }
+
+  // --- PERFORMANCE POOLING & OPTIMIZATION ---
+  private readonly sharedGeos = {
+    sphere: new THREE.SphereGeometry(1, 12, 10),
+    box: new THREE.BoxGeometry(1, 1, 1),
+    tetra: new THREE.TetrahedronGeometry(1),
+    torus: new THREE.TorusGeometry(1, 0.05, 8, 24),
+    plane: new THREE.PlaneGeometry(1, 1),
+    dodeca: new THREE.DodecahedronGeometry(1),
+    cylinder: new THREE.CylinderGeometry(1, 1, 1, 8),
+    cone: new THREE.ConeGeometry(1, 1, 8)
+  };
+  
+  private activeLightsCount = 0;
+  private readonly MAX_EXPLOSION_LIGHTS = 4;
+  private readonly explosionMaterialCache = new Map<number, THREE.Material>();
+
+  private getCachedExplosionMat(color: number, transparent = true, opacity = 1.0): THREE.Material {
+    const key = color + (transparent ? 1 : 0) + opacity;
+    if (this.explosionMaterialCache.has(key)) return this.explosionMaterialCache.get(key)!;
+    
+    const mat = new THREE.MeshBasicMaterial({ color, transparent, opacity });
+    this.explosionMaterialCache.set(key, mat);
+    return mat;
+  }
 
   // Reusable math objects (Zero GC in tick)
   private readonly _vecA = new THREE.Vector3();
@@ -768,13 +889,39 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       const group = new THREE.Group();
       group.position.set(st.position.x, st.position.y, st.position.z);
 
-      // Compact orbital platform: habitat, service truss, radiator wings and antenna.
-      const satelliteRig = new THREE.Group();
+      // Shared materials across LOD tiers
       const hullMat = new THREE.MeshStandardMaterial({ color: 0x586661, roughness: 0.62, metalness: 0.72 });
       const edgeMat = new THREE.MeshStandardMaterial({ color: 0x89928a, roughness: 0.42, metalness: 0.78 });
       const panelMat = new THREE.MeshStandardMaterial({ color: 0x243b46, roughness: 0.48, metalness: 0.58 });
       const cellMat = new THREE.MeshStandardMaterial({ color: 0x395767, roughness: 0.4, metalness: 0.52 });
       const accentMat = new THREE.MeshStandardMaterial({ color: st.color, emissive: st.color, emissiveIntensity: 0.13, roughness: 0.4, metalness: 0.52 });
+      const beaconMat = new THREE.MeshBasicMaterial({ color: st.color });
+
+      // Shared call-sign billboard sprite
+      const labelCanvas = document.createElement('canvas');
+      labelCanvas.width = 512;
+      labelCanvas.height = 112;
+      const lctx = labelCanvas.getContext('2d')!;
+      lctx.fillStyle = 'rgba(7, 14, 18, 0.78)';
+      lctx.fillRect(0, 15, labelCanvas.width, 82);
+      lctx.fillStyle = '#b9c7c0';
+      lctx.font = '600 20px monospace';
+      lctx.textAlign = 'left';
+      lctx.fillText(`ORBITAL ${st.icon}  /  ${st.name.toUpperCase()}`, 20, 50);
+      lctx.fillStyle = '#a9b9b0';
+      lctx.font = '16px monospace';
+      lctx.fillText(`ALT ${st.position.y > 0 ? '+' : ''}${st.position.y}.0 KM`, 20, 76);
+
+      const labelTex = new THREE.CanvasTexture(labelCanvas);
+      labelTex.colorSpace = THREE.SRGBColorSpace;
+      const labelMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, depthWrite: false });
+
+      // ========================================================
+      // TIER 0: HIGH DETAIL (Near range: 0 to ~55 km)
+      // 25+ distinct meshes, individual solar cells, relay satellites
+      // ========================================================
+      const highRig = new THREE.Group();
+      const satelliteRig = new THREE.Group();
 
       const truss = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 15.5, 8), edgeMat);
       truss.rotation.z = Math.PI / 2;
@@ -830,12 +977,11 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       satelliteRig.add(dish);
 
       const beaconGeo = new THREE.SphereGeometry(0.22, 10, 8);
-      const beaconMat = new THREE.MeshBasicMaterial({ color: st.color });
       const beacon = new THREE.Mesh(beaconGeo, beaconMat);
       beacon.position.set(0, 7.15, 1.65);
       satelliteRig.add(beacon);
 
-      // Two small relay satellites circle the main habitat on a quiet orbit.
+      // Two small relay satellites circle the main habitat
       const relayGeo = new THREE.BoxGeometry(0.72, 0.62, 1.1);
       const relayMat = new THREE.MeshStandardMaterial({ color: 0x77827b, roughness: 0.52, metalness: 0.68 });
       for (const side of [-1, 1]) {
@@ -852,32 +998,81 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         relay.add(relayLink);
         satelliteRig.add(relay);
       }
-      group.add(satelliteRig);
+      highRig.add(satelliteRig);
 
-      // A small instrument style call sign follows the station in open space.
-      const labelCanvas = document.createElement('canvas');
-      labelCanvas.width = 512;
-      labelCanvas.height = 112;
-      const lctx = labelCanvas.getContext('2d')!;
-      lctx.fillStyle = 'rgba(7, 14, 18, 0.78)';
-      lctx.fillRect(0, 15, labelCanvas.width, 82);
-      lctx.fillStyle = '#b9c7c0';
-      lctx.font = '600 20px monospace';
-      lctx.textAlign = 'left';
-      lctx.fillText(`ORBITAL ${st.icon}  /  ${st.name.toUpperCase()}`, 20, 50);
-      lctx.fillStyle = '#a9b9b0';
-      lctx.font = '16px monospace';
-      lctx.fillText(`ALT ${st.position.y > 0 ? '+' : ''}${st.position.y}.0 KM`, 20, 76);
+      const highLabelSprite = new THREE.Sprite(labelMat);
+      highLabelSprite.scale.set(14, 3.1, 1);
+      highLabelSprite.position.set(0, 12.2, 0);
+      highRig.add(highLabelSprite);
 
-      const labelTex = new THREE.CanvasTexture(labelCanvas);
-      labelTex.colorSpace = THREE.SRGBColorSpace;
-      const labelMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, depthWrite: false });
-      const labelSprite = new THREE.Sprite(labelMat);
-      labelSprite.scale.set(14, 3.1, 1);
-      labelSprite.position.set(0, 12.2, 0);
-      group.add(labelSprite);
+      // ========================================================
+      // TIER 1: MEDIUM DETAIL (Mid range: ~55 to ~130 km)
+      // Streamlined ~7 meshes: consolidated wings, no small relay satellites
+      // ========================================================
+      const mediumRig = new THREE.Group();
+      const medHabitat = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.22, 4.7, 8), hullMat);
+      medHabitat.rotation.x = Math.PI / 2;
+      medHabitat.position.set(0, 5.15, 0);
+      mediumRig.add(medHabitat);
 
-      // 3D Luminous Ion Light Beam projecting through the station into space
+      const medTruss = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 14.0, 6), edgeMat);
+      medTruss.rotation.z = Math.PI / 2;
+      medTruss.position.set(0, 4.65, 0);
+      mediumRig.add(medTruss);
+
+      const medBand = new THREE.Mesh(new THREE.TorusGeometry(1.13, 0.1, 4, 12), accentMat);
+      medBand.rotation.x = Math.PI / 2;
+      medBand.position.set(0, 5.15, 0);
+      mediumRig.add(medBand);
+
+      // Consolidated single-mesh solar wing panels (1 per side instead of 6 each)
+      const medWingGeo = new THREE.BoxGeometry(4.2, 0.1, 2.6);
+      for (const side of [-1, 1]) {
+        const medWing = new THREE.Mesh(medWingGeo, panelMat);
+        medWing.position.set(side * 5.2, 4.65, 0);
+        mediumRig.add(medWing);
+      }
+
+      const medDish = new THREE.Mesh(new THREE.SphereGeometry(0.8, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2), hullMat);
+      medDish.position.set(0, 7.8, -1.2);
+      medDish.rotation.x = Math.PI / 2.8;
+      mediumRig.add(medDish);
+
+      const mediumBeacon = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 6), beaconMat);
+      mediumBeacon.position.set(0, 7.15, 1.65);
+      mediumRig.add(mediumBeacon);
+
+      const medLabelSprite = new THREE.Sprite(labelMat);
+      medLabelSprite.scale.set(14, 3.1, 1);
+      medLabelSprite.position.set(0, 12.2, 0);
+      mediumRig.add(medLabelSprite);
+
+      // ========================================================
+      // TIER 2: LOW DETAIL (Distant range: > 130 km)
+      // Minimalist low-poly beacon proxy (2-3 meshes total, ~88% savings)
+      // ========================================================
+      const lowRig = new THREE.Group();
+      const lowCore = new THREE.Mesh(new THREE.OctahedronGeometry(1.6, 0), hullMat);
+      lowCore.position.set(0, 5.15, 0);
+      lowCore.rotation.y = Math.PI / 4;
+      lowRig.add(lowCore);
+
+      const lowBand = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.25, 0.8), accentMat);
+      lowBand.position.set(0, 5.15, 0);
+      lowRig.add(lowBand);
+
+      const lowBeacon = new THREE.Mesh(new THREE.SphereGeometry(0.35, 6, 4), beaconMat);
+      lowBeacon.position.set(0, 6.8, 0);
+      lowRig.add(lowBeacon);
+
+      // Assemble THREE.LOD container
+      const lod = new THREE.LOD();
+      lod.addLevel(highRig, 0);
+      lod.addLevel(mediumRig, this.lodThresholds.medium);
+      lod.addLevel(lowRig, this.lodThresholds.low);
+      group.add(lod);
+
+      // Shared Global Beacon Elements (Navigation Ion Beam & Pulsing Halo Ring)
       const beamGeo = new THREE.CylinderGeometry(0.35, 0.7, 160, 8);
       const beamMat = new THREE.MeshBasicMaterial({
         color: st.color,
@@ -890,7 +1085,6 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       beaconBeam.position.set(0, 0, 0);
       group.add(beaconBeam);
 
-      // Large Pulsing Holographic Beacon Ring around the station
       const haloRingGeo = new THREE.TorusGeometry(15, 0.22, 8, 48);
       const haloRingMat = new THREE.MeshBasicMaterial({
         color: st.color,
@@ -903,8 +1097,23 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       group.add(haloRing);
 
       this.scene.add(group);
-      this.stationMeshes.push({ group, data: st, beacon, satelliteRig, haloRing, beaconBeam });
+      this.stationMeshes.push({
+        group,
+        lod,
+        data: st,
+        highRig,
+        mediumRig,
+        lowRig,
+        beacon,
+        mediumBeacon,
+        satelliteRig,
+        haloRing,
+        beaconBeam,
+        currentLodLevel: LodLevel.HIGH,
+        distance: 0
+      });
     });
+    this.refreshLodMetrics();
   }
 
   // ==========================================
@@ -912,6 +1121,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   // ==========================================
   private buildSpaceship(): void {
     this.shipGroup = new THREE.Group();
+    this.shipGroup.rotation.order = 'YXZ';
     this.shipGroup.position.copy(this.shipPosition);
     this.scene.add(this.shipGroup);
 
@@ -920,6 +1130,13 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
   applySelectedShip(url: string, name?: string): void {
     if (!this.shipGroup) return;
+
+    const finalName = name || '';
+    if (url === this.lastAppliedUrl && finalName === this.lastAppliedName) {
+      return;
+    }
+    this.lastAppliedUrl = url;
+    this.lastAppliedName = finalName;
 
     // 1. Thorough cleanup of existing meshes, geometries, and materials
     while (this.shipGroup.children.length > 0) {
@@ -982,9 +1199,13 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       this.currentShipSub.set('Fuselaje viviente de quitina · Propulsión gravitacional');
       this.currentShipTypeTag.set('BIO-ESTRUCTURA QUINÍTICA');
       this.currentHullLabel.set('INTEGRIDAD BIO-CORAZA');
-      this.setCombatMessage(`👾 NAVE EQUIPADA: ${finalName.toUpperCase()}`, 3000);
+      if (!this.isFirstLoad) {
+        this.setCombatMessage(`👾 NAVE EQUIPADA: ${finalName.toUpperCase()}`, 3000);
+      }
       this.playChime([440, 554, 659]);
     }
+    this.isFirstLoad = false;
+    this.updateCockpitOffset();
   }
 
   private buildAlienSpaceship(): void {
@@ -1036,6 +1257,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.shipGroup.add(thorax);
 
     // 2. Cephalic Mandible / Predatory Nose
+    // 2. Cephalic Mandible / Predatory Nose
     const noseGeo = new THREE.ConeGeometry(0.82, 3.8, 16);
     const nose = new THREE.Mesh(noseGeo, alienPlatingMat);
     nose.rotation.x = Math.PI / 2;
@@ -1043,6 +1265,21 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     nose.position.set(0, 0.08, 3.9);
     nose.castShadow = !this.isSoftwareGl;
     this.shipGroup.add(nose);
+
+    // Add Weapon Pods (Laser Cannons)
+    const cannonGeo = new THREE.CylinderGeometry(0.08, 0.12, 1.2, 8);
+    const cannonMat = alienPlatingMat.clone();
+    for (const side of [-1, 1]) {
+      const cannon = new THREE.Mesh(cannonGeo, cannonMat);
+      cannon.rotation.x = Math.PI / 2;
+      cannon.position.set(side * 1.1, -0.2, 1.5);
+      this.shipGroup.add(cannon);
+
+      const muzzleGlow = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), alienGlowMat);
+      muzzleGlow.position.set(side * 1.1, -0.2, 2.1);
+      this.shipGroup.add(muzzleGlow);
+    }
+
 
     // 3. Segmented Dorsal Bio-Crest (strictly on X=0 center line)
     for (let i = 0; i < 5; i++) {
@@ -1270,6 +1507,22 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     });
     this.shipGroup.add(leftWingGroup);
 
+    // 2.5 Add Auxiliary Weapon Pods (Shuttle conversion for combat)
+    const podGeo = new THREE.CylinderGeometry(0.15, 0.18, 1.4, 8);
+    const podMat = whiteHullMat.clone();
+    for (const side of [-1, 1]) {
+      const pod = new THREE.Mesh(podGeo, podMat);
+      pod.rotation.x = Math.PI / 2;
+      pod.position.set(side * 0.8, -0.6, 0.5);
+      this.shipGroup.add(pod);
+
+      const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 6), rocketEngineMat);
+      nozzle.rotation.x = Math.PI / 2;
+      nozzle.position.set(side * 0.8, -0.6, 1.3);
+      this.shipGroup.add(nozzle);
+    }
+
+
     // 3. Strictly Centered Vertical Tail Fin (X = 0 Centerline)
     const tailFinShape = new THREE.Shape();
     tailFinShape.moveTo(0, 0);
@@ -1379,6 +1632,17 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), laserMat);
     muzzle.position.set(3.7, -0.05, 0.45);
     rightWingGroup.add(muzzle);
+
+    // Missile Rack under wing
+    const rack = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.08, 1.2), frameMat);
+    rack.position.set(2.0, -0.2, -0.2);
+    rightWingGroup.add(rack);
+
+    const miniMissile = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.8, 6), ionNacelleMat);
+    miniMissile.rotation.x = Math.PI / 2;
+    miniMissile.position.set(2.0, -0.28, -0.1);
+    rightWingGroup.add(miniMissile);
+
 
     // Angled Canted Vertical Stabilizer
     const finShape = new THREE.Shape();
@@ -1492,14 +1756,11 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.enemiesDestroyed.update(v => v + 1);
     this.activeHostiles.set(this.alienFighters.length);
 
-    if (this.gameMode() === 'combat' && this.alienFighters.length < 3) {
-      this.spawnCombatEnemies(1);
-    }
   }
 
   spawnExplosion(
     pos: THREE.Vector3,
-    type: 'catastrophic' | 'impact' | 'shield' | 'asteroid' | 'structure',
+    type: 'catastrophic' | 'impact' | 'shield' | 'asteroid' | 'structure' | 'glitch',
     colorHex = 0xff6600,
     scaleMult = 1.0
   ): void {
@@ -1514,23 +1775,23 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     if (type === 'catastrophic') {
       maxLife = 1.2 * scaleMult;
-      const fireballGeo = new THREE.SphereGeometry(1.2 * scaleMult, 16, 12);
-      const fireballMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.95 });
-      fireball = new THREE.Mesh(fireballGeo, fireballMat);
+      const fireballMat = this.getCachedExplosionMat(colorHex, true, 0.95);
+      fireball = new THREE.Mesh(this.sharedGeos.sphere, fireballMat);
+      fireball.userData['baseScale'] = 1.2 * scaleMult;
       group.add(fireball);
 
-      const ringGeo = new THREE.TorusGeometry(1.5 * scaleMult, 0.15 * scaleMult, 8, 24);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.8, side: THREE.DoubleSide });
-      shockwave = new THREE.Mesh(ringGeo, ringMat);
+      const ringMat = this.getCachedExplosionMat(0xffaa00, true, 0.8);
+      shockwave = new THREE.Mesh(this.sharedGeos.torus, ringMat);
       shockwave.rotation.x = Math.PI / 2;
+      shockwave.userData['baseScale'] = 1.5 * scaleMult;
       group.add(shockwave);
 
-      const shardMat = new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200, emissiveIntensity: 1.5, roughness: 0.2 });
-      const numShards = Math.floor(25 * scaleMult);
+      const shardMat = this.getCachedExplosionMat(0xff4400, false);
+      const numShards = Math.floor(15 * scaleMult); // Reduced count for stability
       for (let i = 0; i < numShards; i++) {
         const shardSize = (0.15 + Math.random() * 0.35) * scaleMult;
-        const shardGeo = Math.random() > 0.5 ? new THREE.TetrahedronGeometry(shardSize) : new THREE.BoxGeometry(shardSize, shardSize * 1.5, shardSize * 0.5);
-        const mesh = new THREE.Mesh(shardGeo, shardMat);
+        const mesh = new THREE.Mesh(Math.random() > 0.5 ? this.sharedGeos.tetra : this.sharedGeos.box, shardMat);
+        mesh.scale.set(shardSize, shardSize, shardSize);
         const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
         const speed = (12 + Math.random() * 24) * scaleMult;
         const velocity = dir.multiplyScalar(speed);
@@ -1539,16 +1800,20 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         particles.push({ mesh, velocity, rotSpeed });
       }
 
-      light = new THREE.PointLight(colorHex, 10 * scaleMult, 45 * scaleMult);
-      group.add(light);
+      if (this.activeLightsCount < this.MAX_EXPLOSION_LIGHTS) {
+        light = new THREE.PointLight(colorHex, 10 * scaleMult, 45 * scaleMult);
+        group.add(light);
+        this.activeLightsCount++;
+      }
       this.playExplosionSound('big');
       this.cameraShakeIntensity = Math.max(this.cameraShakeIntensity, 0.9 * scaleMult);
 
     } else if (type === 'impact') {
       maxLife = 0.45 * scaleMult;
-      const sparkMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.9 });
-      for (let i = 0; i < 14; i++) {
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.3), sparkMat);
+      const sparkMat = this.getCachedExplosionMat(colorHex, true, 0.9);
+      for (let i = 0; i < 8; i++) {
+        const mesh = new THREE.Mesh(this.sharedGeos.box, sparkMat);
+        mesh.scale.set(0.08, 0.08, 0.3);
         const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir);
         const velocity = dir.multiplyScalar((15 + Math.random() * 18) * scaleMult);
@@ -1556,51 +1821,42 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         group.add(mesh);
         particles.push({ mesh, velocity, rotSpeed });
       }
-      light = new THREE.PointLight(colorHex, 4 * scaleMult, 20 * scaleMult);
-      group.add(light);
       this.playExplosionSound('medium');
 
     } else if (type === 'shield') {
       maxLife = 0.4 * scaleMult;
-      const domeGeo = new THREE.SphereGeometry(2.2 * scaleMult, 16, 12, 0, Math.PI * 2, 0, Math.PI / 1.8);
-      const domeMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
-      fireball = new THREE.Mesh(domeGeo, domeMat);
+      const domeMat = this.getCachedExplosionMat(0x38bdf8, true, 0.7);
+      fireball = new THREE.Mesh(this.sharedGeos.sphere, domeMat);
+      fireball.userData['baseScale'] = 2.2 * scaleMult;
       group.add(fireball);
 
-      const ringGeo = new THREE.TorusGeometry(2.3 * scaleMult, 0.08, 8, 24);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.85 });
-      shockwave = new THREE.Mesh(ringGeo, ringMat);
+      const ringMat = this.getCachedExplosionMat(0x7dd3fc, true, 0.85);
+      shockwave = new THREE.Mesh(this.sharedGeos.torus, ringMat);
+      shockwave.userData['baseScale'] = 2.3 * scaleMult;
       group.add(shockwave);
-
-      light = new THREE.PointLight(0x38bdf8, 5, 25);
-      group.add(light);
       this.playExplosionSound('shield');
 
     } else if (type === 'asteroid') {
       maxLife = 0.75 * scaleMult;
-      const rockMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9, flatShading: true });
-      for (let i = 0; i < 18; i++) {
+      const rockMat = this.getCachedExplosionMat(0x64748b, false);
+      for (let i = 0; i < 10; i++) {
         const size = (0.2 + Math.random() * 0.4) * scaleMult;
-        const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(size), rockMat);
+        const mesh = new THREE.Mesh(this.sharedGeos.dodeca, rockMat);
+        mesh.scale.set(size, size, size);
         const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
         const velocity = dir.multiplyScalar((10 + Math.random() * 16) * scaleMult);
         const rotSpeed = new THREE.Vector3(Math.random() * 10, Math.random() * 10, Math.random() * 10);
         group.add(mesh);
         particles.push({ mesh, velocity, rotSpeed });
       }
-      const flashMat = new THREE.MeshBasicMaterial({ color: 0xff7700, transparent: true, opacity: 0.9 });
-      fireball = new THREE.Mesh(new THREE.SphereGeometry(1.0 * scaleMult, 12, 10), flashMat);
-      group.add(fireball);
-
-      light = new THREE.PointLight(0xffaa00, 6 * scaleMult, 30 * scaleMult);
-      group.add(light);
       this.playExplosionSound('crunch');
 
     } else if (type === 'structure') {
       maxLife = 0.65 * scaleMult;
-      const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.95 });
-      for (let i = 0; i < 20; i++) {
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.4), cyanMat);
+      const cyanMat = this.getCachedExplosionMat(0x00f5d4, true, 0.95);
+      for (let i = 0; i < 12; i++) {
+        const mesh = new THREE.Mesh(this.sharedGeos.box, cyanMat);
+        mesh.scale.set(0.1, 0.1, 0.4);
         const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir);
         const velocity = dir.multiplyScalar((14 + Math.random() * 20) * scaleMult);
@@ -1608,13 +1864,26 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         group.add(mesh);
         particles.push({ mesh, velocity, rotSpeed });
       }
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
-      shockwave = new THREE.Mesh(new THREE.TorusGeometry(2.0 * scaleMult, 0.1, 8, 24), ringMat);
+      const ringMat = this.getCachedExplosionMat(0x00f5d4, true, 0.85);
+      shockwave = new THREE.Mesh(this.sharedGeos.torus, ringMat);
       shockwave.rotation.x = Math.PI / 2;
+      shockwave.userData['baseScale'] = 2.0 * scaleMult;
       group.add(shockwave);
+      this.playExplosionSound('shield');
 
-      light = new THREE.PointLight(0x00f5d4, 8, 35);
-      group.add(light);
+    } else if (type === 'glitch') {
+      maxLife = 0.3 * scaleMult;
+      const glitchMat = this.getCachedExplosionMat(colorHex, true, 0.8);
+      for (let i = 0; i < 6; i++) {
+        const mesh = new THREE.Mesh(this.sharedGeos.plane, glitchMat);
+        mesh.scale.set(0.1, 1.2, 1.0);
+        const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+        const velocity = dir.multiplyScalar(5 * scaleMult);
+        const rotSpeed = new THREE.Vector3(0, 0, 10);
+        group.add(mesh);
+        particles.push({ mesh, velocity, rotSpeed });
+      }
       this.playExplosionSound('shield');
     }
 
@@ -1630,15 +1899,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
       if (progress >= 1.0) {
         this.scene.remove(exp.group);
-        exp.group.traverse(obj => {
-          const m = obj as THREE.Mesh;
-          if (m && m.isMesh) {
-            m.geometry?.dispose();
-            const mats = Array.isArray(m.material) ? m.material : [m.material];
-            mats.forEach(mat => mat?.dispose());
-          }
-        });
-        if (exp.light) exp.light.dispose();
+        if (exp.light) {
+          exp.light.dispose();
+          this.activeLightsCount--;
+        }
         this.activeExplosions.splice(i, 1);
         continue;
       }
@@ -1646,13 +1910,13 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       const fade = 1 - progress;
 
       if (exp.fireball) {
-        const s = 1.0 + progress * 2.5;
+        const s = exp.fireball.userData['baseScale'] * (1.0 + progress * 2.5);
         exp.fireball.scale.set(s, s, s);
         if (exp.fireball.material instanceof THREE.Material) exp.fireball.material.opacity = fade * 0.9;
       }
 
       if (exp.shockwave) {
-        const s = 1.0 + progress * 4.5;
+        const s = exp.shockwave.userData['baseScale'] * (1.0 + progress * 4.5);
         exp.shockwave.scale.set(s, s, s);
         if (exp.shockwave.material instanceof THREE.Material) exp.shockwave.material.opacity = fade * 0.75;
       }
@@ -1727,7 +1991,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.encounteredStationIds.add(station.id);
 
     if (this.gameMode() === 'free') {
-      this.setCombatMessage((this.cfg.stationEncounterMessage || 'ESTACIÓN ALCANZADA') + ` · ${station.name.toUpperCase()}`, 2500);
+      // Visual notification removed in Free Mode as per user request
       this.playChime([440, 660]);
       return;
     }
@@ -1738,10 +2002,21 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.playChime([480, 360]);
   }
 
-  private setCombatMessage(message: string, duration = 3600): void {
-    this.combatMessage.set(message);
-    if (this.combatMessageTimeout) clearTimeout(this.combatMessageTimeout);
-    this.combatMessageTimeout = setTimeout(() => this.combatMessage.set(''), duration);
+  private setCombatMessage(text: string, duration = 3600): void {
+    // 1. Instant deduplication (don't add if already in the stack)
+    if (this.combatMessages().some(m => m.text === text)) return;
+
+    // 2. Temporal deduplication (don't repeat the same message too soon after it expired)
+    const now = Date.now();
+    const lastTime = this.lastNotificationTimes.get(text) || 0;
+    if (now - lastTime < duration + 1000) return; 
+    this.lastNotificationTimes.set(text, now);
+
+    const id = this.nextMessageId++;
+    this.combatMessages.update(msgs => [...msgs, { id, text }]);
+    setTimeout(() => {
+      this.combatMessages.update(msgs => msgs.filter(m => m.id !== id));
+    }, duration);
   }
 
   firePlayerWeapons(): void {
@@ -1756,37 +2031,124 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     const lateral = new THREE.Vector3(Math.cos(this.shipRotationY), 0, -Math.sin(this.shipRotationY));
     const direction = forward.clone().normalize();
     for (const side of [-1, 1]) {
-      const origin = this.shipPosition.clone().addScaledVector(forward, 2.4).addScaledVector(lateral, side * 0.62);
-      const bolt = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.035, 0.035, 1.4, 6),
-        new THREE.MeshBasicMaterial({ color: 0xe6bd79 })
-      );
-      bolt.position.copy(origin);
-      bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
-      this.scene.add(bolt);
-      this.combatBolts.push({ mesh: bolt, velocity: direction.clone().multiplyScalar(115), remaining: 2.6, side: 'player' });
+      const origin = this.shipPosition.clone().addScaledVector(forward, 2.4).addScaledVector(lateral, side * 1.1);
+      
+      const boltGroup = new THREE.Group();
+      
+      // Main core bolt
+      const bolt = new THREE.Mesh(this.sharedGeos.cylinder, this.getCachedExplosionMat(0xffffff, false));
+      bolt.scale.set(0.025, 3.5, 0.025);
+      bolt.rotation.x = Math.PI / 2;
+      boltGroup.add(bolt);
+
+      // Outer glow
+      const glow = new THREE.Mesh(this.sharedGeos.cylinder, this.getCachedExplosionMat(0x00f5d4, true, 0.4));
+      glow.scale.set(0.08, 3.8, 0.08);
+      glow.rotation.x = Math.PI / 2;
+      boltGroup.add(glow);
+
+      boltGroup.position.copy(origin);
+      boltGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction);
+      this.scene.add(boltGroup);
+      
+      // We use the group as the mesh for the physics system
+      this.combatBolts.push({ 
+        mesh: boltGroup as unknown as THREE.Mesh, 
+        velocity: direction.clone().multiplyScalar(135), 
+        remaining: 2.5, 
+        side: 'player' 
+      });
     }
     this.playChime([720, 540]);
   }
 
+  fireMissile(): void {
+    if (this.missileCooldown > 0 || this.alienFighters.length === 0) return;
+    this.missileCooldown = 2.0; // 2 seconds between missiles
+
+    // Find nearest target
+    let nearest: AlienFighter | null = null;
+    let minDist = Infinity;
+    for (const f of this.alienFighters) {
+      const d = f.group.position.distanceTo(this.shipPosition);
+      if (d < minDist) {
+        minDist = d;
+        nearest = f;
+      }
+    }
+
+    const missileGroup = new THREE.Group();
+    const body = new THREE.Mesh(this.sharedGeos.cylinder, this.getCachedExplosionMat(0x334155, false));
+    body.scale.set(0.12, 1.2, 0.12);
+    body.rotation.x = Math.PI / 2;
+    missileGroup.add(body);
+
+    const tip = new THREE.Mesh(this.sharedGeos.cone, this.getCachedExplosionMat(0xef4444, false));
+    tip.scale.set(0.12, 0.4, 0.12);
+    tip.position.z = 0.8;
+    tip.rotation.x = Math.PI / 2;
+    missileGroup.add(tip);
+
+    const trail = new THREE.Mesh(this.sharedGeos.cone, this.getCachedExplosionMat(0x00f5d4, true, 0.4));
+    trail.scale.set(0.15, 1.8, 0.15);
+    trail.position.z = -1.2;
+    trail.rotation.x = -Math.PI / 2;
+    missileGroup.add(trail);
+
+    const pointLight = new THREE.PointLight(0x00f5d4, 2, 10);
+    pointLight.position.z = -0.5;
+    missileGroup.add(pointLight);
+
+    missileGroup.position.copy(this.shipPosition).add(new THREE.Vector3(0, -0.8, 1).applyQuaternion(this.shipGroup.quaternion));
+    this.scene.add(missileGroup);
+
+    this.combatMissiles.push({
+      mesh: missileGroup,
+      velocity: new THREE.Vector3(0, 0, 15).applyQuaternion(this.shipGroup.quaternion),
+      target: nearest,
+      life: 5.0
+    });
+
+    this.setCombatMessage('🚀 MISIL TELEDIRIGIDO LANZADO', 2000);
+    this.playChime([300, 450, 600]);
+  }
+
   private fireAlienWeapons(fighter: AlienFighter): void {
     const direction = this.shipPosition.clone().add(new THREE.Vector3(0, 0.3, 0)).sub(fighter.group.position).normalize();
-    const bolt = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.06, 0.06, 1.7, 6),
-      new THREE.MeshBasicMaterial({ color: 0xb8563e })
-    );
-    bolt.position.copy(fighter.group.position).addScaledVector(direction, 2.2);
-    bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
-    this.scene.add(bolt);
-    this.combatBolts.push({ mesh: bolt, velocity: direction.multiplyScalar(42), remaining: 4.5, side: 'hostile' });
+    
+    const boltGroup = new THREE.Group();
+    
+    const core = new THREE.Mesh(this.sharedGeos.cylinder, this.getCachedExplosionMat(0xffffff, false));
+    core.scale.set(0.04, 1.8, 0.04);
+    core.rotation.x = Math.PI / 2;
+    boltGroup.add(core);
+
+    const glow = new THREE.Mesh(this.sharedGeos.cylinder, this.getCachedExplosionMat(0xff4400, true, 0.3));
+    glow.scale.set(0.12, 2.0, 0.12);
+    glow.rotation.x = Math.PI / 2;
+    boltGroup.add(glow);
+
+    boltGroup.position.copy(fighter.group.position).addScaledVector(direction, 2.2);
+    boltGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction);
+    this.scene.add(boltGroup);
+    
+    this.combatBolts.push({ 
+      mesh: boltGroup as unknown as THREE.Mesh, 
+      velocity: direction.multiplyScalar(48), 
+      remaining: 4.5, 
+      side: 'hostile' 
+    });
   }
 
   private updateCombat(delta: number): void {
     if (this.gameMode() !== 'combat') return;
 
     this.combatCooldown = Math.max(0, this.combatCooldown - delta);
+    this.missileCooldown = Math.max(0, this.missileCooldown - delta);
     this.hullRegenCooldown = Math.max(0, this.hullRegenCooldown - delta);
-    this.hullIntegrity.set(100);
+    
+    // Auto-regen faster to compensate for removing death, and keep health near 100
+    this.hullIntegrity.update(v => Math.min(100, v + delta * 15));
 
     // Periodic enemy reinforcements every 40 seconds in combat mode
     this.combatReinforcementTimer += delta;
@@ -1801,9 +2163,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     // Check if current wave is cleared -> advance wave
     if (this.alienFighters.length === 0) {
       this.waveNumber.update(v => v + 1);
-      const nextCount = 3 + Math.floor(this.waveNumber() * 1.5);
+      // Slower growth: start at 3, increase every 2 waves
+      const nextCount = 3 + Math.floor((this.waveNumber() - 1) / 2);
       this.spawnCombatEnemies(nextCount);
-      this.setCombatMessage((this.cfg.waveClearedMessage || '🚀 ¡OLEADA SUPERADA!') + ` (OLEADA ${this.waveNumber()})`, 4500);
+      this.setCombatMessage((this.cfg.waveClearedMessage || '🚀 ¡NUEVA OLEADA ENTRANTE!') + ` (OLEADA ${this.waveNumber()})`, 4500);
       this.playChime([523, 659, 784, 1046, 1318]);
     }
 
@@ -1813,8 +2176,19 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     const diffFactor = 1.0 + (this.waveNumber() - 1) * 0.2;
 
-    for (const fighter of this.alienFighters) {
-      fighter.phase += delta * (fighter.velocity.x >= 0 ? 0.32 : -0.32) * diffFactor;
+    for (let fIdx = 0; fIdx < this.alienFighters.length; fIdx++) {
+      const fighter = this.alienFighters[fIdx];
+      const dist = fighter.group.position.distanceTo(this.shipPosition);
+      const fighterLod = determineLodLevel(dist, this.lodThresholds, this.lodEnabled());
+
+      // If distant and throttled, skip sub-frame updates
+      if (!shouldUpdateEntity(fighterLod, this.frameCounter, this.lodEnabled(), fIdx)) {
+        continue;
+      }
+      const deltaMult = getUpdateDeltaMultiplier(fighterLod, this.lodEnabled());
+      const effectiveDelta = delta * deltaMult;
+
+      fighter.phase += effectiveDelta * (fighter.velocity.x >= 0 ? 0.32 : -0.32) * diffFactor;
       const target = new THREE.Vector3(
         this.shipPosition.x + Math.cos(fighter.phase) * fighter.orbitRadius,
         this.shipPosition.y + Math.sin(this.elapsedTime * 1.2 + fighter.phase) * fighter.orbitRadius * 0.4,
@@ -1822,14 +2196,62 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       );
       const toTarget = target.sub(fighter.group.position);
       const desiredVelocity = toTarget.lengthSq() > 0.01 ? toTarget.normalize().multiplyScalar(9.5 * diffFactor) : new THREE.Vector3();
-      fighter.velocity.lerp(desiredVelocity, Math.min(1, delta * 1.8));
-      fighter.group.position.addScaledVector(fighter.velocity, delta);
+      fighter.velocity.lerp(desiredVelocity, Math.min(1, effectiveDelta * 1.8));
+      fighter.group.position.addScaledVector(fighter.velocity, effectiveDelta);
       fighter.group.lookAt(this.shipPosition.x, this.shipPosition.y + 0.2, this.shipPosition.z);
       fighter.group.rotation.z = Math.sin(this.elapsedTime * 1.8 + fighter.phase) * 0.1;
-      fighter.fireCooldown -= delta;
-      if (fighter.fireCooldown <= 0 && fighter.group.position.distanceTo(this.shipPosition) < 115) {
+      fighter.fireCooldown -= effectiveDelta;
+      if (fighter.fireCooldown <= 0 && dist < 115) {
         this.fireAlienWeapons(fighter);
-        fighter.fireCooldown = (1.2 + Math.random() * 1.0) / diffFactor;
+        // Enemies shoot MUCH less: (5.0 to 8.0 seconds cooldown)
+        fighter.fireCooldown = (5.0 + Math.random() * 3.0) / diffFactor;
+      }
+    }
+
+    // Update Guided Missiles
+    for (let i = this.combatMissiles.length - 1; i >= 0; i--) {
+      const m = this.combatMissiles[i];
+      m.life -= delta;
+      
+      if (m.target && this.alienFighters.includes(m.target)) {
+        const toTarget = m.target.group.position.clone().sub(m.mesh.position).normalize();
+        m.velocity.lerp(toTarget.multiplyScalar(35), delta * 4.0);
+        m.mesh.lookAt(m.target.group.position);
+      } else {
+        // Find new target if lost
+        let nearest: AlienFighter | null = null;
+        let minDist = Infinity;
+        for (const f of this.alienFighters) {
+          const d = f.group.position.distanceTo(m.mesh.position);
+          if (d < minDist) {
+            minDist = d;
+            nearest = f;
+          }
+        }
+        m.target = nearest;
+      }
+
+      m.mesh.position.addScaledVector(m.velocity, delta);
+
+      let hit = false;
+      const hitIndex = this.alienFighters.findIndex(f => m.mesh.position.distanceTo(f.group.position) < 3.5);
+      if (hitIndex >= 0) {
+        const target = this.alienFighters[hitIndex];
+        this.spawnExplosion(m.mesh.position.clone(), 'catastrophic', 0x38bdf8, 2.5);
+        this.destroyEnemyFighter(hitIndex);
+        this.setCombatMessage('🚀 ¡IMPACTO DE MISIL!', 2000);
+        hit = true;
+      }
+
+      if (hit || m.life <= 0) {
+        this.scene.remove(m.mesh);
+        m.mesh.traverse(obj => {
+          if ((obj as THREE.Mesh).isMesh) {
+            (obj as THREE.Mesh).geometry.dispose();
+            ((obj as THREE.Mesh).material as THREE.Material).dispose();
+          }
+        });
+        this.combatMissiles.splice(i, 1);
       }
     }
 
@@ -1839,11 +2261,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       bolt.mesh.position.addScaledVector(bolt.velocity, delta);
       let consumed = bolt.remaining <= 0;
 
-      if (!consumed && bolt.side === 'hostile' && bolt.mesh.position.distanceTo(this.shipPosition) < 2.2) {
-        this.hullIntegrity.set(100);
-        this.spawnExplosion(bolt.mesh.position.clone(), 'shield', 0x38bdf8, 1.0);
-        this.cameraShakeIntensity = Math.max(this.cameraShakeIntensity, 0.45);
-        this.setCombatMessage(this.cfg.shieldImpactMessage || '🛡️ IMPACTO ABSORBIDO', 1400);
+      if (!consumed && bolt.side === 'hostile' && !this.isRespawning() && bolt.mesh.position.distanceTo(this.shipPosition) < 2.2) {
+        // Player is effectively immortal now as requested, just shake camera
+        this.cameraShakeIntensity = Math.max(this.cameraShakeIntensity, 0.2);
+        this.setCombatMessage(this.cfg.shieldImpactMessage || '🛡️ IMPACTO ABSORBIDO', 1000);
         consumed = true;
       } else if (!consumed && bolt.side === 'player') {
         const hitIndex = this.alienFighters.findIndex(fighter => bolt.mesh.position.distanceTo(fighter.group.position) < 2.6);
@@ -1867,8 +2288,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
       if (consumed) {
         this.scene.remove(bolt.mesh);
-        bolt.mesh.geometry.dispose();
-        (bolt.mesh.material as THREE.Material).dispose();
+        // Disposal is now handled by the pooling system (geometries and materials are shared)
+        // We only remove the group from the scene.
         this.combatBolts.splice(boltIndex, 1);
       }
     }
@@ -2022,6 +2443,9 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     if (key === 'r' && !e.repeat) {
       this.resetShipPosition();
     }
+    if (key === 'g' && !e.repeat) {
+      this.fireMissile();
+    }
     if (key === 'c' && !e.repeat) {
       this.cycleCamera();
     }
@@ -2046,19 +2470,21 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     if (!isLocked) {
       this.shipYawRate = 0;
       this.shipPitchRate = 0;
+      this.lastPointerLockRelease = Date.now();
     }
   };
 
   private onMouseMove = (event: MouseEvent): void => {
     if (document.pointerLockElement !== this.renderer?.domElement) return;
 
-    const sensitivity = 0.0021;
+    const sensitivityX = 0.0018; // Slightly reduced yaw sensitivity
+    const sensitivityY = 0.0035; // Increased pitch sensitivity
     const yMultiplier = this.invertY() ? -1 : 1;
     // Mouse horizontal: moving right turns ship right, moving left turns ship left
-    this.shipRotationY -= event.movementX * sensitivity;
+    this.shipRotationY -= event.movementX * sensitivityX;
     // Mouse vertical: moving up (negative movementY) pitches nose UP, moving down pitches nose DOWN
     this.shipPitch = THREE.MathUtils.clamp(
-      this.shipPitch + yMultiplier * event.movementY * sensitivity,
+      this.shipPitch + yMultiplier * event.movementY * sensitivityY,
       -0.92,
       0.92
     );
@@ -2096,12 +2522,30 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     if (control === 'fire') this.touchState.fire = state;
   }
 
+  private lastPointerLockRelease = 0;
+
   captureMouse(event: MouseEvent): void {
     if (!this.hasMouseControl() || event.target !== this.renderer?.domElement || document.pointerLockElement) return;
+    
+    // Prevent immediate re-acquisition error (browser security policy)
+    // 1.3s is a safer threshold for most browsers to reset their pointer lock permission state.
+    const now = Date.now();
+    if (now - this.lastPointerLockRelease < 1300) return;
+
     if (this.cameraMode() === 'top' || this.cameraMode() === 'cinematic') this.setCameraMode('chase');
+    
     try {
-      this.renderer.domElement.requestPointerLock();
-    } catch {
+      const el = this.renderer.domElement;
+      // Modern browsers return a promise
+      const promise = el.requestPointerLock() as any;
+      if (promise && promise.catch) {
+        promise.catch((err: any) => {
+          console.warn('Pointer lock request rejected:', err);
+          this.isPointerLocked.set(false);
+        });
+      }
+    } catch (err) {
+      console.warn('Pointer lock request failed:', err);
       this.isPointerLocked.set(false);
     }
   }
@@ -2115,6 +2559,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.shipPitch = 0;
     this.shipYawRate = 0;
     this.shipPitchRate = 0;
+    this.hullIntegrity.set(100);
+    this.isRespawning.set(false);
     this.playChime([330, 440]);
   }
 
@@ -2151,6 +2597,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         this.dockedStation.set(st);
         this.beginStationEncounter(st);
         this.isTransiting.set(false);
+        this.refreshLodMetrics();
         this.playChime([440, 554, 659]);
       }
     }, 20);
@@ -2225,6 +2672,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         this.currentShipSub.set('Modelo 3D cargado desde la nube · Telemetría activa');
         this.setCombatMessage(`✓ MODELO 3D CARGADO: ${name.toUpperCase()}`, 3500);
         this.playChime([523, 659, 784, 1046]);
+        this.updateCockpitOffset();
       },
       undefined,
       (error) => {
@@ -2277,6 +2725,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       const delta = Math.min((now - this.lastTime) / 1000, 0.05);
       this.lastTime = now;
       this.elapsedTime += delta;
+      this.frameCounter++;
 
       this.updatePhysics(delta);
       this.updateCombat(delta);
@@ -2390,19 +2839,31 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     if (this.shipBioCoreMat) {
       this.shipBioCoreMat.emissiveIntensity = 0.9 + 0.6 * Math.sin(this.elapsedTime * 4.2);
     }
+    // Animate alien monoliths with distance-based LOD update throttling
     for (let m = 0; m < this.alienMonoliths.length; m++) {
       const mono = this.alienMonoliths[m];
-      mono.rotation.y += delta * (0.16 + m * 0.05);
-      mono.rotation.x += delta * 0.08;
+      const dist = this.shipPosition.distanceTo(mono.position);
+      const monoLod = determineLodLevel(dist, this.lodThresholds, this.lodEnabled());
+      if (shouldUpdateEntity(monoLod, this.frameCounter, this.lodEnabled(), m)) {
+        const deltaMult = getUpdateDeltaMultiplier(monoLod, this.lodEnabled());
+        mono.rotation.y += delta * deltaMult * (0.16 + m * 0.05);
+        mono.rotation.x += delta * deltaMult * 0.08;
+      }
     }
 
     // Update collision cooldowns
     this.playerCollisionCooldown = Math.max(0, this.playerCollisionCooldown - delta);
 
     if (this.playerCollisionCooldown <= 0) {
-      // 1. Check Asteroid Collisions
-      for (const ast of this.asteroidsList) {
-        const dist = this.shipPosition.distanceTo(ast.position);
+      // 1. Check Asteroid Collisions with distance LOD
+      for (let i = 0; i < this.asteroidsList.length; i++) {
+        const ast = this.asteroidsList[i];
+        const distSq = this.shipPosition.distanceToSquared(ast.position);
+        // Distant asteroids (> 75 km): skip fine collision test on 7 out of 8 frames
+        if (this.lodEnabled() && distSq > 5625) {
+          if ((this.frameCounter + i) % 8 !== 0) continue;
+        }
+        const dist = Math.sqrt(distSq);
         if (dist < ast.radius + 1.8) {
           this.playerCollisionCooldown = 0.65;
           const bounceDir = this._vecA.subVectors(this.shipPosition, ast.position).normalize();
@@ -2410,8 +2871,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
           this.shipVelocity.copy(bounceDir).multiplyScalar(Math.max(14, this.shipSpeed * 0.8));
 
           const impactPoint = this.shipPosition.clone().addScaledVector(bounceDir, -1.2);
-          this.spawnExplosion(impactPoint, 'asteroid', 0xff9933, 1.2);
-          this.cameraShakeIntensity = 0.85;
+          this.spawnExplosion(impactPoint, 'glitch', 0xff9933, 0.8);
+          this.cameraShakeIntensity = 0.45;
           this.setCombatMessage('💥 IMPACTO CON ASTEROIDE · REBOTE DE SEGURIDAD', 2000);
           break;
         }
@@ -2427,16 +2888,17 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
           const bounceDir = this._vecA.subVectors(this.shipPosition, mono.position).normalize();
           this.shipVelocity.copy(bounceDir).multiplyScalar(Math.max(16, this.shipSpeed * 0.9));
 
-          this.spawnExplosion(this.shipPosition.clone(), 'structure', 0x00f5d4, 1.4);
-          this.cameraShakeIntensity = 0.95;
+          this.spawnExplosion(this.shipPosition.clone(), 'glitch', 0x00f5d4, 1.0);
+          this.cameraShakeIntensity = 0.5;
           this.setCombatMessage('⚡ DESCARGA ENERGÉTICA · MONOLITO ANCESTRAL', 2000);
           break;
         }
       }
     }
 
+    // 3. Check Orbital Station Deflector Collisions - DISABLED per user request
+    /*
     if (this.playerCollisionCooldown <= 0) {
-      // 3. Check Orbital Station Deflector Collisions
       for (const sm of this.stationMeshes) {
         const dist = this.shipPosition.distanceTo(sm.group.position);
         if (dist < 11.5) {
@@ -2446,13 +2908,14 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
           this.shipVelocity.copy(bounceDir).multiplyScalar(Math.max(16, this.shipSpeed * 0.85));
 
           const impactPoint = this.shipPosition.clone().addScaledVector(bounceDir, -1.0);
-          this.spawnExplosion(impactPoint, 'structure', sm.data.color || 0x00f5d4, 1.3);
-          this.cameraShakeIntensity = 0.8;
+          this.spawnExplosion(impactPoint, 'shield', sm.data.color || 0x00f5d4, 0.7);
+          this.cameraShakeIntensity = 0.4;
           this.setCombatMessage(`🛡️ CAMPO DEFLECTOR · ESTACIÓN ${sm.data.name.toUpperCase()}`, 2000);
           break;
         }
       }
     }
+    */
 
     if (this.playerCollisionCooldown <= 0) {
       // 4. Check Ramming Enemy Fighters
@@ -2482,14 +2945,14 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // 5. Sector Boundary Forcefield Barrier Collisions (Radius > 340)
     const distFromCenter = this.shipPosition.length();
-    if (distFromCenter > 340) {
+    if (distFromCenter > 340 && this.playerCollisionCooldown <= 0) {
       const normal = this.shipPosition.clone().normalize().negate();
       this.shipPosition.clampLength(0, 338);
       this.shipVelocity.reflect(normal).multiplyScalar(0.75);
       this.playerCollisionCooldown = 0.5;
 
-      this.spawnExplosion(this.shipPosition.clone(), 'structure', 0xff0055, 1.6);
-      this.cameraShakeIntensity = 1.1;
+      this.spawnExplosion(this.shipPosition.clone(), 'glitch', 0xff0055, 1.2);
+      this.cameraShakeIntensity = 0.6;
       this.setCombatMessage(this.cfg.boundaryWarningMessage || '🚨 BARRERA DE SEGURIDAD DEL SECTOR', 2200);
       this.playChime([880, 440, 220]);
     }
@@ -2595,32 +3058,66 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     let closestStation: StationData | null = null;
     let minStationDist = 18;
     const showBeacons = this.showWaypoints() && this.gameMode() === 'free';
+    const distances: number[] = [];
 
-    this.stationMeshes.forEach(sm => {
-      sm.beacon.rotation.y += 1.2 * delta;
-      sm.satelliteRig.rotation.y += 0.012 * delta;
-
-      sm.beacon.visible = showBeacons;
-
-      // Animate 3D holographic beacon halo ring & ion beam
-      if (sm.haloRing) {
-        sm.haloRing.visible = showBeacons;
-        sm.haloRing.rotation.z += 0.28 * delta;
-        const pulse = Math.sin(elapsed * 2.4);
-        sm.haloRing.scale.setScalar(1.0 + 0.25 * pulse);
-        (sm.haloRing.material as THREE.MeshBasicMaterial).opacity = 0.35 + 0.2 * pulse;
-      }
-      if (sm.beaconBeam) {
-        sm.beaconBeam.visible = showBeacons;
-        (sm.beaconBeam.material as THREE.MeshBasicMaterial).opacity = 0.28 + 0.12 * Math.sin(elapsed * 3.2);
-      }
-
+    this.stationMeshes.forEach((sm, index) => {
       const dist = this.shipPosition.distanceTo(sm.group.position);
+      distances.push(dist);
+
+      const lodLevel = determineLodLevel(dist, this.lodThresholds, this.lodEnabled());
+      sm.currentLodLevel = lodLevel;
+      sm.distance = dist;
+
+      // Update Three.js LOD geometry visibility based on camera distance
+      if (this.camera) {
+        sm.lod.update(this.camera);
+      }
+
+      // LOD update frequency throttling:
+      // HIGH: 60Hz (every frame)
+      // MEDIUM: 30Hz (every 2nd frame)
+      // LOW: 15Hz (every 4th frame)
+      // CULLED: update skipped
+      if (shouldUpdateEntity(lodLevel, this.frameCounter, this.lodEnabled(), index)) {
+        const deltaMult = getUpdateDeltaMultiplier(lodLevel, this.lodEnabled());
+
+        if (sm.beacon) {
+          sm.beacon.rotation.y += 1.2 * delta * deltaMult;
+          sm.beacon.visible = showBeacons;
+        }
+        if (sm.mediumBeacon) {
+          sm.mediumBeacon.rotation.y += 1.2 * delta * deltaMult;
+          sm.mediumBeacon.visible = showBeacons;
+        }
+        if (sm.satelliteRig) {
+          sm.satelliteRig.rotation.y += 0.012 * delta * deltaMult;
+        }
+
+        // Animate 3D holographic beacon halo ring & ion beam
+        if (sm.haloRing) {
+          sm.haloRing.visible = showBeacons;
+          sm.haloRing.rotation.z += 0.28 * delta * deltaMult;
+          const pulse = Math.sin(elapsed * 2.4);
+          sm.haloRing.scale.setScalar(1.0 + 0.25 * pulse);
+          (sm.haloRing.material as THREE.MeshBasicMaterial).opacity = 0.35 + 0.2 * pulse;
+        }
+        if (sm.beaconBeam) {
+          sm.beaconBeam.visible = showBeacons;
+          (sm.beaconBeam.material as THREE.MeshBasicMaterial).opacity = 0.28 + 0.12 * Math.sin(elapsed * 3.2);
+        }
+      }
+
       if (dist < minStationDist) {
         minStationDist = dist;
         closestStation = sm.data;
       }
     });
+
+    // Periodically update LOD metrics for UI telemetry without burdening the render loop
+    if (this.frameCounter % 15 === 0) {
+      const metrics = calculateLODMetrics(distances, this.lodThresholds, this.lodEnabled());
+      this.lodMetrics.set(metrics);
+    }
 
     if (closestStation !== this.dockedStation()) {
       if (closestStation && !this.dockedStation()) {
@@ -2710,17 +3207,19 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     if (mode === 'chase') {
       const chaseDist = this.isBoosting ? 14 : 11;
-      const targetCamera = this.shipPosition.clone().addScaledVector(forward, -chaseDist);
-      targetCamera.y += 4.2;
+      const up = this._vecB.set(0, 1, 0).applyQuaternion(this.shipGroup.quaternion);
+      
+      // Target camera position: behind the ship and slightly above its local 'up'
+      const targetCamera = this.shipPosition.clone()
+        .addScaledVector(forward, -chaseDist)
+        .addScaledVector(up, 3.8);
 
-      this.camera.position.x = THREE.MathUtils.damp(this.camera.position.x, targetCamera.x, 5.0, delta);
-      this.camera.position.y = THREE.MathUtils.damp(this.camera.position.y, targetCamera.y, 5.0, delta);
-      this.camera.position.z = THREE.MathUtils.damp(this.camera.position.z, targetCamera.z, 5.0, delta);
+      this.camera.position.lerp(targetCamera, Math.min(1, delta * 6.5));
 
-      this._camTarget.copy(this.shipPosition).addScaledVector(forward, 6);
+      this._camTarget.copy(this.shipPosition).addScaledVector(forward, 12);
       this.camera.lookAt(this._camTarget);
     } else if (mode === 'cockpit') {
-      this.camera.position.copy(this.shipPosition).add(new THREE.Vector3(0, 0.75, 1.6)).addScaledVector(forward, 1.6);
+      this.camera.position.copy(this.shipPosition).add(this.cockpitOffset).addScaledVector(forward, 1.6);
       this._camTarget.copy(this.shipPosition).addScaledVector(forward, 22);
       this.camera.lookAt(this._camTarget);
     } else if (mode === 'top') {
@@ -2908,6 +3407,14 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.releasePointerLock();
 
     this.activeExplosions = [];
+    
+    // Dispose shared geometries
+    Object.values(this.sharedGeos).forEach(geo => geo.dispose());
+    
+    // Dispose cached materials
+    this.explosionMaterialCache.forEach(mat => mat.dispose());
+    this.explosionMaterialCache.clear();
+
     if (this.renderer) {
       this.renderer.dispose();
       if (this.renderer.domElement && this.renderer.domElement.parentNode) {

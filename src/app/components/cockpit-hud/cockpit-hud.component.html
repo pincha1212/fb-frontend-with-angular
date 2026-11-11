@@ -18,17 +18,39 @@
     </div>
   }
 
+  <div class="combat-notifications-stack">
+    @for (msg of combatMessages; track msg.id) {
+      <div class="combat-status-banner" role="status" aria-live="polite">
+        <span class="combat-status-light"></span><strong>{{ msg.text }}</strong><span>{{ activeHostiles }} EN VUELO</span>
+      </div>
+    }
+  </div>
 
-  @if (combatMessage) {
-    <div class="combat-status-banner" role="status" aria-live="polite">
-      <span class="combat-status-light"></span><strong>{{ combatMessage }}</strong><span>{{ activeHostiles }} EN VUELO</span>
+  <!-- AIMING RETICLE -->
+  <div class="cockpit-reticle-overlay" [class.combat-active]="activeHostiles > 0">
+    <div class="hud-crosshair-center">
+      <div class="reticle-ring"></div>
+      <div class="reticle-dot"></div>
+      <div class="reticle-bracket left"></div>
+      <div class="reticle-bracket right"></div>
+      <div class="horizon-pitch-ladder">
+        <div class="pitch-tag">10</div>
+        <div class="pitch-line"></div>
+        <div class="pitch-line"></div>
+        <div class="pitch-tag">0</div>
+        <div class="pitch-line"></div>
+        <div class="pitch-line"></div>
+        <div class="pitch-tag">-10</div>
+      </div>
     </div>
-  }
+  </div>
 
+  <!-- DASHBOARD ROOT (Retains 5th child index for focus mode selectors) -->
   <div class="cockpit-dashboard-root">
     <div class="console-edge-bar">
       <button type="button" class="hud-collapse-btn" (click)="togglePanel()" [attr.aria-expanded]="isExpanded()">
-        {{ isExpanded() ? 'PLEGAR CONSOLA' : 'ABRIR CONSOLA' }}
+        <span class="collapse-icon">{{ isExpanded() ? '▼' : '▲' }}</span>
+        <span class="collapse-label">{{ isExpanded() ? 'OCULTAR HUD' : 'VER HUD' }}</span>
       </button>
     </div>
 
@@ -59,7 +81,21 @@
       </section>
 
       <section class="hud-cluster cluster-right" aria-label="Radar y controles de cámara">
-        <div class="hud-cluster-header-row"><div class="hud-badge-tag">RADAR DE NAVEGACIÓN</div><button type="button" class="map-drawer-toggle-btn" [class.active]="isMapDrawerOpen()" (click)="toggleMapDrawer()" [attr.aria-expanded]="isMapDrawerOpen()" aria-controls="galactic-map-drawer">MAPA</button></div>
+        <div class="hud-cluster-header-row">
+          <button 
+            type="button" 
+            class="map-drawer-toggle-btn" 
+            [class.active]="isMapDrawerOpen()" 
+            (click)="toggleMapDrawer()" 
+            [attr.aria-expanded]="isMapDrawerOpen()" 
+            aria-controls="iron-man-stellar-map"
+            title="Desplegar carta estelar holográfica central (Tecla M)">
+            <span class="btn-radar-icon">⌖</span>
+            <span class="btn-text">MAPA</span>
+            <span class="btn-key-badge">[M]</span>
+          </button>
+          <div class="hud-badge-tag">RADAR TÁCTICO</div>
+        </div>
         <div class="radar-scope-wrap" role="img" aria-label="Radar con la nave al centro, estaciones orbitales y contactos no identificados">
           <div class="radar-sweep-line"></div><div class="radar-ring r-inner"></div><div class="radar-ring r-outer"></div><div class="radar-crosshair"></div><div class="radar-ship-center">▲</div>
           @for (blip of radarBlips; track blip.label) {
@@ -72,13 +108,72 @@
           <button type="button" class="mode-pill" [class.active]="currentCameraMode === 'top'" (click)="setCamera('top')">ÓRBITA</button>
           <button type="button" class="mode-pill" [class.active]="currentCameraMode === 'cinematic'" (click)="setCamera('cinematic')">AMPLIA</button>
         </div>
-        @if (isMapDrawerOpen()) {
-          <div id="galactic-map-drawer" class="galactic-map-drawer">
-            <div class="drawer-header"><div class="drawer-title-box"><span class="drawer-title">ESTACIONES</span></div><button type="button" class="drawer-close-btn" (click)="toggleMapDrawer()" aria-label="Cerrar mapa">×</button></div>
-            <div class="drawer-map-content-wrap"><app-space-station (selectSection)="onSelectStationFromParallax($event)"></app-space-station></div>
-          </div>
-        }
       </section>
     </div>
   </div>
+
+  <!-- CENTRAL IRON MAN HELMET VISOR HOLOGRAPHIC STELLAR MAP -->
+  @if (isMapDrawerOpen()) {
+    <div class="iron-man-hologram-backdrop" (click)="toggleMapDrawer()" role="presentation">
+      <div 
+        id="iron-man-stellar-map" 
+        class="iron-man-hud-projection" 
+        (click)="$event.stopPropagation()" 
+        role="dialog" 
+        aria-modal="true" 
+        aria-label="Carta estelar holográfica JARVIS">
+        
+        <!-- Visor Optical Holographic Corners -->
+        <div class="hud-corner-bracket top-left" aria-hidden="true"></div>
+        <div class="hud-corner-bracket top-right" aria-hidden="true"></div>
+        <div class="hud-corner-bracket bottom-left" aria-hidden="true"></div>
+        <div class="hud-corner-bracket bottom-right" aria-hidden="true"></div>
+
+        <!-- Visor Arc Side Accents -->
+        <div class="visor-optical-arc arc-left" aria-hidden="true"></div>
+        <div class="visor-optical-arc arc-right" aria-hidden="true"></div>
+
+        <!-- Visor Header Bar -->
+        <header class="hologram-hud-header">
+          <div class="jarvis-telemetry-left">
+            <div class="arc-pulse-dot" aria-hidden="true"></div>
+            <div class="jarvis-titles">
+              <span class="jarvis-eyebrow">J.A.R.V.I.S. // TACTICAL CARTOGRAPHY · VISOR MARK LXXXV</span>
+              <h2 class="jarvis-main-title">RED ORBITAL DE ESTACIONES · MAPA TÁCTICO</h2>
+            </div>
+          </div>
+          <div class="jarvis-telemetry-right">
+            <div class="hud-telemetry-stat">
+              <span class="stat-lbl">SECTOR ACTUAL</span>
+              <span class="stat-val">{{ currentStationName }}</span>
+            </div>
+            <div class="hud-telemetry-stat">
+              <span class="stat-lbl">VELOCIDAD</span>
+              <span class="stat-val">{{ speedKms }} KM/S</span>
+            </div>
+            <button 
+              type="button" 
+              class="hologram-close-btn" 
+              (click)="toggleMapDrawer()" 
+              aria-label="Cerrar carta estelar holográfica">
+              <span class="close-symbol">✕</span>
+              <span class="close-text">CERRAR [ESC]</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Main Space Station Interactive Holographic Canvas -->
+        <div class="hologram-map-body">
+          <app-space-station 
+            [stationsData]="stations"
+            [shipSpeed]="speedKms"
+            [currentStationName]="currentStationName"
+            (selectSection)="onInspectStation($event)"
+            (warpToStation)="onWarpToStation($event)"
+            (closeMap)="toggleMapDrawer()">
+          </app-space-station>
+        </div>
+      </div>
+    </div>
+  }
 </div>

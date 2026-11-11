@@ -12,8 +12,8 @@
           <div class="pc-notice-title-box">
             <span class="pc-notice-icon" aria-hidden="true">💻</span>
             <div>
-              <h3>MODO 3D EXCLUSIVO PARA PC</h3>
-              <p class="subtitle">Simulador de vuelo espacial</p>
+              <h3>{{ portfolioService.portfolioData().modo3DConfig?.incompatibilityTitle || 'MODO 3D EXCLUSIVO PARA PC' }}</h3>
+              <p class="subtitle">{{ portfolioService.portfolioData().modo3DConfig?.incompatibilitySubtitle || 'Simulador de vuelo espacial' }}</p>
             </div>
           </div>
           <button type="button" class="close-pc-notice-btn" (click)="closeMobilePcNotice()" title="Cerrar aviso">✕</button>
@@ -21,33 +21,21 @@
 
         <div class="pc-notice-body">
           <p class="notice-main-text">
-            Para disfrutar del simulador 3D de vuelo espacial es <strong>necesario acceder desde una PC de escritorio o laptop con teclado y mouse</strong>.
+            {{ portfolioService.portfolioData().modo3DConfig?.deviceIncompatibilityMessage || 'Para disfrutar del simulador 3D de vuelo espacial es necesario acceder desde una PC de escritorio o laptop con teclado y mouse.' }}
           </p>
           <div class="pc-requirements-list">
-            <div class="req-item">
-              <span class="req-icon">⌨️</span>
-              <div>
-                <strong>Teclado W/A/S/D o Flechas</strong>
-                <small>Control de propulsión y 3 ejes de vuelo</small>
+            @for (req of portfolioService.portfolioData().modo3DConfig?.incompatibilityRequirements; track req.title) {
+              <div class="req-item">
+                <span class="req-icon">{{ req.icon }}</span>
+                <div>
+                  <strong>{{ req.title }}</strong>
+                  <small>{{ req.description }}</small>
+                </div>
               </div>
-            </div>
-            <div class="req-item">
-              <span class="req-icon">🖱️</span>
-              <div>
-                <strong>Mouse (Pointer Lock)</strong>
-                <small>Navegación libre de cabina y mira de precisión</small>
-              </div>
-            </div>
-            <div class="req-item">
-              <span class="req-icon">🖥️</span>
-              <div>
-                <strong>Pantalla Ancha (1024px+)</strong>
-                <small>Panel de instrumentos HUD y radar orbital</small>
-              </div>
-            </div>
+            }
           </div>
           <p class="notice-footer-text">
-            El portafolio completo (Perfil, Tecnologías, Proyectos, Trayectoria y Contacto) está 100% optimizado para tu dispositivo móvil o tablet.
+            {{ portfolioService.portfolioData().modo3DConfig?.incompatibilityFooter || 'El portafolio completo (Perfil, Tecnologías, Proyectos, Trayectoria y Contacto) está 100% optimizado para tu dispositivo móvil o tablet.' }}
           </p>
         </div>
 
