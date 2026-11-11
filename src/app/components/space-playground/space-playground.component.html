@@ -5,6 +5,30 @@
   <!-- Immersive Cockpit Glass Vignette -->
   <div class="cockpit-vignette" aria-hidden="true"></div>
 
+  <!-- STAR WARS STYLE TARGETING COMPUTER RETICLE -->
+  <div class="space-targeting-computer" [class.cinema-hidden]="isCinema()" aria-hidden="true">
+    <div class="reticle-main">
+      <div class="reticle-circle-large"></div>
+      <div class="reticle-circle-mid"></div>
+      <div class="reticle-circle-small"></div>
+      <div class="reticle-corner tl"></div>
+      <div class="reticle-corner tr"></div>
+      <div class="reticle-corner bl"></div>
+      <div class="reticle-corner br"></div>
+      <div class="reticle-crosshair-v"></div>
+      <div class="reticle-crosshair-h"></div>
+      <div class="reticle-scanning-line"></div>
+    </div>
+    <div class="reticle-status-left">
+      <span class="status-tag">TGT LOCK</span>
+      <span class="status-val">ACTIVE</span>
+    </div>
+    <div class="reticle-status-right">
+      <span class="status-tag">RNG</span>
+      <span class="status-val">34.2 KM</span>
+    </div>
+  </div>
+
   <!-- Tactical Objective Banner -->
   @if (gameMode() === 'combat') {
     <div class="tactical-objective-banner" aria-label="Misión táctica">

@@ -243,9 +243,111 @@
 .flight-path span:nth-child(1) { top: -2px; right: 21%; }.flight-path span:nth-child(2) { top: 16px; right: 6%; }.flight-path span:nth-child(3) { top: 40px; right: -1px; }
 .viewport-coordinate, .viewport-label { position: absolute; z-index: 5; color: rgba(228,235,248,.76); font: 600 .54rem/1.2 Consolas, monospace; letter-spacing: .12em; }
 .viewport-coordinate { top: 15px; left: 17px; }.viewport-label { bottom: 13px; left: 17px; color: rgba(231,181,111,.9); }
-.viewport-reticle { position: absolute; z-index: 5; left: 51%; top: 48%; width: 38px; height: 38px; border: 1px solid rgba(145,221,241,.55); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 16px rgba(96,187,222,.13); }
-.viewport-reticle::before, .viewport-reticle::after { content: ""; position: absolute; background: rgba(145,221,241,.65); }
-.viewport-reticle::before { left: 50%; top: -7px; width: 1px; height: 52px; }.viewport-reticle::after { top: 50%; left: -7px; width: 52px; height: 1px; }
+.viewport-reticle {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 48%;
+  width: 100px;
+  height: 100px;
+  border: 1px solid rgba(113, 236, 116, 0.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 20px rgba(113, 236, 116, 0.15);
+  pointer-events: none;
+}
+
+.viewport-reticle::before {
+  content: "";
+  position: absolute;
+  inset: -15px;
+  border: 1px solid rgba(113, 236, 116, 0.2);
+  border-radius: 50%;
+  mask-image: conic-gradient(from 0deg, black 0deg 40deg, transparent 40deg 50deg, black 50deg 130deg, transparent 130deg 140deg, black 140deg 220deg, transparent 220deg 230deg, black 230deg 310deg, transparent 310deg 320deg, black 320deg);
+}
+
+.viewport-reticle::after {
+  content: "TGT LOCK";
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #71ec71;
+  font: 700 0.5rem "Consolas", monospace;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 5px rgba(113, 236, 116, 0.8);
+  animation: pulse-lock 2s ease-in-out infinite;
+}
+
+.viewport-reticle-center {
+  position: absolute;
+  inset: 35%;
+  border: 2px solid #71ec71;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(113, 236, 116, 0.6);
+}
+
+.viewport-reticle-center::before,
+.viewport-reticle-center::after {
+  content: "";
+  position: absolute;
+  background: #71ec71;
+  box-shadow: 0 0 8px #71ec71;
+}
+
+.viewport-reticle-center::before {
+  left: 50%;
+  top: -15px;
+  width: 1px;
+  height: 10px;
+  transform: translateX(-50%);
+}
+
+.viewport-reticle-center::after {
+  top: 50%;
+  left: -15px;
+  width: 10px;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.viewport-reticle-crosshair {
+  position: absolute;
+  inset: 0;
+  animation: rotate-reticle 20s linear infinite;
+}
+
+.viewport-reticle-crosshair::before,
+.viewport-reticle-crosshair::after {
+  content: "";
+  position: absolute;
+  background: rgba(113, 236, 116, 0.3);
+}
+
+.viewport-reticle-crosshair::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.viewport-reticle-crosshair::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+@keyframes rotate-reticle {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-lock {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
 .frame-bolt, .panel-screw { position: absolute; z-index: 6; width: 6px; height: 6px; border-radius: 50%; background: radial-gradient(circle at 32% 30%, #acb2a5, #343b39 68%); box-shadow: inset 0 0 1px #090c0c; }
 .bolt-one { left: 6px; top: 7px; }.bolt-two { right: 6px; top: 7px; }.bolt-three { left: 6px; bottom: 6px; }.bolt-four { right: 6px; bottom: 6px; }
 .viewport-frame-label { position: absolute; bottom: 7px; left: 21px; right: 21px; display: flex; justify-content: space-between; color: #9aa8bd; font: 600 .53rem/1 Consolas, monospace; letter-spacing: .12em; }
