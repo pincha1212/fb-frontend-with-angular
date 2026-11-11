@@ -8,7 +8,10 @@ import {
   ChangeDetectionStrategy,
   HostListener,
   Output,
-  EventEmitter
+  EventEmitter,
+  input,
+  effect,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as THREE from 'three';
@@ -19,6 +22,16 @@ import { ProyectosComponent } from '../proyectos/proyectos.component';
 import { ExperienciaComponent } from '../experiencia/experiencia.component';
 import { ContactoComponent } from '../contacto/contacto.component';
 import { CockpitHUDComponent } from '../cockpit-hud/cockpit-hud.component';
+import { PortfolioDataService, Modo3DConfig, DEFAULT_MODO3D_CONFIG } from '../../services/portfolio-data.service';
+import { resolveModelUrl, saveModelToDB } from '../../services/model-storage';
+import {
+  SHADER_PILOT_VERTEX,
+  PRESET_SYNTHWAVE_GLSL,
+  PRESET_NEBULA_GLSL,
+  PRESET_WORMHOLE_GLSL,
+  PRESET_FRACTAL_GLSL,
+  PRESET_PLASMA_GLSL
+} from '../../services/shader-presets';
 
 export interface StationData {
   id: string;
@@ -64,6 +77,18 @@ interface CombatBolt {
   side: 'player' | 'hostile';
 }
 
+interface ActiveExplosion {
+  group: THREE.Group;
+  light?: THREE.PointLight;
+  particles: { mesh: THREE.Mesh; velocity: THREE.Vector3; rotSpeed: THREE.Vector3 }[];
+  shockwave?: THREE.Mesh;
+  fireball?: THREE.Mesh;
+  elapsed: number;
+  maxLife: number;
+}
+
+export type ShaderPreset = 'synthwave' | 'nebula' | 'wormhole' | 'fractal' | 'plasma';
+
 @Component({
   selector: 'app-space-playground',
   standalone: true,
@@ -86,6 +111,16 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
   @Output() navigateToSection = new EventEmitter<string>();
   @Output() closePlayground = new EventEmitter<void>();
+  @Output() openHangar = new EventEmitter<void>();
+
+  modelUrl = input<string>('preset:xeno');
+  shipName = input<string>('Caza Biomecánico Xeno-01');
+
+  // Dynamic ship telemetry display
+  currentShipTitle = signal('CAZA BIOMECÁNICO · XENO-01');
+  currentShipSub = signal('Fuselaje viviente de quitina · Propulsión gravitacional');
+  currentShipTypeTag = signal('BIO-ESTRUCTURA QUINÍTICA');
+  currentHullLabel = signal('INTEGRIDAD BIO-CORAZA');
 
   // Reactive UI signals
   speedKms = signal(0);
@@ -115,6 +150,47 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   showWaypoints = signal(true);
   gameMode = signal<'free' | 'combat'>('free');
   enemiesDestroyed = signal(0);
+  waveNumber = signal(1);
+  private combatReinforcementTimer = 0;
+  isSettingsOpen = signal(false);
+
+  toggleSettingsMenu(): void {
+    this.isSettingsOpen.update(v => !v);
+    if (this.isSettingsOpen()) {
+      this.releasePointerLock();
+    }
+  }
+
+  // Shader Pilot Generative GLSL Engine state
+  shaderPilotActive = signal(false);
+  selectedShaderPreset = signal<ShaderPreset>('synthwave');
+  shaderSpeed = signal(1.0);
+  shaderFrequency = signal(2.0);
+  shaderGlow = signal(1.5);
+  shaderScale = signal(1.0);
+  shaderDistortion = signal(0.5);
+  shaderColorPalette = signal(0);
+  syncFlight = signal(true);
+  glslCode = signal(PRESET_SYNTHWAVE_GLSL);
+  glslCompileError = signal<string | null>(null);
+
+  private shaderPilotMesh?: THREE.Mesh;
+  private shaderPilotMaterial?: THREE.ShaderMaterial;
+  private portfolioService = inject(PortfolioDataService);
+
+  private get cfg(): Modo3DConfig {
+    return this.portfolioService.portfolioData().modo3DConfig || DEFAULT_MODO3D_CONFIG;
+  }
+
+  constructor() {
+    effect(() => {
+      const url = this.modelUrl();
+      const name = this.shipName();
+      if (this.scene && this.shipGroup) {
+        this.applySelectedShip(url, name);
+      }
+    });
+  }
 
   toggleWaypoints(): void {
     this.showWaypoints.update(v => !v);
@@ -125,15 +201,17 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       this.gameMode.set('combat');
       this.showWaypoints.set(false); // Las balizas desaparecen en modo juego
       this.hullIntegrity.set(100);
+      this.waveNumber.set(1);
+      this.combatReinforcementTimer = 0;
       this.clearAlienFighters();
       this.spawnCombatEnemies(3);
-      this.setCombatMessage('🎮 MODO COMBATE ACTIVADO · NAVE INMORTAL · ENEMIGOS ATACANDO', 4000);
+      this.setCombatMessage(this.cfg.combatActivatedMessage || '🎮 MODO COMBATE ACTIVADO', 4000);
       this.playChime([523, 659, 784, 1046]);
     } else {
       this.gameMode.set('free');
       this.showWaypoints.set(true); // Las balizas reaparecen en modo libre
       this.clearAlienFighters();
-      this.setCombatMessage('🕊️ MODO NAVEGACIÓN LIBRE ACTIVADO', 3000);
+      this.setCombatMessage(this.cfg.freeModeActivatedMessage || '🕊️ MODO NAVEGACIÓN LIBRE ACTIVADO', 3000);
       this.playChime([659, 523]);
     }
   }
@@ -154,13 +232,14 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   }
 
   private spawnCombatEnemies(count: number): void {
+    const diffFactor = 1.0 + (this.waveNumber() - 1) * 0.22;
     for (let index = 0; index < count; index++) {
       const phase = Math.random() * Math.PI * 2;
       const ship = this.buildAlienFighter();
-      const orbitRadius = 25 + Math.random() * 15;
+      const orbitRadius = 22 + Math.random() * 18;
       ship.position.set(
         this.shipPosition.x + Math.cos(phase) * orbitRadius,
-        this.shipPosition.y + (Math.random() - 0.5) * 10,
+        this.shipPosition.y + (Math.random() - 0.5) * 12,
         this.shipPosition.z + Math.sin(phase) * orbitRadius
       );
       ship.lookAt(this.shipPosition);
@@ -170,8 +249,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         velocity: new THREE.Vector3(),
         phase,
         orbitRadius,
-        fireCooldown: 0.8 + Math.random() * 1.2,
-        integrity: 3
+        fireCooldown: (0.7 + Math.random() * 1.0) / diffFactor,
+        integrity: 2 + Math.floor(this.waveNumber() * 0.5)
       });
     }
     this.activeHostiles.set(this.alienFighters.length);
@@ -312,6 +391,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   private thrusterParticlesMesh!: THREE.Points;
   private alienFighters: AlienFighter[] = [];
   private combatBolts: CombatBolt[] = [];
+  private activeExplosions: ActiveExplosion[] = [];
+  private asteroidsList: { mesh: THREE.Mesh; position: THREE.Vector3; radius: number }[] = [];
+  private playerCollisionCooldown = 0;
+  private cameraShakeIntensity = 0;
   private encounteredStationIds = new Set<string>();
   private combatCooldown = 0;
   private hullRegenCooldown = 0;
@@ -473,6 +556,9 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     // 8. Ancient Alien Monoliths floating in deep orbit
     this.buildAlienMonoliths();
+
+    // 9. Shader Pilot Generative GLSL Environment Dome
+    this.initShaderPilotEnvironment();
   }
 
   private buildStarfield(): void {
@@ -526,7 +612,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   }
 
   private buildAsteroids(): void {
-    const asteroidCount = 16;
+    const asteroidCount = 32;
     const asteroidMat = new THREE.MeshStandardMaterial({
       color: 0x334155,
       roughness: 0.9,
@@ -534,6 +620,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       flatShading: false
     });
 
+    this.asteroidsList = [];
     for (let i = 0; i < asteroidCount; i++) {
       const angle = (i / asteroidCount) * Math.PI * 2;
       const dist = 75 + Math.random() * 30;
@@ -560,6 +647,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       mesh.castShadow = !this.isSoftwareGl;
       mesh.receiveShadow = !this.isSoftwareGl;
       this.scene.add(mesh);
+
+      this.asteroidsList.push({ mesh, position: mesh.position, radius: scale * 0.95 });
     }
   }
 
@@ -819,24 +908,100 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // Procedural 3D Alien Spaceship Model (Biomechanical Chitin Vessel)
+  // Modular Spaceship Construction & Switching
   // ==========================================
   private buildSpaceship(): void {
     this.shipGroup = new THREE.Group();
     this.shipGroup.position.copy(this.shipPosition);
+    this.scene.add(this.shipGroup);
 
+    this.applySelectedShip(this.modelUrl() || 'preset:xeno', this.shipName());
+  }
+
+  applySelectedShip(url: string, name?: string): void {
+    if (!this.shipGroup) return;
+
+    // 1. Thorough cleanup of existing meshes, geometries, and materials
+    while (this.shipGroup.children.length > 0) {
+      const child = this.shipGroup.children[0];
+      this.shipGroup.remove(child);
+      child.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (mesh && mesh.isMesh) {
+          mesh.geometry?.dispose();
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          mats.forEach((m) => m?.dispose());
+        }
+      });
+    }
+
+    this.shipThrusterLeft = null as any;
+    this.shipThrusterRight = null as any;
+    this.shipPropulsionRing = undefined;
+    this.shipBioCoreMat = undefined;
+    this.customGlbLoaded.set(false);
+
+    // 2. Select appropriate 3D model
+    if (url === 'preset:shuttle') {
+      this.buildShuttleSpaceship();
+      const finalName = name || 'Transbordador Orbital Humano STS';
+      this.currentShipTitle.set(finalName.toUpperCase());
+      this.currentShipSub.set('Aeronave terrestre · Alas delta y propulsión química');
+      this.currentShipTypeTag.set('FUSELAJE AERODINÁMICO');
+      this.currentHullLabel.set('INTEGRIDAD TÉRMICA');
+      this.setCombatMessage(`🚀 NAVE EQUIPADA: ${finalName.toUpperCase()}`, 3000);
+      this.playChime([523, 659, 784]);
+    } else if (url === 'preset:interceptor') {
+      this.buildViperSpaceship();
+      const finalName = name || 'Interceptor Estelar Viper-IV';
+      this.currentShipTitle.set(finalName.toUpperCase());
+      this.currentShipSub.set('Caza táctico de combate · Doble propulsión iónica');
+      this.currentShipTypeTag.set('BLINDAJE DE TITANIO');
+      this.currentHullLabel.set('ESCUDO DEFLEXOR');
+      this.setCombatMessage(`⚡ NAVE EQUIPADA: ${finalName.toUpperCase()}`, 3000);
+      this.playChime([659, 784, 1046]);
+    } else if (url && (url.startsWith('idb:') || url.startsWith('blob:') || url.startsWith('http') || url.startsWith('data:') || url.endsWith('.glb') || url.endsWith('.gltf'))) {
+      const finalName = name || 'Nave Personalizada .GLB';
+      this.currentShipTitle.set(finalName.toUpperCase());
+      this.currentShipSub.set('Modelo 3D cargado · Telemetría activa');
+      this.currentShipTypeTag.set('SISTEMAS EXTERNOS');
+      this.currentHullLabel.set('INTEGRIDAD DEL FUSELAJE');
+      this.setCombatMessage(`🛸 CARGANDO MODELO .GLB: ${finalName.toUpperCase()}`, 3000);
+
+      resolveModelUrl(url).then(resolvedUrl => {
+        this.loadGlbFromUrl(resolvedUrl, finalName);
+      }).catch(err => {
+        console.error('Error resolving model url:', err);
+        this.setCombatMessage(`⚠ Error al cargar modelo 3D local`, 4000);
+      });
+    } else {
+      // Default: Alien Biomechanical
+      this.buildAlienSpaceship();
+      const finalName = name || 'Caza Biomecánico Xeno-01';
+      this.currentShipTitle.set(finalName.toUpperCase());
+      this.currentShipSub.set('Fuselaje viviente de quitina · Propulsión gravitacional');
+      this.currentShipTypeTag.set('BIO-ESTRUCTURA QUINÍTICA');
+      this.currentHullLabel.set('INTEGRIDAD BIO-CORAZA');
+      this.setCombatMessage(`👾 NAVE EQUIPADA: ${finalName.toUpperCase()}`, 3000);
+      this.playChime([440, 554, 659]);
+    }
+  }
+
+  private buildAlienSpaceship(): void {
     // Exotic Biomechanical Materials
     const alienChitinMat = new THREE.MeshStandardMaterial({
       color: 0x07151a,
       roughness: 0.22,
       metalness: 0.92,
       emissive: 0x02161c,
-      emissiveIntensity: 0.45
+      emissiveIntensity: 0.45,
+      side: THREE.DoubleSide
     });
     const alienPlatingMat = new THREE.MeshStandardMaterial({
       color: 0x112d34,
       roughness: 0.35,
-      metalness: 0.82
+      metalness: 0.82,
+      side: THREE.DoubleSide
     });
     const alienGlowMat = new THREE.MeshStandardMaterial({
       color: 0x00f5d4,
@@ -861,7 +1026,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       roughness: 0.1
     });
 
-    // 1. Central Aerodynamic Bio-Thorax (Sculpted organic fusiform body)
+    // 1. Central Aerodynamic Bio-Thorax
     const thoraxGeo = new THREE.SphereGeometry(1.25, 24, 18);
     const thorax = new THREE.Mesh(thoraxGeo, alienChitinMat);
     thorax.scale.set(1.45, 0.58, 2.7);
@@ -879,7 +1044,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     nose.castShadow = !this.isSoftwareGl;
     this.shipGroup.add(nose);
 
-    // 3. Segmented Dorsal Bio-Crest (Vertebral fins with glowing fissures)
+    // 3. Segmented Dorsal Bio-Crest (strictly on X=0 center line)
     for (let i = 0; i < 5; i++) {
       const zPos = 2.4 - i * 0.95;
       const finHeight = 0.55 + Math.sin(i * 0.6) * 0.35;
@@ -888,18 +1053,16 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       fin.position.set(0, 0.45 + finHeight * 0.45, zPos);
       this.shipGroup.add(fin);
 
-      // Bioluminescent seam along the spine
       const glowNode = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), alienGlowMat);
       glowNode.position.set(0, 0.42, zPos);
       this.shipGroup.add(glowNode);
     }
 
-    // 4. Exposed Bio-Plasma Core (Visible in central cavity)
+    // 4. Exposed Bio-Plasma Core & Exoskeleton Ribs
     const coreMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.62, 2), alienCoreMat);
     coreMesh.position.set(0, 0.28, -0.2);
     this.shipGroup.add(coreMesh);
 
-    // Rib-like skeletal cages enclosing the core
     for (let r = 0; r < 4; r++) {
       const ribZ = 0.4 - r * 0.45;
       const rib = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.06, 6, 16, Math.PI), alienChitinMat);
@@ -908,189 +1071,405 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       this.shipGroup.add(rib);
     }
 
-    // 5. Forward-Swept Alien Scythe Wings (Predatory curved mantis blades)
-    for (const side of [-1, 1]) {
-      // Main wing blade
-      const wingShape = new THREE.Shape();
-      wingShape.moveTo(0, 0);
-      wingShape.lineTo(side * 2.8, -0.6);
-      wingShape.lineTo(side * 5.4, -0.2);
-      wingShape.lineTo(side * 6.2, 1.8);  // Hooks forward
-      wingShape.lineTo(side * 5.8, 2.6);  // Scythe tip
-      wingShape.lineTo(side * 4.6, 1.1);
-      wingShape.lineTo(side * 2.2, 0.8);
-      wingShape.closePath();
+    // 5. Symmetric Forward-Swept Alien Scythe Wings
+    // Build Right Wing Sub-Assembly Group (side = +1)
+    const rightWingGroup = new THREE.Group();
 
-      const extrudeSettings = { depth: 0.12, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.04, bevelThickness: 0.04 };
-      const wingGeo = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
-      const wingMesh = new THREE.Mesh(wingGeo, alienChitinMat);
-      wingMesh.rotation.x = Math.PI / 2;
-      wingMesh.scale.x = 1;
-      wingMesh.position.set(0, -0.06, 0.2);
-      wingMesh.castShadow = !this.isSoftwareGl;
-      this.shipGroup.add(wingMesh);
+    const wingShape = new THREE.Shape();
+    wingShape.moveTo(0, 0);
+    wingShape.lineTo(2.8, -0.6);
+    wingShape.lineTo(5.4, -0.2);
+    wingShape.lineTo(6.2, 1.8);
+    wingShape.lineTo(5.8, 2.6);
+    wingShape.lineTo(4.6, 1.1);
+    wingShape.lineTo(2.2, 0.8);
+    wingShape.closePath();
 
-      // Bioluminescent plasma vein along wing leading edge
-      const veinGeo = new THREE.CylinderGeometry(0.04, 0.04, 5.6, 6);
-      const vein = new THREE.Mesh(veinGeo, alienGlowMat);
-      vein.rotation.z = side * 0.72;
-      vein.rotation.x = 0.25;
-      vein.position.set(side * 3.4, 0.02, 1.1);
-      this.shipGroup.add(vein);
+    const extrudeSettings = { depth: 0.12, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.04, bevelThickness: 0.04 };
+    const wingGeo = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
+    const rightWingMesh = new THREE.Mesh(wingGeo, alienChitinMat);
+    rightWingMesh.rotation.x = Math.PI / 2;
+    rightWingMesh.position.set(0, 0.06, 0.2);
+    rightWingMesh.castShadow = !this.isSoftwareGl;
+    rightWingGroup.add(rightWingMesh);
 
-      // Ventral fin stabilizer
-      const ventralFin = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4, 6), alienPlatingMat);
-      ventralFin.rotation.x = 0.45;
-      ventralFin.rotation.z = -side * 0.35;
-      ventralFin.position.set(side * 1.6, -0.52, -1.2);
-      this.shipGroup.add(ventralFin);
+    // Glowing Bio Vein
+    const veinGeo = new THREE.CylinderGeometry(0.04, 0.04, 5.6, 6);
+    const rightVein = new THREE.Mesh(veinGeo, alienGlowMat);
+    rightVein.rotation.z = 0.72;
+    rightVein.rotation.x = 0.25;
+    rightVein.position.set(3.4, 0.02, 1.1);
+    rightWingGroup.add(rightVein);
 
-      // Alien eye cluster nodes on forward head
-      const eye1 = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), eyeMat);
-      eye1.position.set(side * 0.38, 0.26, 3.1);
-      this.shipGroup.add(eye1);
+    // Ventral Fin
+    const rightVentralFin = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4, 6), alienPlatingMat);
+    rightVentralFin.rotation.x = 0.45;
+    rightVentralFin.rotation.z = -0.35;
+    rightVentralFin.position.set(1.6, -0.52, -1.2);
+    rightWingGroup.add(rightVentralFin);
 
-      const eye2 = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), eyeMat);
-      eye2.position.set(side * 0.55, 0.18, 2.5);
-      this.shipGroup.add(eye2);
+    // Bio Eye Sensors
+    const rightEye1 = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), eyeMat);
+    rightEye1.position.set(0.38, 0.26, 3.1);
+    rightWingGroup.add(rightEye1);
 
-      const eye3 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), eyeMat);
-      eye3.position.set(side * 0.24, 0.34, 3.6);
-      this.shipGroup.add(eye3);
+    const rightEye2 = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), eyeMat);
+    rightEye2.position.set(0.55, 0.18, 2.5);
+    rightWingGroup.add(rightEye2);
 
-      // Biomechanical engine nacelle
-      const engineNacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.48, 2.2, 12), alienPlatingMat);
-      engineNacelle.rotation.x = Math.PI / 2;
-      engineNacelle.position.set(side * 1.25, -0.08, -2.8);
-      this.shipGroup.add(engineNacelle);
+    const rightEye3 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), eyeMat);
+    rightEye3.position.set(0.24, 0.34, 3.6);
+    rightWingGroup.add(rightEye3);
 
-      // Radiant Alien Plasma Flame Exhaust
-      const exhaust = new THREE.Mesh(
-        new THREE.ConeGeometry(0.32, 1.2, 12),
-        new THREE.MeshBasicMaterial({ color: 0x00ffc8, transparent: true, opacity: 0.9 })
-      );
-      exhaust.rotation.x = -Math.PI / 2;
-      exhaust.position.set(side * 1.25, -0.08, -4.1);
-      if (side < 0) this.shipThrusterLeft = exhaust;
-      else this.shipThrusterRight = exhaust;
-      this.shipGroup.add(exhaust);
-    }
+    // Engine Nacelle & Plasma Exhaust
+    const rightNacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.48, 2.2, 12), alienPlatingMat);
+    rightNacelle.rotation.x = Math.PI / 2;
+    rightNacelle.position.set(1.25, -0.08, -2.8);
+    rightWingGroup.add(rightNacelle);
+
+    const rightExhaust = new THREE.Mesh(
+      new THREE.ConeGeometry(0.32, 1.2, 12),
+      new THREE.MeshBasicMaterial({ color: 0x00ffc8, transparent: true, opacity: 0.9 })
+    );
+    rightExhaust.rotation.x = -Math.PI / 2;
+    rightExhaust.position.set(1.25, -0.08, -4.1);
+    this.shipThrusterRight = rightExhaust;
+    rightWingGroup.add(rightExhaust);
+
+    // Add Right Wing
+    this.shipGroup.add(rightWingGroup);
+
+    // Mirror Left Wing Group for 100% Precision Symmetry
+    const leftWingGroup = rightWingGroup.clone(true);
+    leftWingGroup.scale.set(-1, 1, 1);
+
+    // Assign left thruster
+    leftWingGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshBasicMaterial && child.material.color.getHex() === 0x00ffc8) {
+        this.shipThrusterLeft = child;
+      }
+    });
+    this.shipGroup.add(leftWingGroup);
 
     // 6. Floating Graviton Anti-Gravity Propulsion Ring
     const gravitonRingGeo = new THREE.TorusGeometry(1.68, 0.085, 12, 36);
     this.shipPropulsionRing = new THREE.Mesh(gravitonRingGeo, alienGlowMat);
     this.shipPropulsionRing.position.set(0, -0.02, -2.4);
     this.shipGroup.add(this.shipPropulsionRing);
-
-    this.scene.add(this.shipGroup);
-
-    if (typeof localStorage !== 'undefined') {
-      const cachedGlb = localStorage.getItem('cached_transformer_glb');
-      const cachedName = localStorage.getItem('cached_transformer_name');
-      if (cachedGlb) {
-        this.loadGlbFromUrl(cachedGlb, cachedName || 'Transformador .GLB');
-      }
-    }
   }
-  private buildAlienFighter(): THREE.Group {
-    const ship = new THREE.Group();
 
-    // Human Space Shuttle Materials
-    const whiteHullMat = new THREE.MeshStandardMaterial({ color: 0xebf1f5, roughness: 0.3, metalness: 0.5 });
-    const blackTileMat = new THREE.MeshStandardMaterial({ color: 0x1a232e, roughness: 0.8, metalness: 0.2 });
-    const glassCanopyMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.3, roughness: 0.1, transparent: true, opacity: 0.85 });
+  private buildShuttleSpaceship(): void {
+    const whiteHullMat = new THREE.MeshStandardMaterial({
+      color: 0xebf1f5,
+      roughness: 0.3,
+      metalness: 0.45,
+      side: THREE.DoubleSide
+    });
+    const blackTileMat = new THREE.MeshStandardMaterial({
+      color: 0x1a232e,
+      roughness: 0.85,
+      metalness: 0.2,
+      side: THREE.DoubleSide
+    });
+    const glassCanopyMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.4,
+      roughness: 0.1,
+      transparent: true,
+      opacity: 0.85
+    });
     const rocketEngineMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.4, metalness: 0.8 });
     const rocketFlameMat = new THREE.MeshBasicMaterial({ color: 0xff9900 });
 
-    // 1. Fuselage Body (Aerodynamic Human Shuttle Nose & Cargo Hull)
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.95, 3.8, 14), whiteHullMat);
+    // 1. Aerodynamic Cylindrical Fuselage
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.95, 3.8, 16), whiteHullMat);
     body.rotation.x = Math.PI / 2;
     body.position.set(0, 0, 0);
-    ship.add(body);
+    body.castShadow = !this.isSoftwareGl;
+    this.shipGroup.add(body);
 
-    // Black Thermal Shield Belly Coating
-    const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.76, 0.96, 3.82, 14, 1, false, Math.PI * 0.8, Math.PI * 1.4), blackTileMat);
+    // Black Ceramic Thermal Shield Belly
+    const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.76, 0.96, 3.82, 16, 1, false, Math.PI * 0.8, Math.PI * 1.4), blackTileMat);
     belly.rotation.x = Math.PI / 2;
     belly.position.set(0, -0.02, 0);
-    ship.add(belly);
+    this.shipGroup.add(belly);
 
-    // Aerodynamic Nose Cone
-    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.4, 14), blackTileMat);
+    // Smooth Aerodynamic Nose Cone
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.4, 16), blackTileMat);
     nose.rotation.x = Math.PI / 2;
     nose.position.set(0, 0, 2.5);
-    ship.add(nose);
+    this.shipGroup.add(nose);
 
-    // Flight Deck Cockpit Windows
-    const cockpit = new THREE.Mesh(new THREE.SphereGeometry(0.68, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2.2), glassCanopyMat);
+    // Cockpit Flight Deck
+    const cockpit = new THREE.Mesh(new THREE.SphereGeometry(0.68, 14, 12, 0, Math.PI * 2, 0, Math.PI / 2.2), glassCanopyMat);
     cockpit.position.set(0, 0.22, 1.4);
     cockpit.scale.set(0.9, 0.6, 1.2);
-    ship.add(cockpit);
+    this.shipGroup.add(cockpit);
 
-    // 2. Human Delta Wings
-    for (const side of [-1, 1]) {
-      const wingShape = new THREE.Shape();
-      wingShape.moveTo(0, 1.2);
-      wingShape.lineTo(side * 2.8, -1.2);
-      wingShape.lineTo(side * 2.6, -1.8);
-      wingShape.lineTo(0, -1.5);
-      wingShape.closePath();
+    // 2. Symmetric Delta Wings
+    // Right Wing Assembly (side = +1)
+    const rightWingGroup = new THREE.Group();
 
-      const wingGeo = new THREE.ExtrudeGeometry(wingShape, { depth: 0.1, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02 });
-      const wing = new THREE.Mesh(wingGeo, whiteHullMat);
-      wing.rotation.x = Math.PI / 2;
-      wing.position.set(0, -0.1, 0.2);
-      ship.add(wing);
+    const wingShape = new THREE.Shape();
+    wingShape.moveTo(0, 1.2);
+    wingShape.lineTo(2.8, -1.2);
+    wingShape.lineTo(2.6, -1.8);
+    wingShape.lineTo(0, -1.5);
+    wingShape.closePath();
 
-      // Wing Black Leading Edge Thermal Tiles
-      const leadingEdge = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.4, 6), blackTileMat);
-      leadingEdge.rotation.z = side * 0.95;
-      leadingEdge.rotation.x = 0.22;
-      leadingEdge.position.set(side * 1.4, -0.1, 0.1);
-      ship.add(leadingEdge);
+    const wingMesh = new THREE.Mesh(
+      new THREE.ExtrudeGeometry(wingShape, { depth: 0.1, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02 }),
+      whiteHullMat
+    );
+    wingMesh.rotation.x = Math.PI / 2;
+    wingMesh.position.set(0, -0.05, 0.2);
+    wingMesh.castShadow = !this.isSoftwareGl;
+    rightWingGroup.add(wingMesh);
 
-      // Red/Green Wing Navigation Lights
-      const navLight = new THREE.Mesh(
-        new THREE.SphereGeometry(0.08, 8, 6),
-        new THREE.MeshBasicMaterial({ color: side < 0 ? 0xef4444 : 0x22c55e })
-      );
-      navLight.position.set(side * 2.75, -0.05, -1.0);
-      ship.add(navLight);
+    // Black Leading Edge Thermal Tiles
+    const leadingEdge = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.4, 8), blackTileMat);
+    leadingEdge.rotation.z = -0.95;
+    leadingEdge.rotation.x = 0.22;
+    leadingEdge.position.set(1.4, -0.1, 0.1);
+    rightWingGroup.add(leadingEdge);
 
-      // Main Rocket Engine Pods
-      const enginePod = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 1.2, 10), rocketEngineMat);
-      enginePod.rotation.x = Math.PI / 2;
-      enginePod.position.set(side * 0.48, -0.05, -2.1);
-      ship.add(enginePod);
+    // Green Right Navigation Light
+    const rightNavLight = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 8, 6),
+      new THREE.MeshBasicMaterial({ color: 0x22c55e })
+    );
+    rightNavLight.position.set(2.75, -0.05, -1.0);
+    rightWingGroup.add(rightNavLight);
 
-      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.7, 8), rocketFlameMat);
-      flame.rotation.x = -Math.PI / 2;
-      flame.position.set(side * 0.48, -0.05, -2.85);
-      ship.add(flame);
-    }
+    // Engine Pod & Rocket Flame
+    const enginePod = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 1.2, 10), rocketEngineMat);
+    enginePod.rotation.x = Math.PI / 2;
+    enginePod.position.set(0.48, -0.05, -2.1);
+    rightWingGroup.add(enginePod);
 
-    // 3. Vertical Tail Stabilizer Fin
+    const rightFlame = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.7, 8), rocketFlameMat);
+    rightFlame.rotation.x = -Math.PI / 2;
+    rightFlame.position.set(0.48, -0.05, -2.85);
+    this.shipThrusterRight = rightFlame;
+    rightWingGroup.add(rightFlame);
+
+    this.shipGroup.add(rightWingGroup);
+
+    // Left Wing Assembly (mirrored for 100% precision)
+    const leftWingGroup = rightWingGroup.clone(true);
+    leftWingGroup.scale.set(-1, 1, 1);
+
+    // Fix Red Left Navigation Light & Assign Thruster
+    leftWingGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.geometry instanceof THREE.SphereGeometry) {
+        child.material = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+      } else if (child instanceof THREE.Mesh && child.geometry instanceof THREE.ConeGeometry && child.material instanceof THREE.MeshBasicMaterial) {
+        this.shipThrusterLeft = child;
+      }
+    });
+    this.shipGroup.add(leftWingGroup);
+
+    // 3. Strictly Centered Vertical Tail Fin (X = 0 Centerline)
     const tailFinShape = new THREE.Shape();
     tailFinShape.moveTo(0, 0);
     tailFinShape.lineTo(0, 1.6);
-    tailFinShape.lineTo(-1.1, 1.4);
-    tailFinShape.lineTo(-1.4, 0);
+    tailFinShape.lineTo(-1.2, 1.2);
+    tailFinShape.lineTo(-1.5, 0);
     tailFinShape.closePath();
 
     const tailFinGeo = new THREE.ExtrudeGeometry(tailFinShape, { depth: 0.08, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02 });
     const tailFin = new THREE.Mesh(tailFinGeo, whiteHullMat);
-    tailFin.position.set(0.04, 0.65, -0.6);
-    ship.add(tailFin);
+    tailFin.rotation.y = Math.PI / 2; // Rotate so shape Y is vertical height and shape X extends backward
+    tailFin.position.set(-0.04, 0.65, -0.6); // Centered depth across X=0
+    this.shipGroup.add(tailFin);
 
-    // Top Central Engine Nozzle
+    // Top Central OMS Engine & Rocket Flame
     const topEngine = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.38, 1.2, 10), rocketEngineMat);
     topEngine.rotation.x = Math.PI / 2;
     topEngine.position.set(0, 0.35, -2.1);
-    ship.add(topEngine);
+    this.shipGroup.add(topEngine);
 
     const topFlame = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.8, 8), rocketFlameMat);
     topFlame.rotation.x = -Math.PI / 2;
     topFlame.position.set(0, 0.35, -2.9);
-    ship.add(topFlame);
+    this.shipGroup.add(topFlame);
+  }
+
+  private buildViperSpaceship(): void {
+    const armorMat = new THREE.MeshStandardMaterial({
+      color: 0x18202c,
+      roughness: 0.28,
+      metalness: 0.88,
+      side: THREE.DoubleSide
+    });
+    const frameMat = new THREE.MeshStandardMaterial({
+      color: 0x2e3d54,
+      roughness: 0.35,
+      metalness: 0.75,
+      side: THREE.DoubleSide
+    });
+    const canopyMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      emissive: 0xd97706,
+      emissiveIntensity: 0.6,
+      roughness: 0.12,
+      metalness: 0.9,
+      transparent: true,
+      opacity: 0.9
+    });
+    const ionNacelleMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      roughness: 0.4,
+      metalness: 0.85
+    });
+    const ionFlameMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.95
+    });
+    const laserMat = new THREE.MeshStandardMaterial({
+      color: 0xef4444,
+      emissive: 0xdc2626,
+      emissiveIntensity: 1.2
+    });
+
+    // 1. Sleek Knife-Edge Fuselage Body
+    const bodyGeo = new THREE.ConeGeometry(0.78, 4.4, 4);
+    const body = new THREE.Mesh(bodyGeo, armorMat);
+    body.rotation.x = Math.PI / 2;
+    body.rotation.y = Math.PI / 4;
+    body.scale.set(1.4, 1.0, 0.45);
+    body.position.set(0, 0, 0.6);
+    body.castShadow = !this.isSoftwareGl;
+    body.receiveShadow = !this.isSoftwareGl;
+    this.shipGroup.add(body);
+
+    // High-Tech Amber Cockpit Visor
+    const canopyGeo = new THREE.SphereGeometry(0.48, 14, 10);
+    const canopy = new THREE.Mesh(canopyGeo, canopyMat);
+    canopy.scale.set(0.72, 0.42, 1.6);
+    canopy.position.set(0, 0.24, 0.8);
+    this.shipGroup.add(canopy);
+
+    // 2. Symmetric Tactical Wings & Weaponry
+    const rightWingGroup = new THREE.Group();
+
+    const wingShape = new THREE.Shape();
+    wingShape.moveTo(0, 0.8);
+    wingShape.lineTo(3.6, -1.4);
+    wingShape.lineTo(3.8, -1.8);
+    wingShape.lineTo(1.2, -1.5);
+    wingShape.lineTo(0, -1.2);
+    wingShape.closePath();
+
+    const wingGeo = new THREE.ExtrudeGeometry(wingShape, { depth: 0.08, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03 });
+    const wing = new THREE.Mesh(wingGeo, armorMat);
+    wing.rotation.x = Math.PI / 2;
+    wing.position.set(0, -0.04, 0.2);
+    wing.castShadow = !this.isSoftwareGl;
+    rightWingGroup.add(wing);
+
+    // Wingtip Heavy Laser Cannon & Plasma Muzzle
+    const cannon = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 1.8, 8), frameMat);
+    cannon.rotation.x = Math.PI / 2;
+    cannon.position.set(3.7, -0.05, -0.5);
+    rightWingGroup.add(cannon);
+
+    const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), laserMat);
+    muzzle.position.set(3.7, -0.05, 0.45);
+    rightWingGroup.add(muzzle);
+
+    // Angled Canted Vertical Stabilizer
+    const finShape = new THREE.Shape();
+    finShape.moveTo(0, 0);
+    finShape.lineTo(0, 1.2);
+    finShape.lineTo(-0.9, 0.9);
+    finShape.lineTo(-1.1, 0);
+    finShape.closePath();
+
+    const fin = new THREE.Mesh(new THREE.ExtrudeGeometry(finShape, { depth: 0.06 }), armorMat);
+    fin.position.set(1.1, 0.2, -0.8);
+    fin.rotation.z = -0.25;
+    rightWingGroup.add(fin);
+
+    // Heavy Ion Thruster Pod & Blue Plasma Cone
+    const engineNacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.42, 2.2, 12), ionNacelleMat);
+    engineNacelle.rotation.x = Math.PI / 2;
+    engineNacelle.position.set(0.85, 0.02, -2.2);
+    rightWingGroup.add(engineNacelle);
+
+    const rightExhaust = new THREE.Mesh(new THREE.ConeGeometry(0.28, 1.1, 12), ionFlameMat);
+    rightExhaust.rotation.x = -Math.PI / 2;
+    rightExhaust.position.set(0.85, 0.02, -3.3);
+    this.shipThrusterRight = rightExhaust;
+    rightWingGroup.add(rightExhaust);
+
+    this.shipGroup.add(rightWingGroup);
+
+    // Mirror Left Wing for 100% Precise Symmetry
+    const leftWingGroup = rightWingGroup.clone(true);
+    leftWingGroup.scale.set(-1, 1, 1);
+
+    leftWingGroup.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.geometry instanceof THREE.ConeGeometry && child.material instanceof THREE.MeshBasicMaterial) {
+        this.shipThrusterLeft = child;
+      }
+    });
+    this.shipGroup.add(leftWingGroup);
+  }
+
+  private buildAlienFighter(): THREE.Group {
+    const ship = new THREE.Group();
+
+    // Hostile Crimson Alien Scout Fighter Materials
+    const alienArmorMat = new THREE.MeshStandardMaterial({ color: 0x1f090d, roughness: 0.2, metalness: 0.9, side: THREE.DoubleSide });
+    const crimsonPlatingMat = new THREE.MeshStandardMaterial({ color: 0x881337, roughness: 0.3, metalness: 0.8, side: THREE.DoubleSide });
+    const redGlowMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xdc2626, emissiveIntensity: 1.8, roughness: 0.1 });
+    const redFlameMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.9 });
+
+    // 1. Central Jagged Bio-Thorax
+    const body = new THREE.Mesh(new THREE.ConeGeometry(0.7, 3.8, 6), alienArmorMat);
+    body.rotation.x = Math.PI / 2;
+    body.position.set(0, 0, 0.2);
+    ship.add(body);
+
+    // Glowing Sensor Eye
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10), redGlowMat);
+    eye.position.set(0, 0.12, 1.6);
+    ship.add(eye);
+
+    // 2. Symmetric Forward-Swept Crimson Blades
+    const rightWingGroup = new THREE.Group();
+
+    const wingShape = new THREE.Shape();
+    wingShape.moveTo(0, 0);
+    wingShape.lineTo(2.2, -0.4);
+    wingShape.lineTo(4.2, 1.2);
+    wingShape.lineTo(3.6, 1.8);
+    wingShape.lineTo(1.8, 0.6);
+    wingShape.closePath();
+
+    const wingMesh = new THREE.Mesh(
+      new THREE.ExtrudeGeometry(wingShape, { depth: 0.08, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03 }),
+      crimsonPlatingMat
+    );
+    wingMesh.rotation.x = Math.PI / 2;
+    wingMesh.position.set(0, -0.04, 0.1);
+    rightWingGroup.add(wingMesh);
+
+    // Engine Nacelle & Red Exhaust Cone
+    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.32, 1.8, 10), alienArmorMat);
+    nacelle.rotation.x = Math.PI / 2;
+    nacelle.position.set(0.75, 0, -1.8);
+    rightWingGroup.add(nacelle);
+
+    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.9, 10), redFlameMat);
+    flame.rotation.x = -Math.PI / 2;
+    flame.position.set(0.75, 0, -2.7);
+    rightWingGroup.add(flame);
+
+    ship.add(rightWingGroup);
 
     ship.traverse(object => {
       if ((object as THREE.Mesh).isMesh) object.castShadow = !this.isSoftwareGl;
@@ -1098,12 +1477,257 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     return ship;
   }
 
+  private destroyEnemyFighter(hitIndex: number): void {
+    const target = this.alienFighters[hitIndex];
+    if (!target) return;
+    this.scene.remove(target.group);
+    target.group.traverse(object => {
+      const mesh = object as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      mesh.geometry.dispose();
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      materials.forEach(material => material.dispose());
+    });
+    this.alienFighters.splice(hitIndex, 1);
+    this.enemiesDestroyed.update(v => v + 1);
+    this.activeHostiles.set(this.alienFighters.length);
+
+    if (this.gameMode() === 'combat' && this.alienFighters.length < 3) {
+      this.spawnCombatEnemies(1);
+    }
+  }
+
+  spawnExplosion(
+    pos: THREE.Vector3,
+    type: 'catastrophic' | 'impact' | 'shield' | 'asteroid' | 'structure',
+    colorHex = 0xff6600,
+    scaleMult = 1.0
+  ): void {
+    const group = new THREE.Group();
+    group.position.copy(pos);
+
+    let maxLife = 0.6;
+    let light: THREE.PointLight | undefined;
+    let fireball: THREE.Mesh | undefined;
+    let shockwave: THREE.Mesh | undefined;
+    const particles: { mesh: THREE.Mesh; velocity: THREE.Vector3; rotSpeed: THREE.Vector3 }[] = [];
+
+    if (type === 'catastrophic') {
+      maxLife = 1.2 * scaleMult;
+      const fireballGeo = new THREE.SphereGeometry(1.2 * scaleMult, 16, 12);
+      const fireballMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.95 });
+      fireball = new THREE.Mesh(fireballGeo, fireballMat);
+      group.add(fireball);
+
+      const ringGeo = new THREE.TorusGeometry(1.5 * scaleMult, 0.15 * scaleMult, 8, 24);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.8, side: THREE.DoubleSide });
+      shockwave = new THREE.Mesh(ringGeo, ringMat);
+      shockwave.rotation.x = Math.PI / 2;
+      group.add(shockwave);
+
+      const shardMat = new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200, emissiveIntensity: 1.5, roughness: 0.2 });
+      const numShards = Math.floor(25 * scaleMult);
+      for (let i = 0; i < numShards; i++) {
+        const shardSize = (0.15 + Math.random() * 0.35) * scaleMult;
+        const shardGeo = Math.random() > 0.5 ? new THREE.TetrahedronGeometry(shardSize) : new THREE.BoxGeometry(shardSize, shardSize * 1.5, shardSize * 0.5);
+        const mesh = new THREE.Mesh(shardGeo, shardMat);
+        const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        const speed = (12 + Math.random() * 24) * scaleMult;
+        const velocity = dir.multiplyScalar(speed);
+        const rotSpeed = new THREE.Vector3((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12);
+        group.add(mesh);
+        particles.push({ mesh, velocity, rotSpeed });
+      }
+
+      light = new THREE.PointLight(colorHex, 10 * scaleMult, 45 * scaleMult);
+      group.add(light);
+      this.playExplosionSound('big');
+      this.cameraShakeIntensity = Math.max(this.cameraShakeIntensity, 0.9 * scaleMult);
+
+    } else if (type === 'impact') {
+      maxLife = 0.45 * scaleMult;
+      const sparkMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.9 });
+      for (let i = 0; i < 14; i++) {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.3), sparkMat);
+        const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir);
+        const velocity = dir.multiplyScalar((15 + Math.random() * 18) * scaleMult);
+        const rotSpeed = new THREE.Vector3(Math.random() * 8, Math.random() * 8, 0);
+        group.add(mesh);
+        particles.push({ mesh, velocity, rotSpeed });
+      }
+      light = new THREE.PointLight(colorHex, 4 * scaleMult, 20 * scaleMult);
+      group.add(light);
+      this.playExplosionSound('medium');
+
+    } else if (type === 'shield') {
+      maxLife = 0.4 * scaleMult;
+      const domeGeo = new THREE.SphereGeometry(2.2 * scaleMult, 16, 12, 0, Math.PI * 2, 0, Math.PI / 1.8);
+      const domeMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+      fireball = new THREE.Mesh(domeGeo, domeMat);
+      group.add(fireball);
+
+      const ringGeo = new THREE.TorusGeometry(2.3 * scaleMult, 0.08, 8, 24);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.85 });
+      shockwave = new THREE.Mesh(ringGeo, ringMat);
+      group.add(shockwave);
+
+      light = new THREE.PointLight(0x38bdf8, 5, 25);
+      group.add(light);
+      this.playExplosionSound('shield');
+
+    } else if (type === 'asteroid') {
+      maxLife = 0.75 * scaleMult;
+      const rockMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9, flatShading: true });
+      for (let i = 0; i < 18; i++) {
+        const size = (0.2 + Math.random() * 0.4) * scaleMult;
+        const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(size), rockMat);
+        const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        const velocity = dir.multiplyScalar((10 + Math.random() * 16) * scaleMult);
+        const rotSpeed = new THREE.Vector3(Math.random() * 10, Math.random() * 10, Math.random() * 10);
+        group.add(mesh);
+        particles.push({ mesh, velocity, rotSpeed });
+      }
+      const flashMat = new THREE.MeshBasicMaterial({ color: 0xff7700, transparent: true, opacity: 0.9 });
+      fireball = new THREE.Mesh(new THREE.SphereGeometry(1.0 * scaleMult, 12, 10), flashMat);
+      group.add(fireball);
+
+      light = new THREE.PointLight(0xffaa00, 6 * scaleMult, 30 * scaleMult);
+      group.add(light);
+      this.playExplosionSound('crunch');
+
+    } else if (type === 'structure') {
+      maxLife = 0.65 * scaleMult;
+      const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.95 });
+      for (let i = 0; i < 20; i++) {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.4), cyanMat);
+        const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir);
+        const velocity = dir.multiplyScalar((14 + Math.random() * 20) * scaleMult);
+        const rotSpeed = new THREE.Vector3(Math.random() * 12, Math.random() * 12, 0);
+        group.add(mesh);
+        particles.push({ mesh, velocity, rotSpeed });
+      }
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+      shockwave = new THREE.Mesh(new THREE.TorusGeometry(2.0 * scaleMult, 0.1, 8, 24), ringMat);
+      shockwave.rotation.x = Math.PI / 2;
+      group.add(shockwave);
+
+      light = new THREE.PointLight(0x00f5d4, 8, 35);
+      group.add(light);
+      this.playExplosionSound('shield');
+    }
+
+    this.scene.add(group);
+    this.activeExplosions.push({ group, light, particles, shockwave, fireball, elapsed: 0, maxLife });
+  }
+
+  private updateExplosions(delta: number): void {
+    for (let i = this.activeExplosions.length - 1; i >= 0; i--) {
+      const exp = this.activeExplosions[i];
+      exp.elapsed += delta;
+      const progress = exp.elapsed / exp.maxLife;
+
+      if (progress >= 1.0) {
+        this.scene.remove(exp.group);
+        exp.group.traverse(obj => {
+          const m = obj as THREE.Mesh;
+          if (m && m.isMesh) {
+            m.geometry?.dispose();
+            const mats = Array.isArray(m.material) ? m.material : [m.material];
+            mats.forEach(mat => mat?.dispose());
+          }
+        });
+        if (exp.light) exp.light.dispose();
+        this.activeExplosions.splice(i, 1);
+        continue;
+      }
+
+      const fade = 1 - progress;
+
+      if (exp.fireball) {
+        const s = 1.0 + progress * 2.5;
+        exp.fireball.scale.set(s, s, s);
+        if (exp.fireball.material instanceof THREE.Material) exp.fireball.material.opacity = fade * 0.9;
+      }
+
+      if (exp.shockwave) {
+        const s = 1.0 + progress * 4.5;
+        exp.shockwave.scale.set(s, s, s);
+        if (exp.shockwave.material instanceof THREE.Material) exp.shockwave.material.opacity = fade * 0.75;
+      }
+
+      for (const p of exp.particles) {
+        p.mesh.position.addScaledVector(p.velocity, delta);
+        p.mesh.rotation.x += p.rotSpeed.x * delta;
+        p.mesh.rotation.y += p.rotSpeed.y * delta;
+        p.mesh.rotation.z += p.rotSpeed.z * delta;
+        if (p.mesh.material instanceof THREE.Material) p.mesh.material.opacity = fade;
+      }
+
+      if (exp.light) {
+        exp.light.intensity = fade * 8.0;
+      }
+    }
+  }
+
+  private playExplosionSound(type: 'big' | 'medium' | 'small' | 'shield' | 'crunch'): void {
+    if (!this.soundEnabled() || !this.audioCtx) return;
+    try {
+      const ctx = this.audioCtx;
+      const now = ctx.currentTime;
+
+      if (type === 'shield') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.25);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.26);
+        return;
+      }
+
+      const bufferSize = ctx.sampleRate * (type === 'big' ? 0.6 : 0.35);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = type === 'crunch' ? 'bandpass' : 'lowpass';
+      filter.frequency.setValueAtTime(type === 'big' ? 300 : type === 'medium' ? 600 : 900, now);
+      filter.frequency.exponentialRampToValueAtTime(40, now + (type === 'big' ? 0.6 : 0.35));
+
+      const gain = ctx.createGain();
+      const vol = type === 'big' ? 0.35 : type === 'medium' ? 0.22 : 0.15;
+      gain.gain.setValueAtTime(vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + (type === 'big' ? 0.6 : 0.35));
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      noise.start(now);
+    } catch {
+      // safe
+    }
+  }
+
   private beginStationEncounter(station: StationData): void {
     if (this.encounteredStationIds.has(station.id)) return;
     this.encounteredStationIds.add(station.id);
 
     if (this.gameMode() === 'free') {
-      this.setCombatMessage(`ESTACIÓN ALCANZADA · ${station.name.toUpperCase()}`, 2500);
+      this.setCombatMessage((this.cfg.stationEncounterMessage || 'ESTACIÓN ALCANZADA') + ` · ${station.name.toUpperCase()}`, 2500);
       this.playChime([440, 660]);
       return;
     }
@@ -1122,7 +1746,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
   firePlayerWeapons(): void {
     if (this.combatCooldown > 0) return;
-    this.combatCooldown = 0.22;
+    this.combatCooldown = 0.16;
     const cosPitch = Math.cos(this.shipPitch);
     const forward = new THREE.Vector3(
       Math.sin(this.shipRotationY) * cosPitch,
@@ -1140,7 +1764,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       bolt.position.copy(origin);
       bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
       this.scene.add(bolt);
-      this.combatBolts.push({ mesh: bolt, velocity: direction.clone().multiplyScalar(105), remaining: 2.6, side: 'player' });
+      this.combatBolts.push({ mesh: bolt, velocity: direction.clone().multiplyScalar(115), remaining: 2.6, side: 'player' });
     }
     this.playChime([720, 540]);
   }
@@ -1154,35 +1778,58 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     bolt.position.copy(fighter.group.position).addScaledVector(direction, 2.2);
     bolt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
     this.scene.add(bolt);
-    this.combatBolts.push({ mesh: bolt, velocity: direction.multiplyScalar(38), remaining: 4.5, side: 'hostile' });
+    this.combatBolts.push({ mesh: bolt, velocity: direction.multiplyScalar(42), remaining: 4.5, side: 'hostile' });
   }
 
   private updateCombat(delta: number): void {
+    if (this.gameMode() !== 'combat') return;
+
     this.combatCooldown = Math.max(0, this.combatCooldown - delta);
     this.hullRegenCooldown = Math.max(0, this.hullRegenCooldown - delta);
-    
-    // Player is IMMORTAL: Hull remains at 100%
     this.hullIntegrity.set(100);
 
-    if ((this.keysPressed['f'] || this.touchState.fire) && this.combatCooldown <= 0) this.firePlayerWeapons();
+    // Periodic enemy reinforcements every 40 seconds in combat mode
+    this.combatReinforcementTimer += delta;
+    if (this.combatReinforcementTimer >= 40) {
+      this.combatReinforcementTimer = 0;
+      const reinforcementCount = 2 + Math.floor(this.waveNumber() * 0.5);
+      this.spawnCombatEnemies(reinforcementCount);
+      this.setCombatMessage(`⚡ ¡TANDA DE REFUERZOS ENEMIGOS ENTRANDO EN ÓRBITA (+${reinforcementCount})!`, 3500);
+      this.playChime([440, 550, 770]);
+    }
+
+    // Check if current wave is cleared -> advance wave
+    if (this.alienFighters.length === 0) {
+      this.waveNumber.update(v => v + 1);
+      const nextCount = 3 + Math.floor(this.waveNumber() * 1.5);
+      this.spawnCombatEnemies(nextCount);
+      this.setCombatMessage((this.cfg.waveClearedMessage || '🚀 ¡OLEADA SUPERADA!') + ` (OLEADA ${this.waveNumber()})`, 4500);
+      this.playChime([523, 659, 784, 1046, 1318]);
+    }
+
+    if ((this.keysPressed['f'] || this.touchState.fire) && this.combatCooldown <= 0) {
+      this.firePlayerWeapons();
+    }
+
+    const diffFactor = 1.0 + (this.waveNumber() - 1) * 0.2;
 
     for (const fighter of this.alienFighters) {
-      fighter.phase += delta * (fighter.velocity.x >= 0 ? 0.28 : -0.28);
+      fighter.phase += delta * (fighter.velocity.x >= 0 ? 0.32 : -0.32) * diffFactor;
       const target = new THREE.Vector3(
         this.shipPosition.x + Math.cos(fighter.phase) * fighter.orbitRadius,
-        this.shipPosition.y + Math.sin(this.elapsedTime * 1.1 + fighter.phase) * fighter.orbitRadius * 0.36,
+        this.shipPosition.y + Math.sin(this.elapsedTime * 1.2 + fighter.phase) * fighter.orbitRadius * 0.4,
         this.shipPosition.z + Math.sin(fighter.phase) * fighter.orbitRadius
       );
       const toTarget = target.sub(fighter.group.position);
-      const desiredVelocity = toTarget.lengthSq() > 0.01 ? toTarget.normalize().multiplyScalar(8.5) : new THREE.Vector3();
-      fighter.velocity.lerp(desiredVelocity, Math.min(1, delta * 1.6));
+      const desiredVelocity = toTarget.lengthSq() > 0.01 ? toTarget.normalize().multiplyScalar(9.5 * diffFactor) : new THREE.Vector3();
+      fighter.velocity.lerp(desiredVelocity, Math.min(1, delta * 1.8));
       fighter.group.position.addScaledVector(fighter.velocity, delta);
       fighter.group.lookAt(this.shipPosition.x, this.shipPosition.y + 0.2, this.shipPosition.z);
-      fighter.group.rotation.z = Math.sin(this.elapsedTime * 1.6 + fighter.phase) * 0.08;
+      fighter.group.rotation.z = Math.sin(this.elapsedTime * 1.8 + fighter.phase) * 0.1;
       fighter.fireCooldown -= delta;
-      if (fighter.fireCooldown <= 0 && fighter.group.position.distanceTo(this.shipPosition) < 105) {
+      if (fighter.fireCooldown <= 0 && fighter.group.position.distanceTo(this.shipPosition) < 115) {
         this.fireAlienWeapons(fighter);
-        fighter.fireCooldown = 1.45 + Math.random() * 1.2;
+        fighter.fireCooldown = (1.2 + Math.random() * 1.0) / diffFactor;
       }
     }
 
@@ -1192,38 +1839,27 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       bolt.mesh.position.addScaledVector(bolt.velocity, delta);
       let consumed = bolt.remaining <= 0;
 
-      if (!consumed && bolt.side === 'hostile' && bolt.mesh.position.distanceTo(this.shipPosition) < 2.0) {
-        // Player is IMMORTAL!
+      if (!consumed && bolt.side === 'hostile' && bolt.mesh.position.distanceTo(this.shipPosition) < 2.2) {
         this.hullIntegrity.set(100);
-        this.playThump();
-        this.setCombatMessage(`🛡️ IMPACTO ABSORBIDO (ESCUDO INVENCIBLE · INMORTAL)`, 1400);
+        this.spawnExplosion(bolt.mesh.position.clone(), 'shield', 0x38bdf8, 1.0);
+        this.cameraShakeIntensity = Math.max(this.cameraShakeIntensity, 0.45);
+        this.setCombatMessage(this.cfg.shieldImpactMessage || '🛡️ IMPACTO ABSORBIDO', 1400);
         consumed = true;
       } else if (!consumed && bolt.side === 'player') {
-        const hitIndex = this.alienFighters.findIndex(fighter => bolt.mesh.position.distanceTo(fighter.group.position) < 2.4);
+        const hitIndex = this.alienFighters.findIndex(fighter => bolt.mesh.position.distanceTo(fighter.group.position) < 2.6);
         if (hitIndex >= 0) {
           const target = this.alienFighters[hitIndex];
           target.integrity -= 1;
-          const hull = target.group.children[0] as THREE.Mesh;
-          if (hull.material instanceof THREE.MeshStandardMaterial) hull.material.emissive.setHex(0xff3300);
-          if (target.integrity <= 0) {
-            this.scene.remove(target.group);
-            target.group.traverse(object => {
-              const mesh = object as THREE.Mesh;
-              if (!mesh.isMesh) return;
-              mesh.geometry.dispose();
-              const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-              materials.forEach(material => material.dispose());
-            });
-            this.alienFighters.splice(hitIndex, 1);
-            this.enemiesDestroyed.update(v => v + 1);
-            this.activeHostiles.set(this.alienFighters.length);
-            this.setCombatMessage(`💥 TRANSBORDADOR ENEMIGO DERRIBADO! (DERRIBOS: ${this.enemiesDestroyed()})`, 2500);
-            this.playChime([523, 659, 784, 1046]);
+          const hitPos = bolt.mesh.position.clone();
 
-            // Continuous spawn in combat mode to keep action going
-            if (this.gameMode() === 'combat' && this.alienFighters.length < 3) {
-              this.spawnCombatEnemies(1);
-            }
+          if (target.integrity <= 0) {
+            this.spawnExplosion(hitPos, 'catastrophic', 0xff3300, 1.8);
+            this.destroyEnemyFighter(hitIndex);
+            this.setCombatMessage((this.cfg.enemyDestroyedMessage || '💥 HOSTIL DERRIBADO') + `! (OLEADA ${this.waveNumber()} · DERRIBOS: ${this.enemiesDestroyed()})`, 2500);
+          } else {
+            this.spawnExplosion(hitPos, 'impact', 0xffcc00, 1.0);
+            const hull = target.group.children[0] as THREE.Mesh;
+            if (hull && hull.material instanceof THREE.MeshStandardMaterial) hull.material.emissive.setHex(0xff3300);
           }
           consumed = true;
         }
@@ -1525,27 +2161,21 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.isCinema.set(mode === 'cinematic');
   }
 
-  onLoadCustomGlb(event: any): void {
+  async onLoadCustomGlb(event: any): Promise<void> {
     const file = event.target.files?.[0];
     if (!file) return;
 
     this.customGlbName.set(file.name);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      try {
-        localStorage.setItem('cached_transformer_glb', dataUrl);
-        localStorage.setItem('cached_transformer_name', file.name);
-      } catch (err) {
-        console.warn('LocalStorage save error:', err);
-      }
-      this.loadGlbFromUrl(dataUrl, file.name);
-    };
-    reader.onerror = (err) => {
-      console.error('FileReader error:', err);
-      alert('Error al leer el archivo.');
-    };
-    reader.readAsDataURL(file);
+    try {
+      const idbKey = `in_game_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      await saveModelToDB(idbKey, file);
+      const blobUrl = URL.createObjectURL(file);
+      this.loadGlbFromUrl(blobUrl, file.name);
+    } catch (err) {
+      console.warn('Fallback loading directly via ObjectURL:', err);
+      const blobUrl = URL.createObjectURL(file);
+      this.loadGlbFromUrl(blobUrl, file.name);
+    }
   }
 
   private loadGlbFromUrl(url: string, name: string): void {
@@ -1576,13 +2206,30 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         });
 
         this.shipGroup.add(model);
+
+        // Dual thruster flames attached at the rear of the loaded 3D vessel
+        const thrusterMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85 });
+        const flameL = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.8, 8), thrusterMat);
+        flameL.rotation.x = -Math.PI / 2;
+        flameL.position.set(-0.6, 0, -2.0);
+        const flameR = flameL.clone();
+        flameR.position.x = 0.6;
+        this.shipThrusterLeft = flameL;
+        this.shipThrusterRight = flameR;
+        this.shipGroup.add(flameL);
+        this.shipGroup.add(flameR);
+
         this.customGlbLoaded.set(true);
         this.customGlbName.set(name);
+        this.currentShipTitle.set(name.toUpperCase());
+        this.currentShipSub.set('Modelo 3D cargado desde la nube · Telemetría activa');
+        this.setCombatMessage(`✓ MODELO 3D CARGADO: ${name.toUpperCase()}`, 3500);
         this.playChime([523, 659, 784, 1046]);
       },
       undefined,
       (error) => {
         console.error('Error loading custom .glb model:', error);
+        this.setCombatMessage(`⚠ Error al cargar archivo 3D: modelo no accesible`, 4000);
       }
     );
   }
@@ -1634,7 +2281,9 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       this.updatePhysics(delta);
       this.updateCombat(delta);
       this.updateStations(delta);
+      this.updateExplosions(delta);
       this.updateParticles(delta);
+      this.updateShaderPilot(delta);
       this.updateCamera(delta);
       this.updateAudioFeedback();
 
@@ -1727,8 +2376,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     this.shipGroup.rotation.set(this.shipPitch, this.shipRotationY, this.shipRoll);
 
     const thrusterScale = Math.max(0.2, (this.shipSpeed / this.maxNormalSpeed) * (this.isBoosting ? 1.8 : 1.1));
-    this.shipThrusterLeft.scale.set(thrusterScale, thrusterScale * 1.5, thrusterScale);
-    this.shipThrusterRight.scale.set(thrusterScale, thrusterScale * 1.5, thrusterScale);
+    if (this.shipThrusterLeft && this.shipThrusterRight) {
+        this.shipThrusterLeft.scale.set(thrusterScale, thrusterScale * 1.5, thrusterScale);
+        this.shipThrusterRight.scale.set(thrusterScale, thrusterScale * 1.5, thrusterScale);
+    }
 
     if (this.shipSpeed > 1.5) this.emitThrusterParticle();
 
@@ -1743,6 +2394,104 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       const mono = this.alienMonoliths[m];
       mono.rotation.y += delta * (0.16 + m * 0.05);
       mono.rotation.x += delta * 0.08;
+    }
+
+    // Update collision cooldowns
+    this.playerCollisionCooldown = Math.max(0, this.playerCollisionCooldown - delta);
+
+    if (this.playerCollisionCooldown <= 0) {
+      // 1. Check Asteroid Collisions
+      for (const ast of this.asteroidsList) {
+        const dist = this.shipPosition.distanceTo(ast.position);
+        if (dist < ast.radius + 1.8) {
+          this.playerCollisionCooldown = 0.65;
+          const bounceDir = this._vecA.subVectors(this.shipPosition, ast.position).normalize();
+          if (bounceDir.lengthSq() < 0.01) bounceDir.set(0, 0, 1);
+          this.shipVelocity.copy(bounceDir).multiplyScalar(Math.max(14, this.shipSpeed * 0.8));
+
+          const impactPoint = this.shipPosition.clone().addScaledVector(bounceDir, -1.2);
+          this.spawnExplosion(impactPoint, 'asteroid', 0xff9933, 1.2);
+          this.cameraShakeIntensity = 0.85;
+          this.setCombatMessage('💥 IMPACTO CON ASTEROIDE · REBOTE DE SEGURIDAD', 2000);
+          break;
+        }
+      }
+    }
+
+    if (this.playerCollisionCooldown <= 0) {
+      // 2. Check Monolith Collisions
+      for (const mono of this.alienMonoliths) {
+        const dist = this.shipPosition.distanceTo(mono.position);
+        if (dist < 6.0) {
+          this.playerCollisionCooldown = 0.65;
+          const bounceDir = this._vecA.subVectors(this.shipPosition, mono.position).normalize();
+          this.shipVelocity.copy(bounceDir).multiplyScalar(Math.max(16, this.shipSpeed * 0.9));
+
+          this.spawnExplosion(this.shipPosition.clone(), 'structure', 0x00f5d4, 1.4);
+          this.cameraShakeIntensity = 0.95;
+          this.setCombatMessage('⚡ DESCARGA ENERGÉTICA · MONOLITO ANCESTRAL', 2000);
+          break;
+        }
+      }
+    }
+
+    if (this.playerCollisionCooldown <= 0) {
+      // 3. Check Orbital Station Deflector Collisions
+      for (const sm of this.stationMeshes) {
+        const dist = this.shipPosition.distanceTo(sm.group.position);
+        if (dist < 11.5) {
+          this.playerCollisionCooldown = 0.7;
+          const bounceDir = this._vecA.subVectors(this.shipPosition, sm.group.position).normalize();
+          if (bounceDir.lengthSq() < 0.01) bounceDir.set(0, 1, 0);
+          this.shipVelocity.copy(bounceDir).multiplyScalar(Math.max(16, this.shipSpeed * 0.85));
+
+          const impactPoint = this.shipPosition.clone().addScaledVector(bounceDir, -1.0);
+          this.spawnExplosion(impactPoint, 'structure', sm.data.color || 0x00f5d4, 1.3);
+          this.cameraShakeIntensity = 0.8;
+          this.setCombatMessage(`🛡️ CAMPO DEFLECTOR · ESTACIÓN ${sm.data.name.toUpperCase()}`, 2000);
+          break;
+        }
+      }
+    }
+
+    if (this.playerCollisionCooldown <= 0) {
+      // 4. Check Ramming Enemy Fighters
+      for (let i = 0; i < this.alienFighters.length; i++) {
+        const fighter = this.alienFighters[i];
+        const dist = this.shipPosition.distanceTo(fighter.group.position);
+        if (dist < 3.2) {
+          this.playerCollisionCooldown = 0.75;
+          const bounceDir = this._vecA.subVectors(this.shipPosition, fighter.group.position).normalize();
+          this.shipVelocity.copy(bounceDir).multiplyScalar(18);
+
+          const hitPos = fighter.group.position.clone();
+          this.spawnExplosion(hitPos, 'catastrophic', 0xff3300, 1.8);
+          this.cameraShakeIntensity = 1.2;
+
+          fighter.integrity -= 2;
+          if (fighter.integrity <= 0) {
+            this.destroyEnemyFighter(i);
+            this.setCombatMessage('💥 NAVE ENEMIGA DESTRUIDA POR EMBESTIDA!', 2500);
+          } else {
+            this.setCombatMessage('💥 COLISIÓN NAVE CONTRA NAVE!', 2000);
+          }
+          break;
+        }
+      }
+    }
+
+    // 5. Sector Boundary Forcefield Barrier Collisions (Radius > 340)
+    const distFromCenter = this.shipPosition.length();
+    if (distFromCenter > 340) {
+      const normal = this.shipPosition.clone().normalize().negate();
+      this.shipPosition.clampLength(0, 338);
+      this.shipVelocity.reflect(normal).multiplyScalar(0.75);
+      this.playerCollisionCooldown = 0.5;
+
+      this.spawnExplosion(this.shipPosition.clone(), 'structure', 0xff0055, 1.6);
+      this.cameraShakeIntensity = 1.1;
+      this.setCombatMessage(this.cfg.boundaryWarningMessage || '🚨 BARRERA DE SEGURIDAD DEL SECTOR', 2200);
+      this.playChime([880, 440, 220]);
     }
 
     this.speedKms.set(Math.round(this.shipSpeed));
@@ -1971,8 +2720,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       this._camTarget.copy(this.shipPosition).addScaledVector(forward, 6);
       this.camera.lookAt(this._camTarget);
     } else if (mode === 'cockpit') {
-      this.camera.position.copy(this.shipPosition).add(new THREE.Vector3(0, 0.55, 0)).addScaledVector(forward, 0.85);
-      this._camTarget.copy(this.shipPosition).addScaledVector(forward, 18);
+      this.camera.position.copy(this.shipPosition).add(new THREE.Vector3(0, 0.75, 1.6)).addScaledVector(forward, 1.6);
+      this._camTarget.copy(this.shipPosition).addScaledVector(forward, 22);
       this.camera.lookAt(this._camTarget);
     } else if (mode === 'top') {
       this.camera.position.x = THREE.MathUtils.damp(this.camera.position.x, this.shipPosition.x, 5.0, delta);
@@ -1987,6 +2736,17 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
         this.shipPosition.z + Math.sin(t) * 14.0
       );
       this.camera.lookAt(this.shipPosition);
+    }
+
+    // Apply Camera Shake Effect on Collisions and Explosions
+    if (this.cameraShakeIntensity > 0) {
+      const shakeX = (Math.random() - 0.5) * this.cameraShakeIntensity * 1.2;
+      const shakeY = (Math.random() - 0.5) * this.cameraShakeIntensity * 1.2;
+      const shakeZ = (Math.random() - 0.5) * this.cameraShakeIntensity * 1.2;
+      this.camera.position.x += shakeX;
+      this.camera.position.y += shakeY;
+      this.camera.position.z += shakeZ;
+      this.cameraShakeIntensity = Math.max(0, this.cameraShakeIntensity - delta * 2.8);
     }
   }
 
@@ -2005,6 +2765,137 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   }
 
   // ==========================================
+  // Shader Pilot GLSL Environment Engine
+  // ==========================================
+  private initShaderPilotEnvironment(): void {
+    const geo = new THREE.SphereGeometry(280, 48, 32);
+    const uniforms = {
+      uTime: { value: 0 },
+      uSpeed: { value: this.shaderSpeed() },
+      uFrequency: { value: this.shaderFrequency() },
+      uGlow: { value: this.shaderGlow() },
+      uScale: { value: this.shaderScale() },
+      uDistortion: { value: this.shaderDistortion() },
+      uColorPalette: { value: this.shaderColorPalette() },
+      uShipSpeed: { value: 0 },
+      uShipTilt: { value: new THREE.Vector2(0, 0) }
+    };
+
+    this.shaderPilotMaterial = new THREE.ShaderMaterial({
+      vertexShader: SHADER_PILOT_VERTEX,
+      fragmentShader: this.glslCode() || PRESET_SYNTHWAVE_GLSL,
+      uniforms,
+      side: THREE.BackSide,
+      depthWrite: false
+    });
+
+    this.shaderPilotMesh = new THREE.Mesh(geo, this.shaderPilotMaterial);
+    this.shaderPilotMesh.visible = this.shaderPilotActive();
+    this.scene.add(this.shaderPilotMesh);
+  }
+
+  private updateShaderPilot(delta: number): void {
+    if (!this.shaderPilotMaterial || !this.shaderPilotMesh) return;
+    this.shaderPilotMesh.visible = this.shaderPilotActive();
+
+    if (!this.shaderPilotActive()) return;
+
+    const u = this.shaderPilotMaterial.uniforms;
+    u['uTime'].value += delta;
+    u['uSpeed'].value = this.shaderSpeed();
+    u['uFrequency'].value = this.shaderFrequency();
+    u['uGlow'].value = this.shaderGlow();
+    u['uScale'].value = this.shaderScale();
+    u['uDistortion'].value = this.shaderDistortion();
+    u['uColorPalette'].value = this.shaderColorPalette();
+
+    if (this.syncFlight()) {
+      u['uShipSpeed'].value = this.shipSpeed;
+      u['uShipTilt'].value.set(this.shipPitch, this.shipRoll);
+    } else {
+      u['uShipSpeed'].value = 0;
+      u['uShipTilt'].value.set(0, 0);
+    }
+  }
+
+  onToggleShaderPilot(active: boolean): void {
+    this.shaderPilotActive.set(active);
+    if (active) {
+      this.setCombatMessage('✨ MOTOR GLSL EN TIEMPO REAL ACTIVADO', 3000);
+      this.playChime([523, 659, 784, 1046]);
+    } else {
+      this.setCombatMessage('🌐 MODO ESPACIO PROFUNDO ESTÁNDAR', 2500);
+    }
+  }
+
+  onSelectShaderPreset(preset: ShaderPreset): void {
+    this.selectedShaderPreset.set(preset);
+    let code = PRESET_SYNTHWAVE_GLSL;
+    if (preset === 'nebula') code = PRESET_NEBULA_GLSL;
+    if (preset === 'wormhole') code = PRESET_WORMHOLE_GLSL;
+    if (preset === 'fractal') code = PRESET_FRACTAL_GLSL;
+    if (preset === 'plasma') code = PRESET_PLASMA_GLSL;
+
+    this.glslCode.set(code);
+    this.applyGlslMaterial(code);
+    this.setCombatMessage(`✨ PRESET GLSL: ${preset.toUpperCase()}`, 2500);
+  }
+
+  onUpdateUniform(event: { key: string; value: number | boolean }): void {
+    const { key, value } = event;
+    if (key === 'speed') this.shaderSpeed.set(value as number);
+    if (key === 'frequency') this.shaderFrequency.set(value as number);
+    if (key === 'glow') this.shaderGlow.set(value as number);
+    if (key === 'scale') this.shaderScale.set(value as number);
+    if (key === 'distortion') this.shaderDistortion.set(value as number);
+    if (key === 'colorPalette') this.shaderColorPalette.set(value as number);
+    if (key === 'syncFlight') this.syncFlight.set(value as boolean);
+  }
+
+  onCompileGlsl(code: string): void {
+    this.applyGlslMaterial(code);
+  }
+
+  private applyGlslMaterial(fragmentShaderCode: string): void {
+    if (!this.shaderPilotMaterial) return;
+    try {
+      const testMat = new THREE.ShaderMaterial({
+        vertexShader: SHADER_PILOT_VERTEX,
+        fragmentShader: fragmentShaderCode,
+        uniforms: this.shaderPilotMaterial.uniforms
+      });
+
+      this.shaderPilotMaterial.dispose();
+      this.shaderPilotMaterial = testMat;
+      this.shaderPilotMaterial.side = THREE.BackSide;
+      this.shaderPilotMaterial.depthWrite = false;
+
+      if (this.shaderPilotMesh) {
+        this.shaderPilotMesh.material = this.shaderPilotMaterial;
+      }
+
+      this.glslCode.set(fragmentShaderCode);
+      this.glslCompileError.set(null);
+      this.setCombatMessage('⚡ SHADER GLSL COMPILADO CON ÉXITO', 3000);
+      this.playChime([784, 1046]);
+    } catch (err: any) {
+      console.error('GLSL Compile error:', err);
+      this.glslCompileError.set(err?.message || 'Error de compilación en Fragment Shader GLSL');
+    }
+  }
+
+  onResetShaderUniforms(): void {
+    this.shaderSpeed.set(1.0);
+    this.shaderFrequency.set(2.0);
+    this.shaderGlow.set(1.5);
+    this.shaderScale.set(1.0);
+    this.shaderDistortion.set(0.5);
+    this.shaderColorPalette.set(0);
+    this.syncFlight.set(true);
+    this.onSelectShaderPreset('synthwave');
+  }
+
+  // ==========================================
   // Clean Disposal
   // ==========================================
   private disposeThree(): void {
@@ -2016,6 +2907,7 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     document.removeEventListener('pointerlockchange', this.onPointerLockChange);
     this.releasePointerLock();
 
+    this.activeExplosions = [];
     if (this.renderer) {
       this.renderer.dispose();
       if (this.renderer.domElement && this.renderer.domElement.parentNode) {

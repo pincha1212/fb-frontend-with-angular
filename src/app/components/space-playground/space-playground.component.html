@@ -2,14 +2,26 @@
   <!-- Three.js Canvas Container (Dedicated isolated container) -->
   <div #canvasContainer class="canvas-mount" (click)="captureMouse($event)"></div>
 
+  <!-- Immersive Cockpit Glass Vignette -->
+  <div class="cockpit-vignette" aria-hidden="true"></div>
+
+  <!-- Tactical Objective Banner -->
+  @if (gameMode() === 'combat') {
+    <div class="tactical-objective-banner" aria-label="Misión táctica">
+      <span class="obj-dot"></span>
+      <span class="obj-text">OBJETIVO: DEFENDER SECTOR ORBITAL · OLEADA {{ waveNumber() }}</span>
+      <span class="obj-timer">05:16</span>
+    </div>
+  }
+
   <!-- TOP HUD: Minimal telemetry header (Unobstructed center) -->
   <header class="hud-top-bar" [class.cinema-hidden]="isCinema()" role="banner">
     <div class="hud-telemetry-cluster">
       <div class="hud-badge">
         <span class="hud-badge-icon" aria-hidden="true">⌖</span>
         <div class="hud-badge-info">
-          <span class="hud-badge-title">NAVE BIOMECÁNICA · XENO-01</span>
-          <span class="hud-badge-sub">Propulsión taquiónica extraterrestre · F. Barzola</span>
+          <span class="hud-badge-title">{{ currentShipTitle() }}</span>
+          <span class="hud-badge-sub">{{ currentShipSub() }}</span>
         </div>
       </div>
 
@@ -20,6 +32,17 @@
         </span>
       </div>
 
+      <!-- Prominent Mode Switch Button (Directly accessible at the top) -->
+      <button 
+        type="button" 
+        class="mode-switch-pill-btn"
+        [class.combat-active]="gameMode() === 'combat'"
+        (click)="toggleGameMode()"
+        [title]="gameMode() === 'combat' ? 'Cambiar a Modo Navegación Libre' : 'Cambiar a Modo Combate Inmortal'">
+        <span class="mode-icon">{{ gameMode() === 'combat' ? '🎮' : '🕊️' }}</span>
+        <span class="mode-text">{{ gameMode() === 'combat' ? 'COMBATE' : 'LIBRE' }}</span>
+      </button>
+
       @if (turboActive()) {
         <div class="turbo-alert-pill">
           <span>EMPUJE AUXILIAR ACTIVO</span>
@@ -28,83 +51,194 @@
 
       @if (gameMode() === 'combat') {
         <div class="combat-status-badge">
-          <span class="immortal-shield">🛡️ ESCUDO INMORTAL</span>
+          <span class="immortal-shield">🛡️ INMORTAL</span>
+          <span class="wave-count">OLEADA {{ waveNumber() }}</span>
           <span class="kills-count">DERRIBOS: {{ enemiesDestroyed() }}</span>
         </div>
       }
     </div>
 
     <div class="hud-top-actions">
-      <!-- Mode Switcher Toggle Button -->
+      <!-- Unified Gear Button (⚙️) -->
       <button 
         type="button" 
-        class="hud-icon-btn mode-switcher-btn" 
-        [class.combat-active]="gameMode() === 'combat'"
-        (click)="toggleGameMode()"
-        title="Alternar entre modo navegación libre y modo combate inmortal">
-        <span>{{ gameMode() === 'free' ? '🎮 ACTIVAR MODO JUEGO' : '🕊️ VOLVER A MODO LIBRE' }}</span>
+        class="hud-gear-btn" 
+        [class.active]="isSettingsOpen()"
+        (click)="toggleSettingsMenu()" 
+        title="Menú de Configuración y Herramientas de Vuelo">
+        <span class="gear-icon">⚙️</span>
+        <span class="gear-label">OPCIONES</span>
       </button>
 
-      <!-- Centrar Nave -->
-      <button type="button" class="hud-icon-btn" (click)="resetShipPosition()" title="Reposicionar nave">
-        <span>⌖ Recentrar</span>
-      </button>
-
-      <!-- Cargar GLB -->
-      <label class="hud-icon-btn glb-upload-label" title="Cargar un modelo de nave .GLB o .GLTF">
-        <span>Añadir modelo 3D</span>
-        <input type="file" accept=".glb,.gltf" class="model-upload-input" aria-label="Seleccionar un modelo de nave GLB o GLTF" (change)="onLoadCustomGlb($event)">
-      </label>
-
-      <!-- Invert Y Toggle -->
-      <button 
-        type="button" 
-        class="hud-icon-btn" 
-        [class.active]="invertY()"
-        (click)="toggleInvertY()"
-        title="Alternar inversión vertical del mouse">
-        <span>{{ invertY() ? 'EJE Y · INVERTIDO' : 'EJE Y · DIRECTO' }}</span>
-      </button>
-
-      <!-- Audio Toggle -->
-      <button 
-        type="button" 
-        class="hud-icon-btn" 
-        [class.active]="soundEnabled()"
-        (click)="toggleSound()"
-        title="Alternar sonido del motor">
-        <span>{{ soundEnabled() ? 'SONIDO · ACTIVO' : 'SONIDO · MUDO' }}</span>
-      </button>
-
-      <!-- Waypoint Beacons Toggle -->
-      <button 
-        type="button" 
-        class="hud-icon-btn" 
-        [class.active]="showWaypoints()"
-        (click)="toggleWaypoints()"
-        title="Alternar indicadores visuales de estaciones orbitales">
-        <span>{{ showWaypoints() ? 'BALIZAS · VISIBLES' : 'BALIZAS · OCULTAS' }}</span>
-      </button>
-
-      <!-- Help info modal toggle -->
-      <button 
-        type="button" 
-        class="hud-icon-btn" 
-        (click)="toggleHelp()"
-        title="Ver Controles de Vuelo">
-        <span>CONTROLES</span>
-      </button>
-
-      <!-- Return to portfolio button -->
+      <!-- Return to portfolio direct button -->
       <button 
         type="button" 
         class="hud-close-btn" 
         (click)="closePlayground.emit()"
         title="Volver al portafolio">
-        <span>VOLVER AL PORTAFOLIO</span>
+        <span>VOLVER</span>
       </button>
     </div>
   </header>
+
+  <!-- UNIFIED GEAR SETTINGS PANEL (⚙️) -->
+  @if (isSettingsOpen()) {
+    <div class="unified-settings-overlay" (click)="toggleSettingsMenu()">
+      <div class="unified-settings-card" (click)="$event.stopPropagation()">
+        <header class="settings-card-header">
+          <div class="settings-title-box">
+            <span class="gear-badge">⚙️ CONTROL DE MANDO</span>
+            <h3>Configuración y Herramientas de Vuelo</h3>
+          </div>
+          <button type="button" class="settings-close-x" (click)="toggleSettingsMenu()">✕</button>
+        </header>
+
+        <div class="settings-card-body">
+          <!-- 1. SECCIÓN: NAVEGACIÓN Y HANGAR -->
+          <div class="settings-section">
+            <span class="settings-section-title">🚀 NAVEGACIÓN Y FLOTA</span>
+            <div class="settings-btn-grid">
+              <button 
+                type="button" 
+                class="settings-action-btn primary-hangar"
+                (click)="openHangar.emit(); toggleSettingsMenu()">
+                <span>🚀 Cambiar de Nave</span>
+                <small>Abrir Hangar 3D</small>
+              </button>
+
+              <button 
+                type="button" 
+                class="settings-action-btn"
+                (click)="resetShipPosition(); toggleSettingsMenu()">
+                <span>⌖ Recentrar Nave</span>
+                <small>Reiniciar posición (R)</small>
+              </button>
+            </div>
+          </div>
+
+
+
+          <!-- 3. SECCIÓN: MOTOR GLSL GENERATIVO -->
+          <div class="settings-section shader-pilot-section">
+            <div class="shader-section-top">
+              <span class="settings-section-title">✨ MOTOR DE SHADERS GLSL 3D</span>
+              <button 
+                type="button" 
+                class="settings-switch-btn"
+                [class.active]="shaderPilotActive()"
+                (click)="onToggleShaderPilot(!shaderPilotActive())">
+                {{ shaderPilotActive() ? '✨ ACTIVO' : 'OFF' }}
+              </button>
+            </div>
+
+            @if (shaderPilotActive()) {
+              <div class="shader-controls-box">
+                <!-- Preset Buttons -->
+                <span class="sub-label">PRESETS DE SHADERS</span>
+                <div class="settings-preset-grid">
+                  <button type="button" class="preset-pill" [class.active]="selectedShaderPreset() === 'synthwave'" (click)="onSelectShaderPreset('synthwave')">🌐 Cyber-Grid</button>
+                  <button type="button" class="preset-pill" [class.active]="selectedShaderPreset() === 'nebula'" (click)="onSelectShaderPreset('nebula')">🌌 Nebulosa</button>
+                  <button type="button" class="preset-pill" [class.active]="selectedShaderPreset() === 'wormhole'" (click)="onSelectShaderPreset('wormhole')">🌀 Túnel</button>
+                  <button type="button" class="preset-pill" [class.active]="selectedShaderPreset() === 'fractal'" (click)="onSelectShaderPreset('fractal')">⚛️ Fractal</button>
+                  <button type="button" class="preset-pill" [class.active]="selectedShaderPreset() === 'plasma'" (click)="onSelectShaderPreset('plasma')">⚡ Plasma</button>
+                </div>
+
+                <!-- Sliders -->
+                <div class="settings-sliders-list">
+                  <div class="slider-group">
+                    <div class="slider-row-head">
+                      <span>Velocidad</span>
+                      <span class="val">{{ shaderSpeed().toFixed(2) }}x</span>
+                    </div>
+                    <input type="range" min="0.1" max="5.0" step="0.05" [value]="shaderSpeed()" (input)="onUpdateUniform({ key: 'speed', value: $any($event.target).value })" />
+                  </div>
+
+                  <div class="slider-group">
+                    <div class="slider-row-head">
+                      <span>Frecuencia / Onda</span>
+                      <span class="val">{{ shaderFrequency().toFixed(2) }}</span>
+                    </div>
+                    <input type="range" min="0.5" max="10.0" step="0.1" [value]="shaderFrequency()" (input)="onUpdateUniform({ key: 'frequency', value: $any($event.target).value })" />
+                  </div>
+
+                  <div class="slider-group">
+                    <div class="slider-row-head">
+                      <span>Resplandor (Glow)</span>
+                      <span class="val">{{ shaderGlow().toFixed(2) }}</span>
+                    </div>
+                    <input type="range" min="0.0" max="3.0" step="0.1" [value]="shaderGlow()" (input)="onUpdateUniform({ key: 'glow', value: $any($event.target).value })" />
+                  </div>
+
+                  <div class="slider-group">
+                    <div class="slider-row-head">
+                      <span>Distorsión</span>
+                      <span class="val">{{ shaderDistortion().toFixed(2) }}</span>
+                    </div>
+                    <input type="range" min="0.0" max="2.0" step="0.05" [value]="shaderDistortion()" (input)="onUpdateUniform({ key: 'distortion', value: $any($event.target).value })" />
+                  </div>
+                </div>
+
+                <!-- Sync Checkbox -->
+                <label class="settings-check-item sync-check">
+                  <input type="checkbox" [checked]="syncFlight()" (change)="onUpdateUniform({ key: 'syncFlight', value: $any($event.target).checked })" />
+                  <span class="settings-custom-check"></span>
+                  <span>Sincronizar velocidad y giros con el Shader</span>
+                </label>
+              </div>
+            }
+          </div>
+
+          <!-- 4. SECCIÓN: PREFERENCIAS DE PILOTAJE -->
+          <div class="settings-section">
+            <span class="settings-section-title">🕹️ PREFERENCIAS Y CONTROLES</span>
+            <div class="settings-options-list">
+              <!-- Invert Y -->
+              <label class="settings-check-item">
+                <input type="checkbox" [checked]="invertY()" (change)="toggleInvertY()" />
+                <span class="settings-custom-check"></span>
+                <span>Invertir Eje Y del Mouse (Inversión vertical)</span>
+              </label>
+
+              <!-- Sound -->
+              <label class="settings-check-item">
+                <input type="checkbox" [checked]="soundEnabled()" (change)="toggleSound()" />
+                <span class="settings-custom-check"></span>
+                <span>Efectos de Sonido del Motor y Combate</span>
+              </label>
+
+              <!-- Waypoints -->
+              <label class="settings-check-item">
+                <input type="checkbox" [checked]="showWaypoints()" (change)="toggleWaypoints()" />
+                <span class="settings-custom-check"></span>
+                <span>Mostrar Balizas Visuales de Estaciones Orbitales</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 5. SECCIÓN: AYUDA Y PORTAFOLIO -->
+          <div class="settings-section">
+            <div class="settings-btn-grid">
+              <button 
+                type="button" 
+                class="settings-action-btn secondary-help"
+                (click)="toggleHelp(); toggleSettingsMenu()">
+                <span>📖 Guía de Controles</span>
+                <small>Teclas W, S, A, D, Mouse y Espacio</small>
+              </button>
+
+              <button 
+                type="button" 
+                class="settings-action-btn close-portfolio"
+                (click)="closePlayground.emit()">
+                <span>↩ Volver al Portafolio</span>
+                <small>Salir del simulador 3D</small>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 
   @if (hasMouseControl() && !isPointerLocked()) {
     <div class="mouse-pilot-hint" role="status">
@@ -377,13 +511,9 @@
 
 
 
-  <!-- CUSTOM GLB SUCCESS NOTIFICATION BANNER -->
-  @if (customGlbLoaded()) {
-    <div class="custom-glb-banner" role="status">
-      <span>Modelo de nave añadido: <strong>{{ customGlbName() }}</strong></span>
-      <button type="button" class="banner-close" (click)="customGlbLoaded.set(false)">✕</button>
-    </div>
-  }
+
+
+
 
   <!-- COCKPIT HUD OVERLAY INSTRUMENT PANEL -->
   <app-cockpit-hud
@@ -395,6 +525,8 @@
     [headingDegrees]="headingDegrees()"
     [pitchDegrees]="pitchDegrees()"
     [hullIntegrity]="hullIntegrity()"
+    [shipTypeTag]="currentShipTypeTag()"
+    [hullLabel]="currentHullLabel()"
     [activeHostiles]="activeHostiles()"
     [combatMessage]="combatMessage()"
     [currentCameraMode]="cameraMode()"

@@ -1,8 +1,10 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc, getDocFromServer } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import firebaseConfig from '../../../firebase-applet-config.json';
 import { Proyecto } from '../components/proyectos/proyectos.component';
+import { saveModelToDB } from './model-storage';
 
 export interface HitoItem {
   numero: string;
@@ -74,6 +76,41 @@ export interface ContactoData {
   redes: RedSocial[];
 }
 
+export interface StationCustomConfig {
+  sectionId: string;
+  useCustomData?: boolean;
+  nameOverride?: string;
+  subtitleOverride?: string;
+  descriptionOverride?: string;
+  tagsOverride?: string[];
+  ctaLabelOverride?: string;
+}
+
+export interface Modo3DConfig {
+  tacticalObjectiveTitle?: string;
+  combatActivatedMessage?: string;
+  freeModeActivatedMessage?: string;
+  shieldImpactMessage?: string;
+  enemyDestroyedMessage?: string;
+  waveClearedMessage?: string;
+  boundaryWarningMessage?: string;
+  stationEncounterMessage?: string;
+  lowHealthWarningMessage?: string;
+  combatStartMessage?: string;
+  gamePausedMessage?: string;
+  hostileTargetLockedMessage?: string;
+  stationsConfig?: Record<string, StationCustomConfig>;
+}
+
+export interface NaveModel {
+  id?: string;
+  nombre: string;
+  url: string;
+  tipo?: 'xeno' | 'shuttle' | 'interceptor' | 'custom';
+  descripcion?: string;
+  icono?: string;
+}
+
 export interface FullPortfolioData {
   profile: ProfileData;
   proyectos: Proyecto[];
@@ -81,10 +118,101 @@ export interface FullPortfolioData {
   experiencia: ExperienciaItem[];
   trayectoriaExtra: TrayectoriaExtra;
   contacto: ContactoData;
+  modelosNave: NaveModel[];
+  modo3DConfig?: Modo3DConfig;
   updatedAt: string;
 }
 
 const LOCAL_STORAGE_KEY = 'portfolio_data_cache_v2';
+
+export const DEFAULT_FLEET_SHIPS: NaveModel[] = [
+  {
+    id: 'xeno',
+    nombre: 'Caza Biomecánico Xeno-01',
+    tipo: 'xeno',
+    url: 'preset:xeno',
+    descripcion: 'Nave alienígena con fuselaje de quitina viva, alas mantis, anillo gravitón y bio-plasma.',
+    icono: '👾'
+  },
+  {
+    id: 'shuttle',
+    nombre: 'Transbordador Orbital Humano STS',
+    tipo: 'shuttle',
+    url: 'preset:shuttle',
+    descripcion: 'Aeronave espacial terrestre con alas delta, escudo térmico cerámico y triple propulsión química.',
+    icono: '🚀'
+  },
+  {
+    id: 'interceptor',
+    nombre: 'Interceptor Estelar Viper-IV',
+    tipo: 'interceptor',
+    url: 'preset:interceptor',
+    descripcion: 'Caza táctico de combate de alta maniobra con doble propulsión iónica y cañones de repetición.',
+    icono: '⚡'
+  }
+];
+
+export const DEFAULT_MODO3D_CONFIG: Modo3DConfig = {
+  tacticalObjectiveTitle: 'DEFENDER SECTOR ORBITAL',
+  combatActivatedMessage: '🎮 MODO COMBATE ACTIVADO · OLEADA 1 · ESCUDO INMORTAL',
+  freeModeActivatedMessage: '🕊️ MODO NAVEGACIÓN LIBRE ACTIVADO',
+  shieldImpactMessage: '🛡️ ESCUDO INMORTAL ABSORBE IMPACTO HOSTIL',
+  enemyDestroyedMessage: '💥 HOSTIL DERRIBADO!',
+  waveClearedMessage: '🚀 ¡OLEADA SUPERADA! NUEVA TANDA DE HOSTILES',
+  boundaryWarningMessage: '🚨 BARRERA DE SEGURIDAD DEL SECTOR · ESCUDO FRONTERIZO',
+  stationEncounterMessage: 'ESTACIÓN ALCANZADA',
+  lowHealthWarningMessage: '⚠️ ADVERTENCIA: INTEGRIDAD DE CASCO CRÍTICA',
+  combatStartMessage: '⚔️ ALERTA DE COMBATE · ENTRANDO EN ZONA HOSTIL',
+  gamePausedMessage: '⏸️ SIMULADOR EN PAUSA',
+  hostileTargetLockedMessage: '🎯 HOSTIL EN MIRA',
+  stationsConfig: {
+    'sobre-mi': {
+      sectionId: 'sobre-mi',
+      useCustomData: false,
+      nameOverride: 'Perfil',
+      subtitleOverride: 'Mendoza · Formación en Geotecnologías',
+      descriptionOverride: 'Desarrollo front-end, proyectos interactivos y formación en Geotecnologías en la Universidad Nacional de Cuyo.',
+      tagsOverride: ['UNCuyo', 'Frontend', 'Interactividad', 'Mendoza'],
+      ctaLabelOverride: 'Abrir Perfil Completo'
+    },
+    'habilidades': {
+      sectionId: 'habilidades',
+      useCustomData: false,
+      nameOverride: 'Tecnologías',
+      subtitleOverride: 'Interfaces web · Datos geográficos',
+      descriptionOverride: 'Herramientas para construir interfaces web, mapas interactivos y visualizaciones geográficas.',
+      tagsOverride: ['Canvas 2D', 'Angular', 'TypeScript', 'QGIS SIG'],
+      ctaLabelOverride: 'Ver Matriz de Habilidades'
+    },
+    'proyectos': {
+      sectionId: 'proyectos',
+      useCustomData: false,
+      nameOverride: 'Proyectos',
+      subtitleOverride: 'Aplicaciones y experimentos personales',
+      descriptionOverride: 'Aplicaciones web, cartografía y experimentos interactivos desarrollados a lo largo de mi formación.',
+      tagsOverride: ['Geovisor SIG', 'Cartografía web', 'CineApp', 'Proyectos'],
+      ctaLabelOverride: 'Explorar Proyectos'
+    },
+    'experiencia': {
+      sectionId: 'experiencia',
+      useCustomData: false,
+      nameOverride: 'Trayectoria',
+      subtitleOverride: 'Formación y trabajo colaborativo',
+      descriptionOverride: 'Experiencia práctica en equipos, desarrollo colaborativo y formación académica.',
+      tagsOverride: ['NoCountry', 'Agile / Scrum', 'Teamwork', 'UNCuyo'],
+      ctaLabelOverride: 'Ver Trayectoria'
+    },
+    'contacto': {
+      sectionId: 'contacto',
+      useCustomData: false,
+      nameOverride: 'Contacto',
+      subtitleOverride: 'Correo, GitHub y LinkedIn',
+      descriptionOverride: 'Canales directos para conversar sobre proyectos, desarrollo web o geotecnologías.',
+      tagsOverride: ['fedebarzola7@gmail.com', 'Mendoza', 'LinkedIn', 'GitHub'],
+      ctaLabelOverride: 'Enviar Mensaje'
+    }
+  }
+};
 
 const DEFAULT_PORTFOLIO: FullPortfolioData = {
   profile: {
@@ -120,7 +248,7 @@ const DEFAULT_PORTFOLIO: FullPortfolioData = {
       {
         titulo: 'Desarrollo web y proyectos personales',
         institucion: 'Formación continua y práctica independiente',
-        periodo: 'Aprendizaje aplicado',
+        periodo: 'Aprendizaje applied',
         descripcion: 'Práctica independiente en interfaces web, aplicaciones interactivas y visualizaciones con JavaScript y Canvas 2D.'
       }
     ]
@@ -224,16 +352,75 @@ const DEFAULT_PORTFOLIO: FullPortfolioData = {
       { nombre: 'LinkedIn', url: 'https://www.linkedin.com/in/federico-barzola-7138b3216/', iconoUrl: 'assets/icons/linkedin.png', iconoTexto: 'IN' }
     ]
   },
+  modelosNave: DEFAULT_FLEET_SHIPS,
+  modo3DConfig: DEFAULT_MODO3D_CONFIG,
   updatedAt: new Date().toISOString()
 };
+
+export function sanitizeModo3DConfig(config: any): Modo3DConfig {
+  const defaults = DEFAULT_MODO3D_CONFIG;
+  if (!config || typeof config !== 'object') return JSON.parse(JSON.stringify(defaults));
+
+  const stationsConfig: Record<string, StationCustomConfig> = {};
+  const stationKeys = ['sobre-mi', 'habilidades', 'proyectos', 'experiencia', 'contacto'];
+
+  stationKeys.forEach(key => {
+    const defaultSt = defaults.stationsConfig![key];
+    const userSt = config.stationsConfig && config.stationsConfig[key];
+    if (userSt) {
+      stationsConfig[key] = {
+        sectionId: key,
+        useCustomData: !!userSt.useCustomData,
+        nameOverride: userSt.nameOverride || defaultSt.nameOverride,
+        subtitleOverride: userSt.subtitleOverride || defaultSt.subtitleOverride,
+        descriptionOverride: userSt.descriptionOverride || defaultSt.descriptionOverride,
+        tagsOverride: Array.isArray(userSt.tagsOverride) ? userSt.tagsOverride : [...(defaultSt.tagsOverride || [])],
+        ctaLabelOverride: userSt.ctaLabelOverride || defaultSt.ctaLabelOverride
+      };
+    } else {
+      stationsConfig[key] = JSON.parse(JSON.stringify(defaultSt));
+    }
+  });
+
+  return {
+    tacticalObjectiveTitle: config.tacticalObjectiveTitle || defaults.tacticalObjectiveTitle,
+    combatActivatedMessage: config.combatActivatedMessage || defaults.combatActivatedMessage,
+    freeModeActivatedMessage: config.freeModeActivatedMessage || defaults.freeModeActivatedMessage,
+    shieldImpactMessage: config.shieldImpactMessage || defaults.shieldImpactMessage,
+    enemyDestroyedMessage: config.enemyDestroyedMessage || defaults.enemyDestroyedMessage,
+    waveClearedMessage: config.waveClearedMessage || defaults.waveClearedMessage,
+    boundaryWarningMessage: config.boundaryWarningMessage || defaults.boundaryWarningMessage,
+    stationEncounterMessage: config.stationEncounterMessage || defaults.stationEncounterMessage,
+    lowHealthWarningMessage: config.lowHealthWarningMessage || defaults.lowHealthWarningMessage,
+    combatStartMessage: config.combatStartMessage || defaults.combatStartMessage,
+    gamePausedMessage: config.gamePausedMessage || defaults.gamePausedMessage,
+    hostileTargetLockedMessage: config.hostileTargetLockedMessage || defaults.hostileTargetLockedMessage,
+    stationsConfig
+  };
+}
+
+function sanitizeFleet(list: any): NaveModel[] {
+  if (!Array.isArray(list) || list.length === 0) {
+    return DEFAULT_FLEET_SHIPS;
+  }
+  // Check if list only has the legacy empty-url ships
+  const hasOnlyLegacyEmpty = list.every((item: any) => !item.url || item.url === 'assets/models/ship.glb');
+  if (hasOnlyLegacyEmpty) {
+    return DEFAULT_FLEET_SHIPS;
+  }
+  // If list has some custom ships, ensure the presets are present plus any custom items
+  const customItems = list.filter((item: any) => item.url && !item.url.startsWith('preset:'));
+  return [...DEFAULT_FLEET_SHIPS, ...customItems];
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class PortfolioDataService {
   // Firebase initialization
-  private app = initializeApp(firebaseConfig);
+  public app = initializeApp(firebaseConfig);
   public db = getFirestore(this.app, firebaseConfig.firestoreDatabaseId);
+  public storage = getStorage(this.app);
 
   // Reactive state signals
   portfolioData = signal<FullPortfolioData>(DEFAULT_PORTFOLIO);
@@ -281,7 +468,9 @@ export class PortfolioDataService {
                 idiomas: (parsed.trayectoriaExtra && Array.isArray(parsed.trayectoriaExtra.idiomas))
                   ? parsed.trayectoriaExtra.idiomas
                   : DEFAULT_PORTFOLIO.trayectoriaExtra.idiomas
-              }
+              },
+              modelosNave: sanitizeFleet(parsed.modelosNave),
+              modo3DConfig: sanitizeModo3DConfig(parsed.modo3DConfig)
             });
           }
         }
@@ -336,7 +525,9 @@ export class PortfolioDataService {
               idiomas: (cloudData.trayectoriaExtra && Array.isArray(cloudData.trayectoriaExtra.idiomas))
                 ? cloudData.trayectoriaExtra.idiomas
                 : DEFAULT_PORTFOLIO.trayectoriaExtra.idiomas
-            }
+            },
+            modelosNave: sanitizeFleet(cloudData.modelosNave),
+            modo3DConfig: sanitizeModo3DConfig(cloudData.modo3DConfig)
           };
           this.portfolioData.set(merged);
           this.saveToLocalStorage(merged);
@@ -415,6 +606,40 @@ export class PortfolioDataService {
       console.error('Error writing to Firestore:', err);
       this.cloudStatus.set('error');
       this.statusMessage.set('Guardado localmente. Error de conexión con la nube.');
+    }
+  }
+
+  async uploadModel(file: File): Promise<string> {
+    this.cloudStatus.set('saving');
+    this.statusMessage.set('Procesando modelo 3D...');
+
+    // 1. Always ensure a 100% reliable local binary copy in IndexedDB
+    const safeKey = `ship_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    let idbUrl = '';
+    try {
+      idbUrl = await saveModelToDB(safeKey, file);
+    } catch (idbErr) {
+      console.warn('IndexedDB save warning:', idbErr);
+    }
+
+    // 2. Try Firebase Cloud Storage
+    try {
+      const storageRef = ref(this.storage, `models/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      this.cloudStatus.set('synced');
+      this.statusMessage.set('Modelo subido a la nube con éxito');
+      return downloadURL;
+    } catch (err) {
+      console.warn('Firebase Storage upload notice (using persistent local IndexedDB model):', err);
+      if (idbUrl) {
+        this.cloudStatus.set('synced');
+        this.statusMessage.set('Modelo guardado en almacenamiento local');
+        return idbUrl;
+      }
+      this.cloudStatus.set('error');
+      this.statusMessage.set('Error al procesar modelo.');
+      throw err;
     }
   }
 

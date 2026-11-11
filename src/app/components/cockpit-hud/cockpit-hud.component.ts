@@ -27,6 +27,8 @@ export class CockpitHUDComponent {
   @Input() headingDegrees = 0;
   @Input() pitchDegrees = 0;
   @Input() hullIntegrity = 100;
+  @Input() shipTypeTag = 'BIO-ESTRUCTURA QUINÍTICA';
+  @Input() hullLabel = 'INTEGRIDAD BIO-CORAZA';
   @Input() activeHostiles = 0;
   @Input() combatMessage = '';
   @Input() currentCameraMode: 'chase' | 'cockpit' | 'top' | 'cinematic' = 'chase';

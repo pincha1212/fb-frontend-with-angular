@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PortfolioDataService, FullPortfolioData, HitoItem, EstudioItem, HabilidadCat, ExperienciaItem, RedSocial } from '../../services/portfolio-data.service';
+import { PortfolioDataService, FullPortfolioData, HitoItem, EstudioItem, HabilidadCat, ExperienciaItem, RedSocial, DEFAULT_MODO3D_CONFIG, sanitizeModo3DConfig } from '../../services/portfolio-data.service';
 import { Proyecto } from '../proyectos/proyectos.component';
 
 @Component({
@@ -14,7 +14,7 @@ import { Proyecto } from '../proyectos/proyectos.component';
 export class PortfolioEditorModalComponent implements OnInit {
   portfolioService = inject(PortfolioDataService);
 
-  activeTab = signal<'perfil' | 'habilidades' | 'proyectos' | 'experiencia' | 'contacto'>('perfil');
+  activeTab = signal<'perfil' | 'habilidades' | 'proyectos' | 'experiencia' | 'contacto' | 'modo3d'>('perfil');
   isSaving = signal(false);
 
   // Editable local state copy
@@ -25,6 +25,16 @@ export class PortfolioEditorModalComponent implements OnInit {
   habilidadesItemsInputs: string[] = [];
   experienciaTechInputs: string[] = [];
   competenciasInput: string = '';
+  stationTagInputs: Record<string, string> = {};
+
+  readonly stationKeys = ['sobre-mi', 'habilidades', 'proyectos', 'experiencia', 'contacto'];
+  readonly stationLabels: Record<string, string> = {
+    'sobre-mi': 'Estación 01: Perfil (Sobre Mí)',
+    'habilidades': 'Estación 02: Tecnologías & Habilidades',
+    'proyectos': 'Estación 03: Proyectos',
+    'experiencia': 'Estación 04: Trayectoria & Experiencia',
+    'contacto': 'Estación 05: Contacto'
+  };
 
   ngOnInit(): void {
     this.resetFormFromCurrentState();
@@ -33,6 +43,12 @@ export class PortfolioEditorModalComponent implements OnInit {
   resetFormFromCurrentState(): void {
     const current = this.portfolioService.portfolioData();
     this.editableData = JSON.parse(JSON.stringify(current));
+
+    if (!this.editableData.modo3DConfig) {
+      this.editableData.modo3DConfig = JSON.parse(JSON.stringify(DEFAULT_MODO3D_CONFIG));
+    } else {
+      this.editableData.modo3DConfig = sanitizeModo3DConfig(this.editableData.modo3DConfig);
+    }
 
     // Ensure array safety
     if (!this.editableData.profile.hitos) this.editableData.profile.hitos = [];
@@ -44,10 +60,29 @@ export class PortfolioEditorModalComponent implements OnInit {
     this.habilidadesItemsInputs = (this.editableData.habilidades || []).map(h => (h.items || []).join(', '));
     this.experienciaTechInputs = (this.editableData.experiencia || []).map(e => (e.tecnologias || []).join(', '));
     this.competenciasInput = (this.editableData.profile.competencias || []).join(', ');
+
+    // Initialize 3D station tag inputs
+    const stConfig = this.editableData.modo3DConfig?.stationsConfig || {};
+    this.stationKeys.forEach(key => {
+      const st = stConfig[key];
+      if (st && st.tagsOverride) {
+        this.stationTagInputs[key] = st.tagsOverride.join(', ');
+      } else {
+        this.stationTagInputs[key] = '';
+      }
+    });
   }
 
-  setTab(tab: 'perfil' | 'habilidades' | 'proyectos' | 'experiencia' | 'contacto'): void {
+  setTab(tab: 'perfil' | 'habilidades' | 'proyectos' | 'experiencia' | 'contacto' | 'modo3d'): void {
     this.activeTab.set(tab);
+  }
+
+  updateStationTags(key: string, rawInput: string): void {
+    this.stationTagInputs[key] = rawInput;
+    const tags = rawInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+    if (this.editableData.modo3DConfig?.stationsConfig?.[key]) {
+      this.editableData.modo3DConfig.stationsConfig[key].tagsOverride = tags;
+    }
   }
 
   // --- 01. PERFIL & HISTOS & ESTUDIOS ---

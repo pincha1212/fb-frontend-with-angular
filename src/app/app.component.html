@@ -58,6 +58,8 @@
     </div>
   }
 
+  <app-hangar-modal (shipSelected)="onShipChosen($event)"></app-hangar-modal>
+
   <div class="space-backdrop" aria-hidden="true">
     <div class="backdrop-stars"></div>
     <div class="backdrop-singularity"></div>
@@ -69,7 +71,10 @@
     <div class="space-fullscreen-overlay" role="dialog" aria-modal="true" aria-label="Simulador de vuelo espacial">
       <app-space-playground
         (closePlayground)="closeSpaceMode()"
-        (navigateToSection)="closeSpaceMode()">
+        (navigateToSection)="closeSpaceMode()"
+        (openHangar)="openHangarFromPlayground()"
+        [modelUrl]="selectedModelUrl()"
+        [shipName]="selectedShipName()">
       </app-space-playground>
     </div>
   }

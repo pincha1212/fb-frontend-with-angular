@@ -403,6 +403,129 @@
   font-weight: bold;
 }
 
+/* Modo 3D Tab Highlight and Subsections */
+.tab-btn-highlight {
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.2), rgba(139, 92, 246, 0.25)) !important;
+  border-color: #00f5d4 !important;
+  color: #a7f3d0 !important;
+}
+
+.tab-btn-highlight.active {
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.4), rgba(139, 92, 246, 0.5)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(0, 245, 212, 0.5) !important;
+}
+
+.section-desc-text {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin-top: -0.25rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.45;
+}
+
+.sub-section-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(116, 217, 235, 0.2);
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.sub-section-box h5 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.03em;
+}
+
+.station-custom-card {
+  background: rgba(10, 15, 26, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 10px !important;
+  padding: 1rem !important;
+  margin-bottom: 1rem !important;
+  transition: border-color 0.2s ease;
+}
+
+.station-custom-card:hover {
+  border-color: rgba(0, 245, 212, 0.35) !important;
+}
+
+.station-card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.station-card-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.toggle-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #00f5d4;
+  user-select: none;
+}
+
+.toggle-checkbox-label input {
+  display: none;
+}
+
+.custom-toggle-box {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #00f5d4;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.toggle-checkbox-label input:checked + .custom-toggle-box {
+  background: #00f5d4;
+  box-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
+}
+
+.toggle-checkbox-label input:checked + .custom-toggle-box::after {
+  content: '✓';
+  position: absolute;
+  top: -1px;
+  left: 3px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #0a0f1a;
+}
+
+.inherit-info-banner {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #93c5fd;
+  line-height: 1.4;
+}
+
+.textarea-control {
+  resize: vertical;
+  min-height: 56px;
+  font-family: inherit;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
@@ -419,5 +542,9 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+  }
+  .station-card-top-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

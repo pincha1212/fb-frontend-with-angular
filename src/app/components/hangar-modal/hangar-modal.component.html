@@ -1,0 +1,82 @@
+<div *ngIf="isOpen()" class="modal-backdrop" (click)="close()">
+  <div class="hangar-window" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <header class="hangar-header">
+      <div class="hangar-title-box">
+        <span class="hangar-icon" aria-hidden="true">🚀</span>
+        <div>
+          <h3>HANGAR ESPACIAL · SELECCIÓN DE NAVE</h3>
+          <p class="subtitle">Elige tu nave preestablecida para tripular el simulador espacial 3D</p>
+        </div>
+      </div>
+      <button type="button" class="btn-close" (click)="close()" title="Cerrar Hangar">✕</button>
+    </header>
+
+    <!-- Body Content: Preset ships only -->
+    <main class="hangar-body">
+      <div class="view-intro">
+        <p>Selecciona una nave para equipar tus controles y despegar en el simulador:</p>
+      </div>
+
+      <div class="ships-grid">
+        <div *ngFor="let ship of presetShips" 
+             class="ship-card" 
+             [class.selected]="selectedModelUrl() === ship.url"
+             (click)="chooseShip(ship)">
+          
+          <div class="ship-card-icon" [attr.data-tipo]="ship.tipo">
+            <span>{{ ship.icono }}</span>
+          </div>
+
+          <div class="ship-card-info">
+            <div class="ship-card-title-row">
+              <h4>{{ ship.nombre }}</h4>
+              <span *ngIf="selectedModelUrl() === ship.url" class="active-badge">✓ EQUIPADA</span>
+            </div>
+            
+            <div class="ship-meta-row">
+              <span class="ship-badge" [ngClass]="'badge-' + ship.tipo">
+                {{ ship.badge }}
+              </span>
+              <span class="ship-class-text">{{ ship.clase }}</span>
+            </div>
+
+            <p class="ship-desc">{{ ship.descripcion }}</p>
+
+            <!-- Technical attributes -->
+            <div class="ship-specs-row">
+              <div class="spec-item">
+                <span class="spec-label">VELOCIDAD</span>
+                <div class="spec-bar-bg"><div class="spec-bar-fill vel" [style.width.%]="ship.velocidad"></div></div>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">MANIOBRA</span>
+                <div class="spec-bar-bg"><div class="spec-bar-fill man" [style.width.%]="ship.maniobrabilidad"></div></div>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">BLINDAJE</span>
+                <div class="spec-bar-bg"><div class="spec-bar-fill esc" [style.width.%]="ship.escudo"></div></div>
+              </div>
+            </div>
+
+            <div class="ship-propulsion-hint">
+              <span class="prop-label">PROPULSIÓN:</span>
+              <span class="prop-val">{{ ship.propulsion }}</span>
+            </div>
+          </div>
+
+          <div class="ship-action">
+            <button type="button" class="btn-launch" (click)="chooseShip(ship); $event.stopPropagation()">
+              {{ selectedModelUrl() === ship.url ? 'Despegar Ahora →' : 'Elegir y Despegar →' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Hangar Footer -->
+    <footer class="hangar-footer">
+      <button type="button" class="btn-cancel" (click)="close()">Cerrar</button>
+    </footer>
+  </div>
+</div>

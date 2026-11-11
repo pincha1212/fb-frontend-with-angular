@@ -1,4 +1,4 @@
-import { Component, HostListener, signal, inject } from '@angular/core';
+import { Component, HostListener, signal, inject, ViewChild } from '@angular/core';
 import { SpacePlaygroundComponent } from './components/space-playground/space-playground.component';
 import { SobreMiComponent } from './components/sobre-mi/sobre-mi.component';
 import { HabilidadesComponent } from './components/habilidades/habilidades.component';
@@ -6,6 +6,7 @@ import { ProyectosComponent } from './components/proyectos/proyectos.component';
 import { ExperienciaComponent } from './components/experiencia/experiencia.component';
 import { ContactoComponent } from './components/contacto/contacto.component';
 import { PortfolioEditorModalComponent } from './components/portfolio-editor-modal/portfolio-editor-modal.component';
+import { HangarModalComponent } from './components/hangar-modal/hangar-modal.component';
 import { PortfolioDataService } from './services/portfolio-data.service';
 
 @Component({
@@ -18,7 +19,8 @@ import { PortfolioDataService } from './services/portfolio-data.service';
     ProyectosComponent,
     ExperienciaComponent,
     ContactoComponent,
-    PortfolioEditorModalComponent
+    PortfolioEditorModalComponent,
+    HangarModalComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -27,6 +29,9 @@ export class AppComponent {
   portfolioService = inject(PortfolioDataService);
   isSpaceModeActive = signal(false);
   showMobilePcNotice = signal(false);
+  modelSelectionOpen = signal(false);
+  selectedModelUrl = signal<string>('preset:xeno');
+  selectedShipName = signal<string>('Caza Biomecánico Xeno-01');
   activeSectionIndex = signal(0);
   
   readonly sections = ['inicio', 'sobre-mi', 'habilidades', 'proyectos', 'experiencia', 'contacto'];
@@ -50,10 +55,26 @@ export class AppComponent {
     return !(isTouch || isNarrow);
   }
 
+  @ViewChild(HangarModalComponent) hangarModal?: HangarModalComponent;
+
   openSpaceMode(): void {
     if (!this.checkDeviceType()) {
       this.showMobilePcNotice.set(true);
       return;
+    }
+    this.hangarModal?.open(this.selectedModelUrl());
+  }
+
+  openHangarFromPlayground(): void {
+    this.hangarModal?.open(this.selectedModelUrl());
+  }
+
+  onShipChosen(event: { url: string; nombre?: string; tipo?: string } | string): void {
+    const url = typeof event === 'string' ? event : event.url;
+    const nombre = typeof event === 'string' ? '' : event.nombre;
+    this.selectedModelUrl.set(url || 'preset:xeno');
+    if (nombre) {
+      this.selectedShipName.set(nombre);
     }
     this.previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.isSpaceModeActive.set(true);

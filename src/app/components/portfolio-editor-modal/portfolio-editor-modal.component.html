@@ -24,6 +24,7 @@
       <button type="button" class="tab-btn" [class.active]="activeTab() === 'proyectos'" (click)="setTab('proyectos')">03. Proyectos</button>
       <button type="button" class="tab-btn" [class.active]="activeTab() === 'experiencia'" (click)="setTab('experiencia')">04. Trayectoria</button>
       <button type="button" class="tab-btn" [class.active]="activeTab() === 'contacto'" (click)="setTab('contacto')">05. Contacto</button>
+      <button type="button" class="tab-btn tab-btn-highlight" [class.active]="activeTab() === 'modo3d'" (click)="setTab('modo3d')">🚀 06. Modo 3D</button>
     </nav>
 
     <!-- Content Area -->
@@ -306,7 +307,115 @@
               <input type="text" [(ngModel)]="red.iconoTexto" class="input-control" placeholder="Ej: GH, IN, IG, YT, X">
             </div>
           </div>
-          <button type="button" class="btn-sm btn-danger mt-2" (click)="removeRedSocial(i)">Eliminar Red Social</button>
+        </div>
+      </section>
+
+      <!-- 06. MODO 3D & MENSAJES DE SIMULADOR -->
+      <section *ngIf="activeTab() === 'modo3d'" class="tab-pane">
+        <h4>🚀 Configuración y Personalización del Modo 3D</h4>
+        <p class="section-desc-text">
+          Personalizá los mensajes tácticos del simulador 3D y la información que muestra cada estación orbital / pop-up. Podés elegir si cada estación hereda automáticamente lo que escribiste en tu perfil, o redactar textos totalmente propios con tu tono personal.
+        </p>
+
+        <!-- Subsección A: Mensajes y Alertas del Simulador -->
+        <div class="sub-section-box">
+          <h5>💬 Mensajes Tácticos, Avisos y Alertas del Simulador</h5>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Título de Objetivo Táctico (Banner Superior)</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.tacticalObjectiveTitle" class="input-control" placeholder="Ej: DEFENDER SECTOR ORBITAL">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Modo Combate Activado</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.combatActivatedMessage" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Modo Libre Activado</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.freeModeActivatedMessage" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Impacto en Escudo Inmortal</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.shieldImpactMessage" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Enemigo Derribado</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.enemyDestroyedMessage" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Oleada Superada</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.waveClearedMessage" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Límite del Sector Espacial</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.boundaryWarningMessage" class="input-control">
+            </div>
+            <div class="form-group full-width">
+              <label>Mensaje: Encuentro / Aproximación a Estación</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.stationEncounterMessage" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Advertencia de Salud Baja</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.lowHealthWarningMessage" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Inicio de Combate</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.combatStartMessage" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Juego en Pausa</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.gamePausedMessage" class="input-control">
+            </div>
+            <div class="form-group">
+              <label>Mensaje: Objetivo Hostil Fijado</label>
+              <input type="text" [(ngModel)]="editableData.modo3DConfig!.hostileTargetLockedMessage" class="input-control">
+            </div>
+          </div>
+        </div>
+
+        <!-- Subsección B: Estaciones Orbitales & Pop-ups Customizables -->
+        <div class="sub-section-box mt-4">
+          <h5>🛰️ Configuración de Estaciones Orbitales (Pop-ups 3D)</h5>
+          <p class="section-desc-text">
+            Activá la casilla de personalización manual para editar individualmente el título, subtítulo, descripción, etiquetas y botón de cada estación.
+          </p>
+
+          <div *ngFor="let key of stationKeys" class="nested-card station-custom-card">
+            <div class="station-card-top-row">
+              <h5 class="station-card-title">{{ stationLabels[key] }}</h5>
+              <label class="toggle-checkbox-label">
+                <input type="checkbox" [(ngModel)]="editableData.modo3DConfig!.stationsConfig![key].useCustomData">
+                <span class="custom-toggle-box"></span>
+                <span>Personalizar texto de esta estación libremente</span>
+              </label>
+            </div>
+
+            <div *ngIf="!editableData.modo3DConfig!.stationsConfig![key].useCustomData" class="inherit-info-banner">
+              ✨ <strong>Heredando datos del portafolio:</strong> Esta estación utiliza automáticamente la información que configuraste en la pestaña correspondiente de tu portafolio.
+            </div>
+
+            <div *ngIf="editableData.modo3DConfig!.stationsConfig![key].useCustomData" class="form-grid mt-3">
+              <div class="form-group">
+                <label>Nombre de la Estación / Pop-up</label>
+                <input type="text" [(ngModel)]="editableData.modo3DConfig!.stationsConfig![key].nameOverride" class="input-control">
+              </div>
+              <div class="form-group">
+                <label>Subtítulo de la Estación</label>
+                <input type="text" [(ngModel)]="editableData.modo3DConfig!.stationsConfig![key].subtitleOverride" class="input-control">
+              </div>
+              <div class="form-group full-width">
+                <label>Descripción Breve del Pop-up</label>
+                <textarea rows="2" [(ngModel)]="editableData.modo3DConfig!.stationsConfig![key].descriptionOverride" class="input-control textarea-control"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Etiquetas (Separadas por comas)</label>
+                <input type="text" [ngModel]="stationTagInputs[key]" (ngModelChange)="updateStationTags(key, $event)" class="input-control" placeholder="Ej: UNCuyo, Frontend, Interactividad">
+              </div>
+              <div class="form-group">
+                <label>Texto del Botón Acción CTA</label>
+                <input type="text" [(ngModel)]="editableData.modo3DConfig!.stationsConfig![key].ctaLabelOverride" class="input-control" placeholder="Ej: Abrir Perfil Completo">
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </main>
