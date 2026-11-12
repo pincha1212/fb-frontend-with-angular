@@ -27,16 +27,39 @@
         },
         "updatedAt": {
           "type": "string",
-          "description": "Fecha de actualización"
+          "description": "Fecha de actualización ISO8601",
+          "maxLength": 64
         }
       },
       "required": ["updatedAt"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Administrador autorizado del portafolio",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Correo del administrador",
+          "maxLength": 128
+        },
+        "role": {
+          "type": "string",
+          "description": "Rol de acceso",
+          "maxLength": 32
+        }
+      },
+      "required": ["email"]
     }
   },
   "firestore": {
     "/portfolio/main": {
       "schema": "PortfolioData",
       "description": "Documento principal con la información editable del portafolio"
+    },
+    "/admins/{adminId}": {
+      "schema": "AdminUser",
+      "description": "Documentos de administradores autorizados"
     }
   }
 }

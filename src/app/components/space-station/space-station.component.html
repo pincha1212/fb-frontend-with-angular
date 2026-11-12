@@ -128,21 +128,14 @@
           <span class="st-category">{{ st.category }}</span>
         </div>
 
-        <!-- Quick Action Buttons On Card -->
+        <!-- Quick Action Button On Card -->
         <div class="station-hover-actions">
           <button 
             type="button" 
             class="card-action-btn btn-warp" 
             (click)="$event.stopPropagation(); initiateWarp(st)"
             [title]="'Fijar autopiloto y saltar a ' + st.name">
-            <span>🚀 SALTO</span>
-          </button>
-          <button 
-            type="button" 
-            class="card-action-btn btn-info" 
-            (click)="$event.stopPropagation(); openSection(st)"
-            [title]="'Abrir contenido de ' + st.name">
-            <span>📋 INFO</span>
+            <span>🚀 SALTO RÁPIDO</span>
           </button>
         </div>
       </div>
@@ -155,17 +148,28 @@
     <div class="dock-target-inspector">
       <div class="target-status-row">
         <span class="target-lock-badge">
-          <span class="lock-icon">⌖</span> TARGET LOCK: {{ activeStation().code }}
+          <span class="lock-icon">⌖</span> NODO SELECCIONADO: {{ activeStation().code }}
         </span>
         <span class="target-sector-tag">{{ activeStation().sector }}</span>
         <span class="target-coords">{{ activeStation().coordinates }}</span>
+        <span class="target-frequency">FREC: {{ activeStation().frequency }}</span>
+        <span class="target-state-pill" [style.border-color]="activeStation().color" [style.color]="activeStation().color">
+          ESTADO: {{ activeStation().status }}
+        </span>
       </div>
 
       <div class="target-info-row">
         <div class="target-main-data">
-          <h3 class="target-title" [style.color]="activeStation().color">
-            {{ activeStation().name }} <small>({{ activeStation().category }})</small>
-          </h3>
+          <div class="target-title-wrap">
+            <h3 class="target-title" [style.color]="activeStation().color">
+              {{ activeStation().name }} <small>({{ activeStation().category }})</small>
+            </h3>
+            <div class="target-tags-list">
+              @for (tag of activeStation().tags; track tag) {
+                <span class="dock-tag">{{ tag }}</span>
+              }
+            </div>
+          </div>
           <p class="target-desc">{{ activeStation().description }}</p>
         </div>
 
@@ -191,8 +195,8 @@
             [title]="'Abrir información completa de ' + activeStation().name">
             <span class="cta-icon">📋</span>
             <div class="cta-text-wrap">
-              <strong class="cta-primary-text">ABRIR REGISTRO</strong>
-              <small class="cta-sub-text">Ver archivo y detalles de sección</small>
+              <strong class="cta-primary-text">ABRIR REGISTRO COMPLETO</strong>
+              <small class="cta-sub-text">Ver contenido y detalles de sección</small>
             </div>
             <span class="cta-arrow">↗</span>
           </button>

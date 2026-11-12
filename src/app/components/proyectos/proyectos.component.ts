@@ -11,6 +11,10 @@ export interface Proyecto {
   demoUrl?: string;
   githubUrl?: string;
   destacado?: boolean;
+  categoria?: string;
+  desafioTecnico?: string;
+  solucionArquitectura?: string;
+  caracteristicasClave?: string[];
 }
 
 @Component({
@@ -25,6 +29,7 @@ export class ProyectosComponent implements OnInit {
 
   currentIndex = signal(0);
   itemsPerPage = signal(2);
+  selectedProject = signal<Proyecto | null>(null);
 
   get proyectos(): Proyecto[] {
     return this.portfolioService.proyectos();
@@ -56,6 +61,164 @@ export class ProyectosComponent implements OnInit {
   @HostListener('window:resize')
   onResize(): void {
     this.updateItemsPerPage();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    if (!this.selectedProject()) return;
+
+    if (event.key === 'Escape') {
+      this.closeProjectModal();
+      event.preventDefault();
+    } else if (event.key === 'ArrowRight') {
+      this.nextModalProject();
+      event.preventDefault();
+    } else if (event.key === 'ArrowLeft') {
+      this.prevModalProject();
+      event.preventDefault();
+    }
+  }
+
+  openProjectModal(proj: Proyecto): void {
+    this.selectedProject.set(proj);
+  }
+
+  closeProjectModal(): void {
+    this.selectedProject.set(null);
+  }
+
+  getModalProjectIndex(proj: Proyecto): number {
+    return this.proyectos.findIndex(p => p.titulo === proj.titulo);
+  }
+
+  nextModalProject(): void {
+    const curr = this.selectedProject();
+    if (!curr) return;
+    const idx = this.getModalProjectIndex(curr);
+    if (idx !== -1 && idx < this.proyectos.length - 1) {
+      this.selectedProject.set(this.proyectos[idx + 1]);
+    } else {
+      this.selectedProject.set(this.proyectos[0]);
+    }
+  }
+
+  prevModalProject(): void {
+    const curr = this.selectedProject();
+    if (!curr) return;
+    const idx = this.getModalProjectIndex(curr);
+    if (idx > 0) {
+      this.selectedProject.set(this.proyectos[idx - 1]);
+    } else {
+      this.selectedProject.set(this.proyectos[this.proyectos.length - 1]);
+    }
+  }
+
+  getProjectCategory(p: Proyecto): string {
+    if (p.categoria) return p.categoria;
+    const lower = (p.titulo + ' ' + p.descripcion).toLowerCase();
+    if (lower.includes('geovisor') || lower.includes('sig') || lower.includes('leaflet') || lower.includes('qgis')) {
+      return 'Geotecnologías & SIG / Cartografía Web';
+    }
+    if (lower.includes('juego') || lower.includes('canvas') || lower.includes('gods')) {
+      return 'Gráficos 2D & Game Dev';
+    }
+    if (lower.includes('weather') || lower.includes('cine') || lower.includes('pelis')) {
+      return 'Frontend & Consumo de APIs REST';
+    }
+    return 'Desarrollo Web Frontend';
+  }
+
+  getProjectDesafio(p: Proyecto): string {
+    if (p.desafioTecnico) return p.desafioTecnico;
+    const lower = (p.titulo + ' ' + p.descripcion).toLowerCase();
+    if (lower.includes('geovisor')) {
+      return 'Renderizar geometrías vectoriales de plazas e infraestructura territorial de Mendoza sobre capas base raster satelitales sin comprometer la fluidez en navegadores móviles y de escritorio.';
+    }
+    if (lower.includes('weather')) {
+      return 'Gestión eficiente de estados asíncronos de conexión, respuestas de geolocalización y parseo de condiciones climáticas extremas con interfaces reactivas.';
+    }
+    if (lower.includes('cine') || lower.includes('pelis')) {
+      return 'Búsqueda instantánea y paginación en tiempo real sobre miles de registros multimedia con filtrado por género y control de cuota de solicitudes API.';
+    }
+    if (lower.includes('calculator')) {
+      return 'Precisión en operaciones aritméticas de coma flotante en JavaScript, gestión de historial recuperable y soporte ergonómico para teclado físico.';
+    }
+    if (lower.includes('gods') || lower.includes('pong')) {
+      return 'Bucle de renderizado a 60 FPS estables con detección matemática de colisiones elásticas entre círculos y rectángulos en la API Canvas 2D.';
+    }
+    return 'Diseño de interfaz adaptativa con tipografía legible, accesibilidad y tiempos de carga instantáneos.';
+  }
+
+  getProjectSolucion(p: Proyecto): string {
+    if (p.solucionArquitectura) return p.solucionArquitectura;
+    const lower = (p.titulo + ' ' + p.descripcion).toLowerCase();
+    if (lower.includes('geovisor')) {
+      return 'Integración de Leaflet con capas GeoJSON procesadas en QGIS, selector multi-proveedor de teselas satelitales y herramientas interactivas de cálculo espacial de distancias y áreas.';
+    }
+    if (lower.includes('weather')) {
+      return 'Consumo modular de OpenWeatherMap API, desacoplamiento de componentes de visualización y paleta de colores reactiva al clima detectado.';
+    }
+    if (lower.includes('cine') || lower.includes('pelis')) {
+      return 'Debounce asíncrono para limitar peticiones de red, diseño inspirado en plataformas de streaming con carruseles horizontales y enlaces directos a trailers.';
+    }
+    if (lower.includes('calculator')) {
+      return 'Máquina de estados finitos que valida sintaxis matemática antes del cómputo y emite eventos visuales de pulsación con respuesta inmediata.';
+    }
+    if (lower.includes('gods') || lower.includes('pong')) {
+      return 'Motor de físicas en React y TypeScript montado sobre requestAnimationFrame con estados inmutables y efectos de partículas de chispas en impacto.';
+    }
+    return 'Arquitectura modular basada en estándares web modernos, separación de responsabilidades y estilos fluidos.';
+  }
+
+  getProjectFeatures(p: Proyecto): string[] {
+    if (p.caracteristicasClave && p.caracteristicasClave.length > 0) return p.caracteristicasClave;
+    const lower = (p.titulo + ' ' + p.descripcion).toLowerCase();
+    if (lower.includes('geovisor')) {
+      return [
+        'Visualización de espacios verdes y plazas del Gran Mendoza con datos tabulares SIG',
+        'Conmutación dinámica entre mapas base (satelital, callejero, relieve topográfico)',
+        'Herramientas interactivas de dibujo, medición de polígonos y cálculo de perímetros',
+        'Carga y superposición directa de archivos espaciales GeoJSON y KML',
+        'Totalmente adaptado para consultas de campo en tablets y laptops'
+      ];
+    }
+    if (lower.includes('weather')) {
+      return [
+        'Consulta meteorológica en tiempo real por búsqueda de ciudad o país',
+        'Métricas detalladas: sensación térmica, humedad relativa, viento y presión',
+        'Pronóstico extendido con íconos visuales de estado del cielo',
+        'Manejo amigable de errores de red o localidades inexistentes'
+      ];
+    }
+    if (lower.includes('cine') || lower.includes('pelis')) {
+      return [
+        'Catálogo de películas actualizado mediante API The Movie Database (TMDB)',
+        'Filtro instantáneo por géneros cinematográficos y títulos populares',
+        'Ficha detallada con sinopsis oficial, puntuación de audiencia y fecha de lanzamiento',
+        'Acceso directo a reproductores de avances y trailers en alta definición'
+      ];
+    }
+    if (lower.includes('calculator')) {
+      return [
+        'Operaciones aritméticas esenciales y funciones de porcentaje/inversión de signo',
+        'Historial cronológico de cálculos anteriores con opción de reusar valores',
+        'Soporte completo de navegación y tipeo con el teclado numérico de la PC',
+        'Diseño minimalista de alto contraste con respuesta visual instantánea'
+      ];
+    }
+    if (lower.includes('gods') || lower.includes('pong')) {
+      return [
+        'Modo arcade para 1 jugador contra IA reactiva o versus local de 2 jugadores',
+        'Selección de personajes mitológicos con velocidades y poderes únicos',
+        'Física elástica de pelota con aceleración y desvío según punto de impacto',
+        'Sistema de efectos visuales con chispas de Canvas 2D y marcador dinámico'
+      ];
+    }
+    return [
+      'Interfaz responsiva para dispositivos móviles, tablets y computadoras',
+      'Código fuente documentado y estructurado con buenas prácticas',
+      'Integración ágil de tecnologías frontend modernas'
+    ];
   }
 
   private updateItemsPerPage(): void {

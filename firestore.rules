@@ -2,20 +2,53 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Default catch-all
+    // Default-deny catch-all safety net
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Connection test document
-    match /test/connection {
-      allow read, write: if true;
+    // Helper functions for Attribute-Based Access Control (ABAC)
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Main portfolio document
-    match /portfolio/{docId} {
+    // Checks if the user is the authorized portfolio owner or provisioned admin
+    function isOwner() {
+      return isSignedIn() && (
+        request.auth.token.email == 'fedebarzola7@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Schema and boundary validation for portfolio document
+    function isValidPortfolio(data) {
+      return data.keys().hasAll(['profile', 'proyectos', 'habilidades', 'experiencia', 'contacto', 'updatedAt']) &&
+             data.profile is map &&
+             data.proyectos is list &&
+             data.habilidades is list &&
+             data.experiencia is list &&
+             data.contacto is map &&
+             data.updatedAt is string &&
+             data.updatedAt.size() <= 64;
+    }
+
+    // Connection ping document for initialization checks
+    match /test/connection {
       allow read: if true;
-      allow write: if true;
+      allow write: if false;
+    }
+
+    // Portfolio documents: Publicly readable for all visitors; writes restricted to verified owner
+    match /portfolio/{docId} {
+      allow get, list: if true;
+      allow write: if isOwner() && isValidPortfolio(request.resource.data);
+    }
+
+    // Admins registry: Read only for authenticated owners, write locked
+    match /admins/{adminId} {
+      allow get: if isOwner();
+      allow list: if isOwner();
+      allow write: if false;
     }
   }
 }

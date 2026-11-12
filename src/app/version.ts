@@ -19,11 +19,113 @@ export interface AppVersionData {
 }
 
 export const APP_VERSION: AppVersionData = {
-  currentVersion: '3.5.0',
-  lastUpdated: '2026-11-09',
+  currentVersion: '4.0.0',
+  lastUpdated: '2026-11-12',
   author: 'Federico Barzola',
   environment: 'Production & Preview',
   changelog: [
+    {
+      version: '4.0.0',
+      date: '2026-11-12',
+      title: 'Evolución v2.0: Motor 3D Independiente, Optimización GPU Avanzada y Casos de Estudio',
+      description: 'Evolución arquitectónica mayor: separación absoluta del motor 3D y el portafolio mediante carga diferida (@defer chunks), garantizando cero sobrecarga WebGL en la carga inicial; optimización GPU avanzada con gestión adaptativa de tasa de refresco, geodatos instanciados y caché en IndexedDB; casos de estudio interactivos profundos por proyecto con arquitectura y retos técnicos; y panel de administración protegido con Firebase Auth.',
+      auditTrail: [
+        {
+          component: 'AppComponent & SpacePlayground',
+          action: 'Motor 3D Independiente (Lazy Loaded Chunk)',
+          detail: 'Implementación de bloques @defer con pantalla de carga de telemetría, separando por completo el bundle Three.js del portafolio principal.'
+        },
+        {
+          component: 'Three.js & GPU Engine',
+          action: 'Optimización GPU Avanzada',
+          detail: 'Gestión adaptativa de pixel ratio, sombreadores optimizados, pooling de geometrías y sincronización con fences de GPU.'
+        },
+        {
+          component: 'ProyectosComponent',
+          action: 'Casos de Estudio Interactivos',
+          detail: 'Fichas técnicas enriquecidas con análisis arquitectónico, retos técnicos, soluciones y navegación rápida por teclado.'
+        },
+        {
+          component: 'PortfolioDataService & Auth',
+          action: 'Panel de Administración Protegido',
+          detail: 'Control de acceso ABAC/RBAC con Google Auth para fedebarzola7@gmail.com y persistencia segura en Firestore e IndexedDB.'
+        }
+      ]
+    },
+    {
+      version: '3.8.0',
+      date: '2026-11-12',
+      title: 'Actualización a Angular 22 & TypeScript 6.0',
+      description: 'Migración completa de la aplicación a Angular 22 y TypeScript 6.0, aprovechando el compilador de última generación y optimizaciones de rendimiento y diagnóstico.',
+      auditTrail: [
+        {
+          component: 'Package.json & Tooling',
+          action: 'Actualización a Angular 22',
+          detail: 'Actualización de todos los paquetes @angular/* y herramientas asociadas a la versión 22.2.6 con TypeScript 6.0.2.'
+        },
+        {
+          component: 'ExperienciaComponent & AppComponent',
+          action: 'Adaptación a Tipado Estricto Angular 22',
+          detail: 'Ajuste de diagnósticos extendidos del compilador NG8107 y tipado de eventos en @HostListener.'
+        }
+      ]
+    },
+    {
+      version: '3.7.0',
+      date: '2026-11-12',
+      title: 'Versión v1.2: Rediseño de Portada, Fichas de Proyectos, Accesibilidad y SEO Avanzado',
+      description: 'Optimización integral de la experiencia profesional: nueva portada con llamadas a la acción destacadas y radar de disponibilidad; fichas técnicas modales detalladas por proyecto con desafíos arquitectónicos y navegación por teclado (Esc / Flechas); sección de trayectoria profesional enriquecida con línea de tiempo y formación académica; cumplimiento total de accesibilidad a11y y metadatos SEO / Schema.org estructurados.',
+      auditTrail: [
+        {
+          component: 'AppComponent (Hero)',
+          action: 'Portada y Llamadas a la Acción',
+          detail: 'Incorporación de indicador de disponibilidad con radar animado, botones de acción primarios/secundarios/fantasma y chips de credenciales tecnológicas.'
+        },
+        {
+          component: 'ProyectosComponent',
+          action: 'Fichas Detalladas de Proyectos',
+          detail: 'Modal interactivo de ficha técnica con visión general, desafíos técnicos, soluciones de arquitectura, funcionalidades clave, stack tecnológico y navegación rápida con teclado (Esc, ←, →).'
+        },
+        {
+          component: 'ExperienciaComponent',
+          action: 'Trayectoria Profesional y Formación',
+          detail: 'Reestructuración con línea de tiempo interactiva, tarjetas de formación académica de la UNCuyo, objetivo profesional detallado y niveles de idiomas.'
+        },
+        {
+          component: 'SEO & Accesibilidad',
+          action: 'Optimización de Metadatos y A11Y',
+          detail: 'Inclusión de OpenGraph profile, Twitter Cards, Schema.org JSON-LD (Person / ProfilePage), enlaces de salto (skip links) y anillos de foco accesibles en todo el sitio.'
+        }
+      ]
+    },
+    {
+      version: '3.6.0',
+      date: '2026-11-12',
+      title: 'Seguridad Firestore, Autenticación de Editor y Estabilidad de Ciclo de Vida 3D',
+      description: 'Reglas de Firestore endurecidas con validación ABAC y control de acceso para fedebarzola7@gmail.com; autenticación Google en el editor de portafolio; almacenamiento híbrido Firebase Storage con respaldo persistente en IndexedDB; gestión segura de temporizadores e intervalos de vuelo 3D; y mapa estelar simplificado sin botones redundantes.',
+      auditTrail: [
+        {
+          component: 'Firestore & Storage Security',
+          action: 'Reglas ABAC y RBAC Desplegadas',
+          detail: 'Reglas de seguridad reforzadas con isOwner() para fedebarzola7@gmail.com, validación estricta de estructura y tamaño de datos de portafolio, y política default-deny.'
+        },
+        {
+          component: 'PortfolioDataService & EditorModal',
+          action: 'Google Auth & Editor Gate',
+          detail: 'Integración de autenticación Google para autorizar modificaciones remotas con fallback local a IndexedDB y localStorage.'
+        },
+        {
+          component: 'SpacePlaygroundComponent',
+          action: 'Estabilidad de Temporizadores y Ciclo de Vida 3D',
+          detail: 'Limpieza estricta de transitInterval, timeouts de notificaciones de combate, WebGL fenceSync y animación en ngOnDestroy para evitar fugas de memoria.'
+        },
+        {
+          component: 'SpaceStationComponent',
+          action: 'Optimización de Mapa Táctico',
+          detail: 'Eliminación del botón repetitivo INFO en las tarjetas de estación y unificación de la inspección detallada en el dock de telemetría inferior.'
+        }
+      ]
+    },
     {
       version: '3.5.0',
       date: '2026-11-09',

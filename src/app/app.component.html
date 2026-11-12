@@ -56,15 +56,25 @@
   </div>
 
   @if (isSpaceModeActive()) {
-    <div class="space-fullscreen-overlay" role="dialog" aria-modal="true" aria-label="Simulador de vuelo espacial">
-      <app-space-playground
-        (closePlayground)="closeSpaceMode()"
-        (navigateToSection)="closeSpaceMode()"
-        (openHangar)="openHangarFromPlayground()"
-        [modelUrl]="selectedModelUrl()"
-        [shipName]="selectedShipName()">
-      </app-space-playground>
-    </div>
+    @defer (on immediate) {
+      <div class="space-fullscreen-overlay" role="dialog" aria-modal="true" aria-label="Simulador de vuelo espacial">
+        <app-space-playground
+          (closePlayground)="closeSpaceMode()"
+          (navigateToSection)="closeSpaceMode()"
+          (openHangar)="openHangarFromPlayground()"
+          [modelUrl]="selectedModelUrl()"
+          [shipName]="selectedShipName()">
+        </app-space-playground>
+      </div>
+    } @placeholder {
+      <div class="space-loading-overlay" role="status" aria-label="Cargando motor 3D">
+        <div class="space-spinner-box">
+          <div class="spinner-core"></div>
+          <strong>INICIALIZANDO MOTOR 3D & TELEMETRÍA...</strong>
+          <small>Cargando dependencias WebGL y shaders de espacio profundo</small>
+        </div>
+      </div>
+    }
   }
 
   <header class="mission-header" [attr.inert]="isSpaceModeActive() ? '' : null">
@@ -93,12 +103,51 @@
   <div id="contenido" class="page-content" (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" [attr.inert]="isSpaceModeActive() ? '' : null">
     <section id="inicio" class="hero-section" aria-labelledby="hero-title">
       <div class="hero-copy">
+        <div class="hero-status-pill" role="status" aria-label="Disponibilidad actual">
+          <span class="status-radar-ping" aria-hidden="true"></span>
+          <span class="status-radar-core" aria-hidden="true"></span>
+          <span class="status-radar-text">DISPONIBLE · FRONT-END & SOLUCIONES SIG · MENDOZA, AR</span>
+        </div>
+
         <h1 id="hero-title">{{ portfolioService.profile().tituloHero || 'Soy Federico.' }}<br><span>{{ portfolioService.profile().bajadaHero || 'Desarrollo web y cartografía.' }}</span></h1>
+        
         <p class="hero-description">
           {{ portfolioService.profile().resumen }}
         </p>
 
+        <!-- Calls To Action (Portada) -->
+        <div class="hero-actions" role="group" aria-label="Acciones principales">
+          <a href="#proyectos" (click)="scrollToSection('proyectos', $event)" class="button-primary hero-btn-main" aria-label="Explorar proyectos destacados">
+            <span>Explorar Proyectos</span>
+            <span class="btn-arrow" aria-hidden="true">➜</span>
+          </a>
 
+          <button type="button" class="button-secondary hero-btn-flight" (click)="openSpaceMode()" aria-label="Iniciar experiencia de vuelo en simulador espacial 3D">
+            <span class="flight-button-indicator" aria-hidden="true"></span>
+            <span>Entrar a la Cabina 3D</span>
+          </button>
+
+          <a href="#contacto" (click)="scrollToSection('contacto', $event)" class="button-ghost hero-btn-contact" aria-label="Ir al formulario de contacto">
+            <span>Contactar</span>
+            <span class="btn-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+
+        <!-- Credential Chips -->
+        <div class="hero-credential-chips" aria-label="Especialidades clave">
+          <span class="cred-chip"><span class="chip-dot"></span>Angular 19+ & TypeScript</span>
+          <span class="cred-chip"><span class="chip-dot"></span>Geotecnologías & SIG (UNCuyo)</span>
+          <span class="cred-chip"><span class="chip-dot"></span>Leaflet & QGIS</span>
+          <span class="cred-chip"><span class="chip-dot"></span>Three.js & Canvas 2D</span>
+        </div>
+
+        <!-- Telemetry Footnote -->
+        <div class="hero-footnote">
+          <span class="location-mark" aria-hidden="true">📍</span>
+          <span>Mendoza, Argentina</span>
+          <span class="footnote-divider" aria-hidden="true"></span>
+          <span>Cartografía Web & Interfaces Interactivas</span>
+        </div>
       </div>
 
       <div class="hero-visual" role="img" aria-label="Vista desde la cabina de una nave sobre un planeta, con instrumentos de navegación">

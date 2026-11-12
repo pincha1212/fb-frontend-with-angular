@@ -1,1 +1,367 @@
-:host { display: block; }
+:host {
+  display: block;
+}
+
+.experiencia-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.exp-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.exp-header-row h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #edf0fa;
+}
+
+.exp-tag-pill {
+  font-family: Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #00f5d4;
+  background: rgba(0, 245, 212, 0.08);
+  border: 1px solid rgba(0, 245, 212, 0.3);
+  border-radius: 4px;
+  padding: 0.2rem 0.65rem;
+  letter-spacing: 0.08em;
+}
+
+.exp-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.85fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+/* Subheadings */
+.subheading-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.subheading-icon {
+  font-size: 1.1rem;
+}
+
+.subheading-row h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #71d8ec;
+  font-weight: 700;
+}
+
+.academic-subheading {
+  margin-top: 1.8rem;
+}
+
+/* Timeline */
+.timeline-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.timeline-node {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  background: linear-gradient(145deg, rgba(16, 26, 46, 0.8), rgba(7, 13, 25, 0.75));
+  border: 1px solid rgba(141, 199, 224, 0.2);
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+.timeline-node:hover,
+.timeline-node:focus-visible {
+  border-color: rgba(0, 245, 212, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 245, 212, 0.12);
+  transform: translateY(-2px);
+}
+
+.timeline-indicator {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.3rem;
+}
+
+.indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #00f5d4;
+  box-shadow: 0 0 10px #00f5d4;
+  flex-shrink: 0;
+}
+
+.indicator-line {
+  width: 2px;
+  flex: 1;
+  background: linear-gradient(180deg, rgba(0, 245, 212, 0.4), rgba(141, 199, 224, 0.08));
+  margin-top: 0.4rem;
+}
+
+.exp-content-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.exp-role-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.exp-puesto {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.exp-period-badge {
+  font-family: Consolas, monospace;
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 3px;
+  padding: 0.15rem 0.5rem;
+}
+
+.exp-empresa {
+  color: #93c5fd;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.exp-desc {
+  margin: 0;
+  color: #b7c5d5;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.tecnologias-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.tech-tag {
+  font-family: Consolas, monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #a6eff8;
+  background: rgba(116, 217, 235, 0.08);
+  border: 1px solid rgba(116, 217, 235, 0.25);
+  border-radius: 3px;
+  padding: 0.15rem 0.5rem;
+}
+
+/* Academic Formation Cards */
+.academic-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.academic-card {
+  padding: 1rem 1.15rem;
+  background: rgba(12, 20, 36, 0.7);
+  border: 1px solid rgba(141, 199, 224, 0.18);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.academic-card:hover {
+  border-color: rgba(113, 216, 236, 0.4);
+}
+
+.academic-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.3rem;
+}
+
+.academic-header h4 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #edf0fa;
+}
+
+.academic-period {
+  font-family: Consolas, monospace;
+  font-size: 0.64rem;
+  color: #94a3b8;
+}
+
+.academic-institution {
+  margin: 0 0 0.4rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.academic-desc {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+/* Sidebar Column */
+.exp-side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.objetivo-box,
+.languages-box {
+  padding: 1.25rem 1.35rem;
+  background: linear-gradient(145deg, rgba(16, 26, 46, 0.75), rgba(7, 13, 25, 0.7));
+  border: 1px solid rgba(141, 199, 224, 0.2);
+  border-radius: 10px;
+}
+
+.box-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.box-icon {
+  font-size: 1.05rem;
+}
+
+.box-title-row h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #71d8ec;
+}
+
+.objetivo-text {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.career-highlights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border-top: 1px solid rgba(141, 199, 224, 0.15);
+  padding-top: 0.85rem;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: #e2e8f0;
+  line-height: 1.45;
+}
+
+.highlight-bullet {
+  color: #00f5d4;
+  font-weight: bold;
+}
+
+/* Languages */
+.idiomas-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.idiomas-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(10, 17, 30, 0.85);
+  border: 1px solid rgba(141, 199, 224, 0.15);
+  border-radius: 6px;
+  transition: border-color 0.2s ease;
+}
+
+.idiomas-card:hover {
+  border-color: rgba(0, 245, 212, 0.35);
+}
+
+.idioma-code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  font-family: Consolas, monospace;
+  font-weight: 700;
+  font-size: 0.72rem;
+  color: #00f5d4;
+  background: rgba(0, 245, 212, 0.1);
+  border: 1px solid rgba(0, 245, 212, 0.3);
+  flex-shrink: 0;
+}
+
+.idioma-code.es-code {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.idioma-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.idioma-name {
+  font-size: 0.82rem;
+  color: #edf0fa;
+}
+
+.idioma-val {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .exp-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}

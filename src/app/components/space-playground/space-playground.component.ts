@@ -483,6 +483,8 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   private hullRegenCooldown = 0;
   private combatMissiles: Missile[] = [];
   private combatMessageTimeout: ReturnType<typeof setTimeout> | null = null;
+  private transitInterval: ReturnType<typeof setInterval> | null = null;
+  private messageTimeouts = new Set<ReturnType<typeof setTimeout>>();
   private cockpitOffset = new THREE.Vector3(0, 0.75, 1.6);
   private updateCockpitOffset(): void {
     const box = new THREE.Box3().setFromObject(this.shipGroup);
@@ -536,9 +538,20 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.isDestroyed = true;
-    if (this.combatMessageTimeout) clearTimeout(this.combatMessageTimeout);
+    if (this.transitInterval) {
+      clearInterval(this.transitInterval);
+      this.transitInterval = null;
+    }
+    this.messageTimeouts.forEach(t => clearTimeout(t));
+    this.messageTimeouts.clear();
+    if (this.combatMessageTimeout) {
+      clearTimeout(this.combatMessageTimeout);
+      this.combatMessageTimeout = null;
+    }
     if (this.animFrameId) {
       cancelAnimationFrame(this.animFrameId);
+      clearTimeout(this.animFrameId);
+      this.animFrameId = 0;
     }
     this.stopAudio();
     this.disposeThree();
@@ -2014,9 +2027,13 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
 
     const id = this.nextMessageId++;
     this.combatMessages.update(msgs => [...msgs, { id, text }]);
-    setTimeout(() => {
-      this.combatMessages.update(msgs => msgs.filter(m => m.id !== id));
+    const timerId = setTimeout(() => {
+      this.messageTimeouts.delete(timerId);
+      if (!this.isDestroyed) {
+        this.combatMessages.update(msgs => msgs.filter(m => m.id !== id));
+      }
     }, duration);
+    this.messageTimeouts.add(timerId);
   }
 
   firePlayerWeapons(): void {
@@ -2576,7 +2593,20 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
     let elapsed = 0;
     const duration = 1.45;
 
-    const transitInterval = setInterval(() => {
+    if (this.transitInterval) {
+      clearInterval(this.transitInterval);
+      this.transitInterval = null;
+    }
+
+    this.transitInterval = setInterval(() => {
+      if (this.isDestroyed) {
+        if (this.transitInterval) {
+          clearInterval(this.transitInterval);
+          this.transitInterval = null;
+        }
+        return;
+      }
+
       elapsed += 0.03;
       const progress = Math.min(1.0, elapsed / duration);
       const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
@@ -2589,7 +2619,10 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
       this.shipPitchRate = 0;
 
       if (progress >= 1.0) {
-        clearInterval(transitInterval);
+        if (this.transitInterval) {
+          clearInterval(this.transitInterval);
+          this.transitInterval = null;
+        }
         this.shipPosition.copy(target);
         this.shipSpeed = 0;
         this.shipRotationY = 0;
@@ -2750,15 +2783,24 @@ export class SpacePlaygroundComponent implements OnInit, OnDestroy {
   }
 
   private afterDraw(cb: () => void): void {
+    if (this.isDestroyed) return;
     const gl = this.renderer.getContext() as WebGL2RenderingContext;
     const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
     gl.flush();
     const poll = () => {
+      if (this.isDestroyed) {
+        if (sync) {
+          try { gl.deleteSync(sync); } catch {}
+        }
+        return;
+      }
       const state = sync && gl.getSyncParameter(sync, gl.SYNC_STATUS);
       if (state === gl.UNSIGNALED) {
         this.animFrameId = window.setTimeout(poll, 5);
       } else {
-        gl.deleteSync(sync);
+        if (sync) {
+          try { gl.deleteSync(sync); } catch {}
+        }
         this.animFrameId = window.setTimeout(cb, 60);
       }
     };

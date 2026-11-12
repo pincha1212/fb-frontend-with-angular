@@ -23,12 +23,12 @@
       <div class="carrusel-track" [style.transform]="trackTransform()">
         @for (proyecto of proyectos; track proyecto.titulo) {
           <article class="proyecto-card" [class.destacado-card]="proyecto.destacado">
-            <div class="proyecto-imagen-wrapper" [class.sin-captura]="!proyecto.imagen">
+            <div class="proyecto-imagen-wrapper" [class.sin-captura]="!proyecto.imagen" (click)="openProjectModal(proyecto)" role="button" tabindex="0" [attr.aria-label]="'Ver ficha técnica de ' + proyecto.titulo" (keydown.enter)="openProjectModal(proyecto)">
               @if (proyecto.destacado) {
                 <span class="destacado-badge">SELECCIÓN · SIG</span>
               }
               @if (proyecto.imagen) {
-                <img [src]="proyecto.imagen" [alt]="'Captura de ' + proyecto.titulo" [title]="proyecto.titulo" referrerpolicy="no-referrer" (error)="handleImageFallback($event, proyecto)" loading="lazy">
+                <img [src]="proyecto.imagen" [alt]="'Captura de ' + proyecto.titulo" [title]="proyecto.titulo" referrerpolicy="no-referrer" (error)="handleImageFallback($event, proyecto)" loading="lazy" decoding="async">
               } @else {
                 <div class="project-cover-note" aria-hidden="true">
                   <span>PROYECTO PERSONAL</span>
@@ -36,10 +36,14 @@
                   <i></i>
                 </div>
               }
+              <div class="hover-inspect-overlay" aria-hidden="true">
+                <span class="inspect-icon">🔍</span>
+                <span>VER FICHA TÉCNICA</span>
+              </div>
             </div>
 
             <div class="proyecto-info">
-              <h3 class="proyecto-titulo">{{ proyecto.titulo }}</h3>
+              <h3 class="proyecto-titulo" (click)="openProjectModal(proyecto)" role="button" tabindex="0" (keydown.enter)="openProjectModal(proyecto)">{{ proyecto.titulo }}</h3>
               @if (proyecto.subtitulo) {
                 <span class="proyecto-subtitulo">{{ proyecto.subtitulo }}</span>
               }
@@ -52,6 +56,9 @@
               </div>
 
               <div class="proyecto-actions">
+                <button type="button" class="btn-action btn-ficha" (click)="openProjectModal(proyecto)" [attr.aria-label]="'Abrir ficha técnica de ' + proyecto.titulo" title="Ver especificaciones y arquitectura">
+                  <span>Ficha técnica <span aria-hidden="true">ℹ</span></span>
+                </button>
                 @if (proyecto.demoUrl) {
                   <a [href]="proyecto.demoUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-demo" [attr.aria-label]="'Abrir demo de ' + proyecto.titulo">
                     <span>Ver demo <span aria-hidden="true">↗</span></span>
@@ -108,4 +115,120 @@
       </button>
     }
   </div>
+
+  <!-- Ficha Detallada de Proyecto (Modal Interactivo) -->
+  @if (selectedProject(); as modalProj) {
+    <div class="project-modal-backdrop" (click)="closeProjectModal()" role="dialog" aria-modal="true" [attr.aria-labelledby]="'modal-title-' + modalProj.titulo">
+      <div class="project-modal-card" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="modal-card-header">
+          <div class="modal-header-meta">
+            <span class="modal-category-badge">{{ getProjectCategory(modalProj) }}</span>
+            <h3 [id]="'modal-title-' + modalProj.titulo" class="modal-project-title">{{ modalProj.titulo }}</h3>
+            @if (modalProj.subtitulo) {
+              <span class="modal-project-subtitle">{{ modalProj.subtitulo }}</span>
+            }
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeProjectModal()" aria-label="Cerrar ficha de proyecto" title="Cerrar (Esc)">✕</button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-card-body">
+          <!-- Visual Preview -->
+          <div class="modal-preview-box">
+            @if (modalProj.imagen) {
+              <img [src]="modalProj.imagen" [alt]="'Captura de ' + modalProj.titulo" referrerpolicy="no-referrer" (error)="handleImageFallback($event, modalProj)" loading="lazy" decoding="async" class="modal-hero-img">
+            } @else {
+              <div class="modal-fallback-banner">
+                <span class="modal-fb-tag">FICHA TÉCNICA · REPOSITORIO</span>
+                <h4>{{ modalProj.titulo }}</h4>
+                <p>{{ modalProj.subtitulo || 'Proyecto Frontend & Cartografía' }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Technical Content Grid -->
+          <div class="modal-tech-grid">
+            <!-- Overview -->
+            <div class="modal-section-block">
+              <h4 class="modal-block-title">
+                <span class="modal-icon">🎯</span> Visión General & Propósito
+              </h4>
+              <p class="modal-block-desc">{{ modalProj.descripcion }}</p>
+            </div>
+
+            <!-- Technical Challenge -->
+            <div class="modal-section-block">
+              <h4 class="modal-block-title">
+                <span class="modal-icon">⚡</span> Desafío Técnico
+              </h4>
+              <p class="modal-block-desc">{{ getProjectDesafio(modalProj) }}</p>
+            </div>
+
+            <!-- Architectural Solution -->
+            <div class="modal-section-block">
+              <h4 class="modal-block-title">
+                <span class="modal-icon">🛠️</span> Solución & Arquitectura
+              </h4>
+              <p class="modal-block-desc">{{ getProjectSolucion(modalProj) }}</p>
+            </div>
+
+            <!-- Key Features -->
+            <div class="modal-section-block">
+              <h4 class="modal-block-title">
+                <span class="modal-icon">✨</span> Funcionalidades Clave
+              </h4>
+              <ul class="modal-features-list">
+                @for (feat of getProjectFeatures(modalProj); track feat) {
+                  <li><span class="feat-bullet">▹</span> {{ feat }}</li>
+                }
+              </ul>
+            </div>
+
+            <!-- Full Tech Stack -->
+            <div class="modal-section-block full-width">
+              <h4 class="modal-block-title">
+                <span class="modal-icon">🧩</span> Stack Tecnológico Implementado
+              </h4>
+              <div class="modal-tech-pills">
+                @for (t of modalProj.tecnologias; track t) {
+                  <span class="modal-tech-pill">{{ t }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer with Actions & Project Navigation -->
+        <div class="modal-card-footer">
+          <div class="modal-nav-controls">
+            <button type="button" class="btn-modal-nav" (click)="prevModalProject()" aria-label="Ver proyecto anterior" title="Anterior (←)">
+              <span aria-hidden="true">←</span> Anterior
+            </button>
+            <span class="modal-nav-counter">
+              {{ getModalProjectIndex(modalProj) + 1 }} de {{ proyectos.length }}
+            </span>
+            <button type="button" class="btn-modal-nav" (click)="nextModalProject()" aria-label="Ver proyecto siguiente" title="Siguiente (→)">
+              Siguiente <span aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <div class="modal-links-actions">
+            @if (modalProj.demoUrl) {
+              <a [href]="modalProj.demoUrl" target="_blank" rel="noopener noreferrer" class="btn-modal-link btn-modal-demo" [attr.aria-label]="'Abrir demo de ' + modalProj.titulo">
+                <span>Ver demo en vivo</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            }
+            @if (modalProj.githubUrl) {
+              <a [href]="modalProj.githubUrl" target="_blank" rel="noopener noreferrer" class="btn-modal-link btn-modal-code" [attr.aria-label]="'Ver código de ' + modalProj.titulo + ' en GitHub'">
+                <span>Código en GitHub</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </article>

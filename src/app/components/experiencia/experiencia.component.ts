@@ -19,4 +19,8 @@ export class ExperienciaComponent {
   get extraData() {
     return this.portfolioService.trayectoriaExtra();
   }
+
+  get estudiosList() {
+    return this.portfolioService.profile().estudios || [];
+  }
 }

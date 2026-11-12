@@ -17,6 +17,39 @@
       </div>
     </header>
 
+    <!-- Authentication Banner -->
+    <div class="auth-bar">
+      @if (portfolioService.currentUser(); as user) {
+        <div class="auth-status-box" [class.is-admin]="portfolioService.isAdmin()">
+          <span class="auth-dot" [class.admin-dot]="portfolioService.isAdmin()"></span>
+          <div class="auth-info">
+            <span class="auth-user-label">
+              {{ portfolioService.isAdmin() ? 'ADMINISTRADOR AUTORIZADO' : 'USUARIO AUTENTICADO' }}
+            </span>
+            <span class="auth-user-email">{{ user.email }}</span>
+          </div>
+          @if (!portfolioService.isAdmin()) {
+            <span class="auth-warning-badge">Solo lectura local (No es fedebarzola7&#64;gmail.com)</span>
+          }
+          <button type="button" class="btn-auth-action" (click)="handleLogout()">Cerrar Sesión</button>
+        </div>
+      } @else {
+        <div class="auth-status-box unauthenticated">
+          <span class="auth-lock-icon">🔒</span>
+          <div class="auth-info">
+            <span class="auth-user-label">ACCESO PÚBLICO / VISITANTE</span>
+            <span class="auth-user-email">Iniciá sesión como administrador para publicar cambios en Firestore</span>
+          </div>
+          @if (authError()) {
+            <span class="auth-error-badge">{{ authError() }}</span>
+          }
+          <button type="button" class="btn-google-login" (click)="handleLogin()" [disabled]="isLoggingIn()">
+            {{ isLoggingIn() ? 'Conectando...' : '🔑 Iniciar Sesión con Google' }}
+          </button>
+        </div>
+      }
+    </div>
+
     <!-- Navigation Tabs -->
     <nav class="editor-tabs" aria-label="Navegación de secciones del editor">
       <button type="button" class="tab-btn" [class.active]="activeTab() === 'perfil'" (click)="setTab('perfil')">01. Perfil & Hero</button>

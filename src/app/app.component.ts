@@ -163,7 +163,7 @@ export class AppComponent implements OnInit {
   }
 
   @HostListener('document:keydown.escape', ['$event'])
-  closeSpaceModeWithEscape(event?: KeyboardEvent): void {
+  closeSpaceModeWithEscape(event: any): void {
     if (event?.defaultPrevented) return;
     const hasOpenModal = document.querySelector(
       '.iron-man-hologram-backdrop, .station-modal-overlay, .unified-settings-overlay, .help-modal-overlay'

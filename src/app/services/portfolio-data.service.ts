@@ -2,9 +2,55 @@ import { Injectable, signal, computed } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc, getDocFromServer } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import firebaseConfig from '../../../firebase-applet-config.json';
 import { Proyecto } from '../components/proyectos/proyectos.component';
 import { saveModelToDB } from './model-storage';
+
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
+}
+
+function handleFirestoreError(auth: any, error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      providerInfo: auth.currentUser?.providerData?.map((p: any) => ({
+        providerId: p.providerId,
+        email: p.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  return errInfo;
+}
 
 export interface HitoItem {
   numero: string;
@@ -440,6 +486,15 @@ export class PortfolioDataService {
   public app = initializeApp(firebaseConfig);
   public db = getFirestore(this.app, firebaseConfig.firestoreDatabaseId);
   public storage = getStorage(this.app);
+  public auth = getAuth(this.app);
+
+  // Authentication signals
+  currentUser = signal<User | null>(null);
+  isAuthReady = signal(false);
+  isAdmin = computed(() => {
+    const u = this.currentUser();
+    return !!u && (u.email === 'fedebarzola7@gmail.com');
+  });
 
   // Reactive state signals
   portfolioData = signal<FullPortfolioData>(DEFAULT_PORTFOLIO);
@@ -457,8 +512,42 @@ export class PortfolioDataService {
   contacto = computed(() => this.portfolioData().contacto);
 
   constructor() {
+    this.initAuth();
     this.initDataFlow();
     this.setupShortcutListener();
+  }
+
+  private initAuth(): void {
+    onAuthStateChanged(this.auth, (user) => {
+      this.currentUser.set(user);
+      this.isAuthReady.set(true);
+      if (user && user.email === 'fedebarzola7@gmail.com') {
+        this.statusMessage.set('Sesión iniciada como administrador');
+      }
+    });
+  }
+
+  async loginWithGoogle(): Promise<User | null> {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+      const cred = await signInWithPopup(this.auth, provider);
+      this.currentUser.set(cred.user);
+      return cred.user;
+    } catch (err) {
+      console.error('Error al iniciar sesión con Google:', err);
+      throw err;
+    }
+  }
+
+  async logout(): Promise<void> {
+    try {
+      await signOut(this.auth);
+      this.currentUser.set(null);
+      this.statusMessage.set('Sesión cerrada');
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
+    }
   }
 
   private initDataFlow(): void {
@@ -612,19 +701,27 @@ export class PortfolioDataService {
     // 2. Save locally to localStorage (so repeat reloads do not need cloud fetch)
     this.saveToLocalStorage(updated);
 
-    // 3. Save to Cloud Firestore
+    // 3. Security check: Only authenticated admin can write to Firestore
+    if (!this.isAdmin()) {
+      this.cloudStatus.set('offline');
+      this.statusMessage.set('Guardado localmente. Iniciá sesión con la cuenta de administrador (fedebarzola7@gmail.com) para publicar en la nube.');
+      return;
+    }
+
+    // 4. Save to Cloud Firestore
     this.cloudStatus.set('saving');
     this.statusMessage.set('Guardando en la nube...');
 
+    const path = 'portfolio/main';
     try {
       const docRef = doc(this.db, 'portfolio', 'main');
       await setDoc(docRef, updated);
       this.cloudStatus.set('synced');
       this.statusMessage.set('Cambios guardados en la nube y localmente');
     } catch (err) {
-      console.error('Error writing to Firestore:', err);
+      handleFirestoreError(this.auth, err, OperationType.WRITE, path);
       this.cloudStatus.set('error');
-      this.statusMessage.set('Guardado localmente. Error de conexión con la nube.');
+      this.statusMessage.set('Guardado localmente. Error de permisos o conexión con la nube.');
     }
   }
 
@@ -641,25 +738,28 @@ export class PortfolioDataService {
       console.warn('IndexedDB save warning:', idbErr);
     }
 
-    // 2. Try Firebase Cloud Storage
-    try {
-      const storageRef = ref(this.storage, `models/${Date.now()}_${file.name}`);
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      this.cloudStatus.set('synced');
-      this.statusMessage.set('Modelo subido a la nube con éxito');
-      return downloadURL;
-    } catch (err) {
-      console.warn('Firebase Storage upload notice (using persistent local IndexedDB model):', err);
-      if (idbUrl) {
+    // 2. Try Firebase Cloud Storage if authenticated
+    if (this.currentUser()) {
+      try {
+        const storageRef = ref(this.storage, `models/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
         this.cloudStatus.set('synced');
-        this.statusMessage.set('Modelo guardado en almacenamiento local');
-        return idbUrl;
+        this.statusMessage.set('Modelo subido a la nube con éxito');
+        return downloadURL;
+      } catch (err) {
+        console.warn('Firebase Storage upload notice (using persistent local IndexedDB model):', err);
       }
-      this.cloudStatus.set('error');
-      this.statusMessage.set('Error al procesar modelo.');
-      throw err;
     }
+
+    if (idbUrl) {
+      this.cloudStatus.set('synced');
+      this.statusMessage.set('Modelo guardado en almacenamiento local persistente');
+      return idbUrl;
+    }
+    this.cloudStatus.set('error');
+    this.statusMessage.set('Error al procesar modelo.');
+    throw new Error('No se pudo procesar el archivo');
   }
 
   private saveToLocalStorage(data: FullPortfolioData): void {

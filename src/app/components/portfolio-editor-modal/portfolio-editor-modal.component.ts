@@ -16,6 +16,8 @@ export class PortfolioEditorModalComponent implements OnInit {
 
   activeTab = signal<'perfil' | 'habilidades' | 'proyectos' | 'experiencia' | 'contacto' | 'modo3d'>('perfil');
   isSaving = signal(false);
+  isLoggingIn = signal(false);
+  authError = signal('');
 
   // Editable local state copy
   editableData!: FullPortfolioData;
@@ -227,6 +229,22 @@ export class PortfolioEditorModalComponent implements OnInit {
       this.portfolioService.resetToDefaults();
       this.resetFormFromCurrentState();
     }
+  }
+
+  async handleLogin(): Promise<void> {
+    this.isLoggingIn.set(true);
+    this.authError.set('');
+    try {
+      await this.portfolioService.loginWithGoogle();
+    } catch (err: any) {
+      this.authError.set(err?.message || 'Error al iniciar sesión con Google');
+    } finally {
+      this.isLoggingIn.set(false);
+    }
+  }
+
+  async handleLogout(): Promise<void> {
+    await this.portfolioService.logout();
   }
 
   close(): void {

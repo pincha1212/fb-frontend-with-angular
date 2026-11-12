@@ -1,31 +1,124 @@
-<section class="experiencia-container card-base">
-  <h2>{{ extraData.tituloSeccion || 'Experiencia Complementaria & Formación' }}</h2>
+<section class="experiencia-container card-base" aria-labelledby="exp-main-title">
+  <div class="exp-header-row">
+    <h2 id="exp-main-title">{{ extraData.tituloSeccion || 'Experiencia & Trayectoria Profesional' }}</h2>
+    <span class="exp-tag-pill">2023 — ACTUALIDAD</span>
+  </div>
 
   <div class="exp-grid">
-    <div class="exp-cards">
-      <div *ngFor="let exp of experienciasList" class="exp-card">
-        <div class="exp-header">
-          <h3 class="exp-puesto">{{ exp.rol }}</h3>
-          <span class="exp-empresa">{{ exp.empresa }} · {{ exp.periodo }}</span>
-        </div>
-        <p class="exp-desc" style="color: #b6c6d7; font-size: 0.85rem; line-height: 1.6; margin-top: 0.6rem;">
-          {{ exp.descripcion }}
-        </p>
-        <div class="tecnologias" style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem;" *ngIf="exp.tecnologias?.length">
-          <span *ngFor="let t of exp.tecnologias" style="padding: 0.2rem 0.45rem; background: rgba(116, 217, 235, 0.1); border: 1px solid rgba(116, 217, 235, 0.25); border-radius: 3px; color: #a6eff8; font-size: 0.65rem; font-family: monospace;">{{ t }}</span>
-        </div>
+    <!-- Main Career & Experience Timeline -->
+    <div class="exp-main-column">
+      <div class="subheading-row">
+        <span class="subheading-icon">💼</span>
+        <h3>Experiencia Práctica & Proyectos</h3>
       </div>
+
+      <div class="timeline-container" role="feed" aria-label="Línea de tiempo de experiencia laboral y proyectos">
+        @for (exp of experienciasList; track exp.rol + exp.periodo) {
+          <article class="exp-card timeline-node" tabindex="0">
+            <div class="timeline-indicator" aria-hidden="true">
+              <span class="indicator-dot"></span>
+              <span class="indicator-line"></span>
+            </div>
+
+            <div class="exp-content-wrap">
+              <div class="exp-header">
+                <div class="exp-role-row">
+                  <h4 class="exp-puesto">{{ exp.rol }}</h4>
+                  <span class="exp-period-badge">{{ exp.periodo }}</span>
+                </div>
+                <span class="exp-empresa">
+                  <span class="empresa-mark">🏢</span> {{ exp.empresa }}
+                </span>
+              </div>
+
+              <p class="exp-desc">
+                {{ exp.descripcion }}
+              </p>
+
+              @if (exp.tecnologias && exp.tecnologias.length > 0) {
+                <div class="tecnologias-list" role="list" [attr.aria-label]="'Tecnologías utilizadas en ' + exp.rol">
+                  @for (t of exp.tecnologias; track t) {
+                    <span class="tech-tag" role="listitem">{{ t }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </div>
+
+      <!-- Academic Formation -->
+      @if (estudiosList.length > 0) {
+        <div class="subheading-row academic-subheading">
+          <span class="subheading-icon">🎓</span>
+          <h3>Formación Académica Especializada</h3>
+        </div>
+
+        <div class="academic-cards-list">
+          @for (est of estudiosList; track est.titulo) {
+            <div class="academic-card" tabindex="0">
+              <div class="academic-header">
+                <h4>{{ est.titulo }}</h4>
+                <span class="academic-period">{{ est.periodo }}</span>
+              </div>
+              <p class="academic-institution">🏛️ {{ est.institucion }}</p>
+              <p class="academic-desc">{{ est.descripcion }}</p>
+            </div>
+          }
+        </div>
+      }
     </div>
 
-    <div class="objetivo-box">
-      <h3>Objetivo profesional</h3>
-      <p class="objetivo-text">{{ extraData.objetivoProfesional }}</p>
-      
-      <div class="idiomas-card" aria-label="Nivel de Idioma" *ngFor="let idioma of extraData.idiomas">
-        <span class="idioma-code" aria-hidden="true">{{ idioma.codigo || 'EN' }}</span>
-        <strong class="idioma-name">{{ idioma.nombre }}</strong>
-        <span class="idioma-val">{{ idioma.nivel }}</span>
+    <!-- Sidebar Column: Professional Objective & Languages -->
+    <aside class="exp-side-column" aria-label="Objetivo profesional y competencias complementarias">
+      <div class="objetivo-box">
+        <div class="box-title-row">
+          <span class="box-icon">🎯</span>
+          <h3>Objetivo Profesional</h3>
+        </div>
+        <p class="objetivo-text">{{ extraData.objetivoProfesional }}</p>
+
+        <div class="career-highlights-list">
+          <div class="highlight-item">
+            <span class="highlight-bullet">✓</span>
+            <span>Desarrollo Front-end en <strong>Angular 19+</strong> y <strong>TypeScript</strong></span>
+          </div>
+          <div class="highlight-item">
+            <span class="highlight-bullet">✓</span>
+            <span>Soluciones cartográficas con <strong>Leaflet</strong>, <strong>QGIS</strong> y <strong>SIG</strong></span>
+          </div>
+          <div class="highlight-item">
+            <span class="highlight-bullet">✓</span>
+            <span>Trabajo en equipo colaborativo bajo <strong>Metodologías Ágiles Scrum</strong></span>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <!-- Languages -->
+      <div class="languages-box">
+        <div class="box-title-row">
+          <span class="box-icon">🌐</span>
+          <h3>Idiomas & Comunicación</h3>
+        </div>
+        <div class="idiomas-stack">
+          @for (idioma of extraData.idiomas; track idioma.nombre) {
+            <div class="idiomas-card" [attr.aria-label]="'Idioma ' + idioma.nombre + ': ' + idioma.nivel">
+              <span class="idioma-code" aria-hidden="true">{{ idioma.codigo || 'EN' }}</span>
+              <div class="idioma-info">
+                <strong class="idioma-name">{{ idioma.nombre }}</strong>
+                <span class="idioma-val">{{ idioma.nivel }}</span>
+              </div>
+            </div>
+          }
+          <div class="idiomas-card" aria-label="Idioma Español: Nativo">
+            <span class="idioma-code es-code" aria-hidden="true">ES</span>
+            <div class="idioma-info">
+              <strong class="idioma-name">Español</strong>
+              <span class="idioma-val">Nativo (Mendoza, Argentina)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
   </div>
 </section>
